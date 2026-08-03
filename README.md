@@ -23,6 +23,26 @@ npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
 ```
 
+## Continuous deployment
+
+Two GitHub Actions workflows run automatically:
+
+- **`.github/workflows/android.yml`** — on every push, builds the web
+  app and compiles it into a debug APK. Download it from the **Actions**
+  tab → the run → the `the-awakened-debug-apk` artifact.
+- **`.github/workflows/deploy-web.yml`** — on every push to the repo's
+  default branch, runs the tests, builds the web app, and publishes it
+  to GitHub Pages.
+
+**One-time setup required for Pages** (GitHub won't deploy until this is
+done — it can't be set from a workflow file): in the repo, go to
+**Settings → Pages → Build and deployment → Source**, and choose
+**GitHub Actions**. After that, every push to the default branch
+auto-deploys to `https://<owner>.github.io/<repo>/`. The Vite config
+(`vite.config.ts`) already sets the right base path for that URL when
+`GITHUB_PAGES=true` (only the Pages workflow sets it — local dev, the
+Android build, and `npm run build` on its own are unaffected).
+
 ## Building the Android app
 
 The game is wrapped as a native Android app with

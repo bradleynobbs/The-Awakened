@@ -23,6 +23,47 @@ npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
 ```
 
+## Building the Android app
+
+The game is wrapped as a native Android app with
+[Capacitor](https://capacitorjs.com/) — the web build runs inside a
+WebView, so the entire engine, UI, and 3D battlefield above are unchanged.
+The `android/` folder is a standard Gradle/Android Studio project; only
+the final compile step needs tooling this repo doesn't vendor (the
+Android SDK), so run that part wherever you already have Android Studio
+installed.
+
+**One-time setup on your machine:**
+
+1. Install [Android Studio](https://developer.android.com/studio) (it
+   bundles the Android SDK) or the standalone SDK command-line tools.
+2. Clone this repo and check out this branch, then `npm install`.
+
+**Build a debug APK:**
+
+```bash
+npm run android:sync   # builds the web app and copies it into android/
+cd android
+./gradlew assembleDebug
+```
+
+The APK lands at `android/app/build/outputs/apk/debug/app-debug.apk` —
+install it on a device/emulator with `adb install app-debug.apk`, or open
+the `android/` folder directly in Android Studio and hit Run.
+
+**Release build (for the Play Store):** you'll additionally need a
+signing keystore (`keytool -genkeypair -v -keystore release.keystore
+-alias the-awakened -keyalg RSA -keysize 2048 -validity 10000`, kept
+private and out of version control) wired up in
+`android/app/build.gradle`, then `./gradlew bundleRelease` to produce an
+`.aab` for Play Console. For an iOS build later, add the platform with
+`npx cap add ios` — no other changes needed, since Capacitor shares the
+same web build across both platforms.
+
+App id: `com.theawakened.game` · configured in `capacitor.config.ts`. If
+you rename it, re-run `npx cap sync` and update the `applicationId` /
+`namespace` in `android/app/build.gradle` to match.
+
 ## How to play
 
 1. **Hero Selection.** Player 1 picks exactly 3 of the 5 offered heroes

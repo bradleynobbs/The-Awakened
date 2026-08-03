@@ -171,3 +171,85 @@ player. Hand size 5, draw/discard/reshuffle as in section 1.3.
   state directly.
 - Ultimates, more elements, more heroes, and more Team-Ups are intentionally
   left out of this prototype per the brief.
+
+## 4. Online multiplayer (added when the game moved off local hotseat)
+
+Backend: [Supabase](https://supabase.com) (managed Postgres + Realtime),
+free tier. No account system — each device generates a random UUID on
+first load (`localStorage`) as a lightweight identity for pairing and
+presence only. Nothing sensitive is stored; this is not meant to survive
+a security review, only to make casual matches work.
+
+### 4.1 Matchmaking (public queue)
+
+Two tables:
+
+- `queue(player_id uuid primary key, status text, match_id uuid, created_at timestamptz)`
+- `matches(id uuid primary key, player1_id uuid, player2_id uuid, created_at timestamptz)`
+
+Pairing is a single Postgres function, `find_match(p_player_id uuid)`,
+called via RPC when a player taps **Find Match**:
+
+1. It looks for the oldest `queue` row with `status = 'waiting'` that
+   isn't the caller, locking it with `FOR UPDATE SKIP LOCKED` (safe under
+   concurrent calls — two callers can never claim the same waiting row).
+2. **Found one** → creates a `matches` row, marks that row `matched`, and
+   returns the new `match_id` directly to the caller. The caller becomes
+   **player2** (the row it claimed was already waiting, so that other
+   client becomes **player1** — see 4.2 for why this ordering matters).
+3. **Found none** → upserts the caller into `queue` as `waiting` and
+   returns nothing. That client then subscribes to Postgres changes on
+   its own `queue` row; when a later caller claims it in step 2, the
+   `UPDATE` fires and delivers the `match_id` to the waiting client.
+
+No Edge Function needed — `FOR UPDATE SKIP LOCKED` inside the RPC is
+what makes this race-safe without one.
+
+### 4.2 Keeping both clients in sync: full-state broadcast, not lockstep
+
+The engine is already pure (`MatchState in → MatchState + events out`),
+which suggested two possible sync strategies:
+
+- **Lockstep**: both clients run the engine themselves and only send the
+  *action* (e.g. "play card X at target Y") over the wire, replaying it
+  locally to reach the same state. Cheapest bandwidth, but fragile: both
+  clients must independently compute an *identical* initial `MatchState`
+  (same deck shuffle order per player), which means agreeing on a shared
+  RNG seed before the first card is even drawn, and it silently breaks
+  the moment the two clients' engine code ever diverges by a single bug.
+- **State broadcast** (what this prototype uses): whichever client's turn
+  it is calls the normal engine function locally (`playCard` /
+  `playTeamUp` / `endTurn`) exactly as the local hotseat build always
+  did, then broadcasts the *resulting full `MatchState`* over a Supabase
+  Realtime **Broadcast** channel scoped to the match
+  (`match:<match_id>`). The other client doesn't recompute anything — it
+  just replaces its local state with what arrived. Turns already
+  alternate one-at-a-time in this game, so there's never a case where
+  both clients try to advance state simultaneously.
+
+State broadcast was chosen because it's simpler and self-healing (every
+message is a complete snapshot, so there's no accumulating drift to
+debug) at the cost of a slightly larger message per action — a few KB of
+JSON, irrelevant for a turn-based card game.
+
+**Who creates the match:** the player who called `find_match` and got a
+`match_id` back immediately (i.e. found someone already waiting) is
+**player1**, matching the existing "Player 1 acts first" rule
+(DESIGN.md 1.5) without needing a coin flip. Once both clients confirm
+their hero selections over the channel, **player1's client** calls
+`createMatch` locally and broadcasts the resulting initial state;
+player2's client adopts it as-is rather than calling `createMatch`
+itself, sidestepping any RNG-seed-agreement problem entirely.
+
+### 4.3 Turn enforcement and disconnects (deliberately simple)
+
+- Whether a client's UI is interactive is decided purely by
+  `state.activePlayerId === myPlayerId`, checked client-side only. There
+  is no server-side validation of moves. This is a casual hobby
+  prototype, not a competitive-integrity product — acceptable for now,
+  flagged here so it isn't mistaken for an oversight later.
+- Presence (via the same Realtime channel) shows when the opponent's
+  client is connected. If it drops, the UI shows "Opponent
+  disconnected" with a button to leave the match. There is no
+  reconnect/resume — leaving forfeits. Full reconnection support is
+  out of scope for this pass.

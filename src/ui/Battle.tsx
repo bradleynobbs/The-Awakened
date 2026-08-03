@@ -6,47 +6,52 @@ import { Battlefield } from "../scene/Battlefield";
 import { useEventQueue } from "../scene/useEventQueue";
 import { CardHand } from "./CardHand";
 import { CombatLog } from "./CombatLog";
-import { HUD } from "./HUD";
+import { LatestEventToast } from "./LatestEventToast";
 import { TeamUpBar } from "./TeamUpBar";
+import { TopBar } from "./TopBar";
 
 interface BattleProps {
   state: MatchState;
+  myRole: PlayerId;
   pendingEvents: MatchState["log"];
   error: string | null;
   onClearError: () => void;
-  onPlayCard: (playerId: PlayerId, cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
-  onPlayTeamUp: (playerId: PlayerId, teamUpId: string) => void;
-  onEndTurn: (playerId: PlayerId) => void;
+  onPlayCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
+  onPlayTeamUp: (teamUpId: string) => void;
+  onEndTurn: () => void;
+  onLeave: () => void;
 }
 
 export function Battle({
   state,
+  myRole,
   pendingEvents,
   error,
   onClearError,
   onPlayCard,
   onPlayTeamUp,
   onEndTurn,
+  onLeave,
 }: BattleProps) {
   const [armedCardId, setArmedCardId] = useState<CardInstanceId | null>(null);
   const [pendingTargets, setPendingTargets] = useState<TargetSelection>({});
+  const [logOpen, setLogOpen] = useState(false);
   const activeEvent = useEventQueue(pendingEvents);
-  const activePlayer = state.activePlayerId;
+  const isMyTurn = state.activePlayerId === myRole;
 
   const armedCardDef = armedCardId
-    ? getCardDefinition(state.players[activePlayer].cardsById[armedCardId].cardId)
+    ? getCardDefinition(state.players[myRole].cardsById[armedCardId].cardId)
     : null;
 
   const targeting = useMemo(() => {
-    if (!armedCardDef) return { playerId: null as PlayerId | null, heroIds: [] as HeroInstanceId[] };
-    const targetPlayerId =
-      armedCardDef.targetType === "singleAlly" ? activePlayer : otherPlayer(activePlayer);
+    if (!armedCardDef || !isMyTurn) return { playerId: null as PlayerId | null, heroIds: [] as HeroInstanceId[] };
+    const targetPlayerId = armedCardDef.targetType === "singleAlly" ? myRole : otherPlayer(myRole);
     let heroIds = livingHeroes(state, targetPlayerId).map((h) => h.instanceId);
     if (armedCardDef.targetType === "twoEnemies" && pendingTargets.primaryTargetId) {
       heroIds = heroIds.filter((id) => id !== pendingTargets.primaryTargetId);
     }
     return { playerId: targetPlayerId, heroIds };
-  }, [armedCardDef, activePlayer, state, pendingTargets]);
+  }, [armedCardDef, isMyTurn, myRole, state, pendingTargets]);
 
   const resetTargeting = () => {
     setArmedCardId(null);
@@ -54,10 +59,11 @@ export function Battle({
   };
 
   const handleCardClick = (cardInstanceId: CardInstanceId) => {
-    const instance = state.players[activePlayer].cardsById[cardInstanceId];
+    if (!isMyTurn) return;
+    const instance = state.players[myRole].cardsById[cardInstanceId];
     const cardDef = getCardDefinition(instance.cardId);
     if (cardDef.targetType === "allEnemies") {
-      onPlayCard(activePlayer, cardInstanceId, {});
+      onPlayCard(cardInstanceId, {});
       return;
     }
     setArmedCardId(cardInstanceId);
@@ -71,13 +77,13 @@ export function Battle({
       if (!pendingTargets.primaryTargetId) {
         const remaining = targeting.heroIds.filter((id) => id !== heroInstanceId);
         if (remaining.length === 0) {
-          onPlayCard(activePlayer, armedCardId, { primaryTargetId: heroInstanceId });
+          onPlayCard(armedCardId, { primaryTargetId: heroInstanceId });
           resetTargeting();
         } else {
           setPendingTargets({ primaryTargetId: heroInstanceId });
         }
       } else {
-        onPlayCard(activePlayer, armedCardId, {
+        onPlayCard(armedCardId, {
           primaryTargetId: pendingTargets.primaryTargetId,
           secondaryTargetId: heroInstanceId,
         });
@@ -86,7 +92,7 @@ export function Battle({
       return;
     }
 
-    onPlayCard(activePlayer, armedCardId, { primaryTargetId: heroInstanceId });
+    onPlayCard(armedCardId, { primaryTargetId: heroInstanceId });
     resetTargeting();
   };
 
@@ -94,14 +100,12 @@ export function Battle({
 
   return (
     <div className="battle-screen">
-      <HUD
+      <TopBar
         state={state}
-        onEndTurn={() => {
-          resetTargeting();
-          onEndTurn(activePlayer);
-        }}
-        onCancelTargeting={resetTargeting}
-        isTargeting={Boolean(armedCardId)}
+        myRole={myRole}
+        isMyTurn={isMyTurn}
+        onLeave={onLeave}
+        onToggleLog={() => setLogOpen(true)}
       />
 
       {error && (
@@ -113,17 +117,43 @@ export function Battle({
       <div className="battle-main">
         <Battlefield
           state={state}
+          myRole={myRole}
           activeEvent={activeEvent}
           targetablePlayerId={targeting.playerId}
           targetableHeroIds={targeting.heroIds}
           selectedTargetIds={selectedTargetIds}
           onSelectTarget={handleSelectTarget}
         />
-        <CombatLog state={state} />
+        <LatestEventToast state={state} myRole={myRole} />
       </div>
 
-      <TeamUpBar state={state} playerId={activePlayer} onPlay={(id) => onPlayTeamUp(activePlayer, id)} />
-      <CardHand state={state} playerId={activePlayer} armedCardId={armedCardId} onCardClick={handleCardClick} />
+      <CombatLog state={state} myRole={myRole} open={logOpen} onClose={() => setLogOpen(false)} />
+
+      <TeamUpBar state={state} playerId={myRole} isMyTurn={isMyTurn} onPlay={onPlayTeamUp} />
+
+      <div className="hand-tray">
+        <CardHand
+          state={state}
+          playerId={myRole}
+          isMyTurn={isMyTurn}
+          armedCardId={armedCardId}
+          onCardClick={handleCardClick}
+        />
+        {isMyTurn && (
+          <button
+            className={`end-turn-fab${armedCardId ? " cancel" : ""}`}
+            onClick={() => {
+              if (armedCardId) {
+                resetTargeting();
+              } else {
+                onEndTurn();
+              }
+            }}
+          >
+            {armedCardId ? "Cancel" : "End Turn"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

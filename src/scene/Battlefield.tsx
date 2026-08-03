@@ -6,6 +6,8 @@ import { HeroModel, type AnimCue } from "./HeroModel";
 
 interface BattlefieldProps {
   state: MatchState;
+  /** Whichever team should render nearest the camera — always "you", online. */
+  myRole: PlayerId;
   activeEvent: GameEvent | null;
   targetablePlayerId: PlayerId | null;
   targetableHeroIds: HeroInstanceId[];
@@ -13,9 +15,10 @@ interface BattlefieldProps {
   onSelectTarget: (heroId: HeroInstanceId) => void;
 }
 
-const TEAM_Z: Record<PlayerId, number> = { player1: 3.2, player2: -3.2 };
-const FACING: Record<PlayerId, 1 | -1> = { player1: 1, player2: -1 };
-const X_SLOTS = [-2.6, 0, 2.6];
+// Kept tight so all 3 heroes per side stay on-screen on narrow/portrait
+// (phone) viewports, where the horizontal field of view is much smaller
+// than on a wide desktop window.
+const X_SLOTS = [-1.5, 0, 1.5];
 
 function cuesForEvent(event: GameEvent | null): Record<HeroInstanceId, AnimCue> {
   const cues: Record<HeroInstanceId, AnimCue> = {};
@@ -67,6 +70,7 @@ function CameraRig({ focusX }: { focusX: number | null }) {
 
 export function Battlefield({
   state,
+  myRole,
   activeEvent,
   targetablePlayerId,
   targetableHeroIds,
@@ -75,9 +79,12 @@ export function Battlefield({
 }: BattlefieldProps) {
   const cues = useMemo(() => cuesForEvent(activeEvent), [activeEvent]);
   const focusX = useMemo(() => focusXForEvent(state, activeEvent), [state, activeEvent]);
+  const opponentRole: PlayerId = myRole === "player1" ? "player2" : "player1";
+  const teamZ: Record<PlayerId, number> = { [myRole]: 2.4, [opponentRole]: -2.8 } as Record<PlayerId, number>;
+  const facing: Record<PlayerId, 1 | -1> = { [myRole]: 1, [opponentRole]: -1 } as Record<PlayerId, 1 | -1>;
 
   return (
-    <Canvas shadows camera={{ position: [0, 5.5, 9.5], fov: 42 }}>
+    <Canvas shadows camera={{ position: [0, 6.2, 10.5], fov: 50 }}>
       <Suspense fallback={null}>
         <color attach="background" args={["#0c0f16"]} />
         <ambientLight intensity={0.6} />
@@ -93,8 +100,8 @@ export function Battlefield({
             <HeroModel
               key={hero.instanceId}
               hero={hero}
-              position={[X_SLOTS[index], 0, TEAM_Z[playerId]]}
-              facing={FACING[playerId]}
+              position={[X_SLOTS[index], 0, teamZ[playerId]]}
+              facing={facing[playerId]}
               cue={cues[hero.instanceId] ?? null}
               isTargetable={
                 targetablePlayerId === playerId && targetableHeroIds.includes(hero.instanceId)

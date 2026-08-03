@@ -1,16 +1,17 @@
 # The Awakened
 
-A browser-based prototype for an original 1v1 tactical card battler,
-presented as a cinematic 3D battlefield in the style of *Slay the Spire*
-meets team-based PvP. Two players each lock in a 3-hero team and fight it
-out with a shared action deck, deterministic damage, and elemental status
-interactions. No random damage, no crits, no accuracy rolls — every
-outcome is predictable and shown in the interface.
+A mobile-first, online 1v1 tactical card battler, presented as a
+cinematic 3D battlefield in the style of *Slay the Spire* meets
+team-based PvP. Two players each lock in a 3-hero team and fight it out
+over the network with a shared action deck, deterministic damage, and
+elemental status interactions. No random damage, no crits, no accuracy
+rolls — every outcome is predictable and shown in the interface.
 
 See [`DESIGN.md`](./DESIGN.md) for the full list of rule decisions made
-while turning the original design brief into a buildable prototype
-(turn structure, deck size, status durations, targeting edge cases,
-Team-Up resolution order, and the balance numbers for every card).
+while turning the original design brief into a buildable prototype (turn
+structure, deck size, status durations, targeting edge cases, Team-Up
+resolution order, balance numbers for every card, and the online
+matchmaking/sync design in section 4).
 
 ## Running it
 
@@ -22,6 +23,34 @@ npm run typecheck  # tsc project build, no emit
 npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
 ```
+
+## Online multiplayer setup (required to actually play)
+
+The app needs a [Supabase](https://supabase.com) project for
+matchmaking and move sync — see `DESIGN.md` §4 for how it works
+(public queue + full-state broadcast over Realtime, no lockstep, no
+accounts). One-time setup:
+
+1. Create a free project at supabase.com.
+2. In **SQL Editor**, paste and run [`supabase/schema.sql`](./supabase/schema.sql).
+   It creates the matchmaking tables/function and enables Realtime on
+   them — safe to re-run, it's idempotent.
+3. In **Project Settings → API**, copy the **Project URL** and **anon
+   public** key (the anon key is meant to be used client-side; it's not
+   a secret admin key).
+4. Copy `.env.example` to `.env` and fill in those two values:
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-public-key
+   ```
+5. For the GitHub Actions builds (Pages + Android) to include real
+   multiplayer instead of the "not configured" screen, add the same two
+   values as **repository secrets** (`Settings → Secrets and variables →
+   Actions`) named `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Both
+   workflows already read them — nothing else to wire up.
+
+Without this, the app still runs and shows the main menu, but **Find
+Match** stays disabled with an explanatory message — nothing crashes.
 
 ## Continuous deployment
 
@@ -94,28 +123,32 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 
 ## How to play
 
-1. **Hero Selection.** Player 1 picks exactly 3 of the 5 offered heroes
-   and locks them in; the device is then passed to Player 2, who does the
-   same without seeing Player 1's picks. Both teams are revealed together.
-   Once locked, a team cannot change for the rest of the match.
-2. **Battle.** Turns alternate between players. On your turn you get 3
-   energy and a fresh hand of 5 cards drawn from your personal deck (built
-   from your 3 heroes' Attack + Ability cards, 3 copies of each).
-   - Click a card in your hand to arm it, then click a highlighted hero on
-     the battlefield to target it. Cards that hit all enemies (like Flame
-     Wave) resolve immediately with no target click needed.
+1. **Find Match.** Tap **Find Match** on the main menu. You're paired
+   with the next other player who's also looking (public queue — see
+   `DESIGN.md` §4.1).
+2. **Hero Selection.** Pick exactly 3 of your 5 offered heroes and lock
+   in. You see only your own picks; once both players have locked in,
+   both teams' full rosters become visible on the battlefield. A locked
+   team cannot change for the rest of the match.
+3. **Battle.** Turns alternate. On your turn you get 3 energy and a
+   fresh hand of 5 cards drawn from your personal deck (built from your
+   3 heroes' Attack + Ability cards, 3 copies of each).
+   - Tap a card in your hand to arm it, then tap a highlighted hero on
+     the battlefield to target it. Cards that hit all enemies (like
+     Flame Wave) resolve immediately with no target tap needed.
    - Unused energy does not carry over — spend it or lose it.
-   - Click **End Turn** to pass to your opponent.
-3. **Team-Ups.** Once both of a Team-Up's required heroes are alive and on
-   your roster, its card appears above your hand, ready to play for 3
-   energy. Each Team-Up can only be used once per match, and disappears
-   permanently if either required hero is defeated.
-4. **Victory.** Defeat all 3 of your opponent's heroes. The match stops
+   - Tap **End Turn** to pass to your opponent.
+4. **Team-Ups.** Once both of a Team-Up's required heroes are alive and
+   on your roster, its pill appears above your hand — tap it to expand
+   and play it for 3 energy. Each Team-Up can only be used once per
+   match, and disappears permanently if either required hero is
+   defeated.
+5. **Victory.** Defeat all 3 of your opponent's heroes. The match stops
    accepting actions immediately once a winner is decided.
 
-Use the **Debug** button in the header to inspect the raw match state at
-any time, and **Restart Match** to abandon the current game and return to
-hero selection.
+The 📜 icon opens the full battle log; the latest event also shows as a
+small banner on the battlefield. The 🐞 icon (bottom-right, low-key on
+purpose) opens a raw state inspector for debugging.
 
 ## The 5 heroes (prototype names — easy to reskin later)
 
@@ -148,14 +181,15 @@ hero's health plate (🔥 Burn ticks remaining, 💧 Wet, 🛡 Shield amount).
 ## Architecture
 
 The rules engine (`src/engine/`) is plain TypeScript with no dependency on
-React or Three.js — every action is a pure function that takes a
-`MatchState` and returns a new `MatchState` plus an ordered `GameEvent[]`
-list. The UI never mutates game state directly; it only calls engine
-functions and renders whatever comes back.
+React, Three.js, or the network layer — every action is a pure function
+that takes a `MatchState` and returns a new `MatchState` plus an ordered
+`GameEvent[]` list. Both players' devices run the exact same engine code
+locally; nothing server-side re-simulates the game (see `DESIGN.md` §4.2
+for why, and its tradeoffs).
 
 ```
-src/engine/
-  types.ts        Core typed models (Hero, Card, Status, MatchState, GameEvent…)
+src/engine/       Pure rules engine (unchanged whether local or online)
+  types.ts         Core typed models (Hero, Card, Status, MatchState, GameEvent…)
   heroes.ts        The 5 hero definitions + their Attack/Ability card resolvers
   teamups.ts       The 2 Team-Up card definitions
   cards.ts         Card-id → CardDefinition registry
@@ -169,14 +203,26 @@ src/engine/
   match.ts         Public API: createMatch / playCard / playTeamUp / endTurn
   rng.ts           Injectable RNG (seeded for tests; Math.random in the app)
 
-src/state/useMatch.ts     React hook wrapping the engine, tracks the latest
-                           batch of events for animation
-src/scene/                React Three Fiber battlefield: HeroModel (capsule +
-                           HTML health plate), Battlefield (camera + layout),
-                           useEventQueue (steps engine events into per-event
-                           animation cues one at a time)
-src/ui/                    Card hand, HUD, Team-Up bar, combat log, hero
-                           selection, victory screen, debug panel
+src/net/          Supabase-backed networking (matchmaking + realtime sync)
+  identity.ts       Anonymous per-device id (localStorage), not auth
+  supabaseClient.ts Client + isOnlineConfigured() guard
+  matchmaking.ts    find_match RPC + waitForMatch() queue subscription
+  matchChannel.ts   Per-match Realtime Broadcast channel + presence
+
+src/state/useOnlineMatch.ts   Drives the whole online flow: matchmaking →
+                                hero-selection sync → state-broadcast sync,
+                                exposing a small API (state, phase, myRole,
+                                playCard/playTeamUp/endTurn) to the UI
+
+src/scene/         React Three Fiber battlefield: HeroModel (capsule +
+                     HTML health plate), Battlefield (camera + single-
+                     perspective layout — your team always renders
+                     nearest the camera regardless of engine player id),
+                     useEventQueue (steps engine events into per-event
+                     animation cues one at a time)
+src/ui/             Mobile screens: MainMenu, Matchmaking, OnlineHeroSelection,
+                     Battle (TopBar, CardHand, TeamUpBar, CombatLog sheet,
+                     LatestEventToast), VictoryScreen, DebugPanel
 ```
 
 Every player action produces an ordered list of `GameEvent`s (e.g.
@@ -184,16 +230,19 @@ Every player action produces an ordered list of `GameEvent`s (e.g.
 `HERO_DEFEATED`, `TEAM_UP_TRIGGERED`, `MATCH_ENDED`…). `useEventQueue`
 steps through a fresh batch one event at a time so the 3D scene can
 animate a hero lunging forward, a target flashing red on a hit, or a
-shield glow — in the exact order the engine produced them. The combat log
-panel renders the same events as human-readable text.
+shield glow — in the exact order the engine produced them, on *both*
+players' screens (since the acting client's resulting state — including
+its full event log — is what gets broadcast).
 
 The turn system (`turn.ts`) is intentionally isolated from everything
 else so alternating turns could later be swapped for simultaneous
 planning without touching damage, targeting, or status-effect code.
 
-## What's deliberately out of scope (see DESIGN.md §3)
+## What's deliberately out of scope (see DESIGN.md §3 and §4.3)
 
-Ultimates, more than 4 elements, more than 5 heroes, more than 2 Team-Ups,
-and true networked/simultaneous hero selection are all left for later —
-this prototype is scoped to prove out the deterministic combat loop and
-the 3D presentation layer.
+Ultimates, more than 4 elements, more than 5 heroes, more than 2
+Team-Ups. Online multiplayer is intentionally simple: no accounts, no
+server-side move validation (each client trusts the other's broadcast
+state), and no reconnect/resume — a disconnect ends the match. Fine for
+a casual hobby prototype; flagged here so it isn't mistaken for an
+oversight later.

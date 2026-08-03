@@ -1,4 +1,4 @@
-import type { GameEvent, HeroInstanceId, MatchState } from "../engine/types";
+import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 
 function heroName(state: MatchState, instanceId: HeroInstanceId | undefined): string {
@@ -10,14 +10,18 @@ function heroName(state: MatchState, instanceId: HeroInstanceId | undefined): st
   return instanceId;
 }
 
-/** Renders a single engine event as a short, readable combat-log line. */
-export function describeEvent(state: MatchState, event: GameEvent): string | null {
+function possessive(myRole: PlayerId, playerId: unknown): string {
+  return playerId === myRole ? "Your" : "Your opponent's";
+}
+
+/** Renders a single engine event as a short, readable combat-log line, from myRole's perspective. */
+export function describeEvent(state: MatchState, event: GameEvent, myRole: PlayerId): string | null {
   const e = event as Record<string, unknown>;
   switch (event.type) {
     case "MATCH_STARTED":
       return "The match begins.";
     case "TURN_STARTED":
-      return `${e.playerId === "player1" ? "Player 1" : "Player 2"}'s turn begins.`;
+      return `${possessive(myRole, e.playerId)} turn begins.`;
     case "CARD_PLAYED":
       return `${heroName(state, e.sourceHeroInstanceId as string)} plays ${e.cardName}.`;
     case "DAMAGE_DEALT": {
@@ -46,7 +50,7 @@ export function describeEvent(state: MatchState, event: GameEvent): string | nul
     case "TURN_ENDED":
       return null;
     case "MATCH_ENDED":
-      return `${e.winnerId === "player1" ? "Player 1" : "Player 2"} wins the match!`;
+      return e.winnerId === myRole ? "You win the match!" : "You lose the match.";
     default:
       return null;
   }

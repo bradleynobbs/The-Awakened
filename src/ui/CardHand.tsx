@@ -13,11 +13,12 @@ const TARGET_LABEL: Record<string, string> = {
 interface CardHandProps {
   state: MatchState;
   playerId: PlayerId;
+  isMyTurn: boolean;
   armedCardId: CardInstanceId | null;
   onCardClick: (cardInstanceId: CardInstanceId) => void;
 }
 
-export function CardHand({ state, playerId, armedCardId, onCardClick }: CardHandProps) {
+export function CardHand({ state, playerId, isMyTurn, armedCardId, onCardClick }: CardHandProps) {
   const player = state.players[playerId];
 
   return (
@@ -28,7 +29,7 @@ export function CardHand({ state, playerId, armedCardId, onCardClick }: CardHand
         const heroDef = HERO_DEFINITIONS[instance.heroId];
         const heroAlive = player.heroes.find((h) => h.heroId === instance.heroId && !h.isDefeated);
         const affordable = player.energy >= cardDef.cost;
-        const playable = Boolean(heroAlive) && affordable;
+        const playable = isMyTurn && Boolean(heroAlive) && affordable;
         const armed = armedCardId === cardInstanceId;
 
         return (

@@ -28,10 +28,18 @@ npm run lint        # oxlint
 The game is wrapped as a native Android app with
 [Capacitor](https://capacitorjs.com/) — the web build runs inside a
 WebView, so the entire engine, UI, and 3D battlefield above are unchanged.
-The `android/` folder is a standard Gradle/Android Studio project; only
-the final compile step needs tooling this repo doesn't vendor (the
-Android SDK), so run that part wherever you already have Android Studio
-installed.
+The `android/` folder is a standard Gradle/Android Studio project.
+
+### Option A: GitHub Actions (no local Android setup needed)
+
+`.github/workflows/android.yml` builds a debug APK on every push. Open
+the **Actions** tab on GitHub → the latest **Android Debug APK** run →
+download the `the-awakened-debug-apk` artifact from the run summary. It
+contains `app-debug.apk`, ready to install on a device
+(`adb install app-debug.apk`, or just copy it to a phone and tap it —
+you'll need to allow installs from unknown sources).
+
+### Option B: Build locally
 
 **One-time setup on your machine:**
 

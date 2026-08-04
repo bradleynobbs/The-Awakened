@@ -1,9 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_SYMBOL } from "../ui/heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-rift.jpg";
+
+/** Which health-bar color tier to show — a flat "always green" bar doesn't
+ * communicate danger the way a game health bar should. */
+function hpTier(currentHp: number, maxHp: number): "hp-high" | "hp-mid" | "hp-low" {
+  const pct = maxHp > 0 ? currentHp / maxHp : 0;
+  if (pct <= 0.25) return "hp-low";
+  if (pct <= 0.5) return "hp-mid";
+  return "hp-high";
+}
 
 interface BattlefieldProps {
   state: MatchState;
@@ -81,21 +90,25 @@ function Formation({
         const def = HERO_DEFINITIONS[hero.heroId];
         return (
           <div key={hero.instanceId} className="hero-slot">
-            <div className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}>
+            <div
+              className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}
+              style={{ "--element-color": ELEMENT_COLOR[def.element] } as CSSProperties}
+            >
               <div className="hero-plate-name">
-                {ELEMENT_SYMBOL[def.element]} {def.name}
+                <span>{ELEMENT_SYMBOL[def.element]}</span>
+                <span className="hero-plate-name-text">{def.name}</span>
                 <span className="hero-plate-speed" title="Speed — decides resolution order">
                   🏃{def.stats.speed}
                 </span>
               </div>
               <div className="hero-plate-hpbar">
                 <div
-                  className="hero-plate-hpfill"
+                  className={`hero-plate-hpfill ${hpTier(hero.currentHp, hero.maxHp)}`}
                   style={{ width: `${Math.max(0, (hero.currentHp / hero.maxHp) * 100)}%` }}
                 />
               </div>
               <div className="hero-plate-stats">
-                <span>
+                <span className="hero-plate-hptext">
                   {hero.currentHp}/{hero.maxHp} HP
                 </span>
                 {hero.shield > 0 && <span className="badge shield">🛡{hero.shield}</span>}

@@ -874,3 +874,29 @@ This replaced the old flat two-tone gradient (`battlefield-sky`/
 transparency or facing/mirroring — it's a single `background-image`
 sized with `cover`, so any similarly-composed wide image drops in the
 same way.
+
+### 9.6 Real-device fit-and-finish pass
+
+A phone screenshot surfaced two things that looked fine at desktop
+testing size but not on an actual device:
+
+- **Inferna's `real-art` box was too dominant.** At 96×178px next to
+  the SVG heroes' 74×92px, she visually swallowed the formation column
+  on a real screen. Shrunk to 76×132px — still taller than the vector
+  chassis (a full-body portrait can't be squished into the same box
+  without going illegibly thin), but no longer out of proportion with
+  the rest of the roster. `.hero-slot`'s gap also went from 2px to 6px
+  so the plate and sprite aren't touching.
+- **Hero-plates read as generic.** Reworked to feel more like this
+  game specifically: a `--element-color` CSS variable (from the same
+  `ELEMENT_COLOR` map used everywhere else) drives a colored top
+  border per hero, and the HP bar now shifts color by threshold —
+  green above 50%, amber 25-50%, a pulsing red at or below 25% — via
+  an `hpTier()` helper in `Battlefield.tsx`, instead of one flat green
+  gradient regardless of how much danger a hero is actually in. The
+  Speed stat became a small pill badge instead of floated plain text,
+  matching the badge language used elsewhere (`sprite-badge`, deck
+  builder stat chips). Widening the plate to 148px (from 110px) was
+  necessary to fit "Earth Guardian" — the roster's longest name — in
+  full now that the pill costs more horizontal space than the old
+  floated text did.

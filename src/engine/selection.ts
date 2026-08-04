@@ -1,7 +1,7 @@
 import type { HeroId, PlayerId } from "./types";
 import { IllegalActionError } from "./errors";
 
-export const HEROES_OFFERED = 5;
+export const HEROES_OFFERED = 7;
 export const TEAM_SIZE = 3;
 
 export interface TeamSelectionState {

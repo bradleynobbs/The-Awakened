@@ -1,5 +1,5 @@
 import type { TeamUpDefinition } from "./types";
-import { applyBurn, applyWet, dealDamage, dealLightningDamage, getHero, livingHeroes, removeWetPublic } from "./combat";
+import { applyBurn, applyWet, dealDamage, dealSparkDamage, getHero, livingHeroes, removeWetPublic } from "./combat";
 import { otherPlayer } from "./combat";
 
 /**
@@ -31,9 +31,9 @@ export const steamSurge: TeamUpDefinition = {
 };
 
 /**
- * Water Healer + Lightning Duelist.
+ * Water Healer + Spark Duelist.
  * Resolution order (see DESIGN.md 1.12): apply Wet to all enemies, then deal
- * Lightning damage (base + Wet bonus) to each, consuming the Wet just applied.
+ * Spark damage (base + Wet bonus) to each, consuming the Wet just applied.
  */
 export const thunderTide: TeamUpDefinition = {
   id: "thunder-tide",
@@ -44,8 +44,8 @@ export const thunderTide: TeamUpDefinition = {
   targetType: "allEnemies",
   element: "combined",
   description:
-    "Water Healer + Lightning Duelist: apply Wet to all enemies, then deal 4 (+3 Wet bonus) Lightning damage to each.",
-  requiredHeroes: ["water-healer", "lightning-duelist"],
+    "Water Healer + Spark Duelist: apply Wet to all enemies, then deal 4 (+3 Wet bonus) Spark damage to each.",
+  requiredHeroes: ["water-healer", "spark-duelist"],
   resolve: (ctx) => {
     const enemyId = otherPlayer(ctx.playerId);
     const targets = livingHeroes(ctx.state, enemyId).map((h) => h.instanceId);
@@ -53,7 +53,7 @@ export const thunderTide: TeamUpDefinition = {
       applyWet(ctx, targetId);
     }
     for (const targetId of targets) {
-      dealLightningDamage(ctx, {
+      dealSparkDamage(ctx, {
         targetId,
         baseDamage: 4,
         bonusDamage: 3,

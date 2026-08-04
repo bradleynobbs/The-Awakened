@@ -5,7 +5,7 @@ import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putCopyInHand, putInHand, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
+const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("defeated heroes", () => {
   it("cannot act once defeated", () => {

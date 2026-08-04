@@ -6,8 +6,8 @@ import { steamSurge, thunderTide } from "../teamups";
 import type { HeroId } from "../types";
 import { getHeroFrom, readyBoth } from "./helpers";
 
-const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "shadow-assassin"];
-const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
+const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "undead-assassin"];
+const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("Team-Up availability", () => {
   it("is available once both required heroes are on the roster and alive", () => {
@@ -18,7 +18,7 @@ describe("Team-Up availability", () => {
 
   it("is unavailable when the roster doesn't include both required heroes", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
-    // player1 has no Lightning Duelist, so Thunder Tide can never unlock this match.
+    // player1 has no Spark Duelist, so Thunder Tide can never unlock this match.
     expect(isTeamUpAvailable(state, "player1", thunderTide)).toBe(false);
   });
 
@@ -38,9 +38,9 @@ describe("Team-Up availability", () => {
   });
 });
 
-// A roster with no Shadow Assassin, so its "reduced first hit" passive
+// A roster with no Undead Assassin, so its "reduced first hit" passive
 // doesn't skew the uniform per-hero damage assertions below.
-const P2_NO_PASSIVE: [HeroId, HeroId, HeroId] = ["lightning-duelist", "fire-mage", "water-healer"];
+const P2_NO_PASSIVE: [HeroId, HeroId, HeroId] = ["spark-duelist", "fire-mage", "water-healer"];
 
 describe("Team-Up resolution", () => {
   it("Steam Surge damages, clears Wet, then applies Burn to all enemies in order", () => {
@@ -63,9 +63,9 @@ describe("Team-Up resolution", () => {
     expect(state.players.player1.usedTeamUps).toContain("steam-surge");
   });
 
-  it("Thunder Tide applies Wet then deals Wet-boosted Lightning damage to all enemies", () => {
+  it("Thunder Tide applies Wet then deals Wet-boosted Spark damage to all enemies", () => {
     let state = createMatch(
-      ["water-healer", "lightning-duelist", "shadow-assassin"],
+      ["water-healer", "spark-duelist", "undead-assassin"],
       P2_NO_PASSIVE,
       createSeededRng(1),
     );

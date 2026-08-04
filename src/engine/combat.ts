@@ -65,7 +65,7 @@ export interface DealDamageOptions {
   targetId: HeroInstanceId;
   amount: number;
   sourceHeroInstanceId?: HeroInstanceId;
-  /** Direct card hits count for Shadow Assassin's passive; status ticks (Burn) do not. */
+  /** Direct card hits count for Undead Assassin's passive; status ticks (Burn) do not. */
   isDirectHit?: boolean;
 }
 
@@ -81,6 +81,7 @@ export function dealDamage(
   let total = amount;
   let firePassiveBonus = 0;
   let empowerBonus = 0;
+  let charmReduction = 0;
 
   if (sourceHeroInstanceId) {
     const source = getHero(state, sourceHeroInstanceId);
@@ -95,10 +96,20 @@ export function dealDamage(
       total += empowerBonus;
       source.statuses.splice(empowerIdx, 1);
     }
+    const charmIdx = source.statuses.findIndex((s) => s.type === "charm");
+    if (charmIdx !== -1) {
+      const charm = source.statuses[charmIdx];
+      charmReduction = charm.type === "charm" ? charm.damageReduction : 0;
+      total = Math.max(1, total - charmReduction);
+      source.statuses.splice(charmIdx, 1);
+    }
+    if (source.heroId === "charm-gunslinger" && target.statuses.some((s) => s.type === "charm")) {
+      total += 1;
+    }
   }
 
   let firstHitReduction = 0;
-  if (isDirectHit && target.heroId === "shadow-assassin" && !target.hasTakenFirstHit) {
+  if (isDirectHit && target.heroId === "undead-assassin" && !target.hasTakenFirstHit) {
     target.hasTakenFirstHit = true;
     firstHitReduction = Math.min(3, total - 1);
     total = Math.max(1, total - 3);
@@ -107,7 +118,15 @@ export function dealDamage(
   const shieldAbsorbed = Math.min(target.shield, total);
   target.shield -= shieldAbsorbed;
   const remaining = total - shieldAbsorbed;
-  target.currentHp = Math.max(0, target.currentHp - remaining);
+
+  const wouldBeLethal = remaining >= target.currentHp;
+  const cheatedDeath = wouldBeLethal && target.heroId === "spirit-mage" && !target.hasCheatedDeath;
+  if (cheatedDeath) {
+    target.currentHp = 1;
+    target.hasCheatedDeath = true;
+  } else {
+    target.currentHp = Math.max(0, target.currentHp - remaining);
+  }
 
   if (shieldAbsorbed > 0) {
     events.push({
@@ -125,12 +144,19 @@ export function dealDamage(
     amount: remaining,
     firePassiveBonus,
     empowerBonus,
+    charmReduction,
     firstHitReduction,
     targetHpAfter: target.currentHp,
   });
 
   if (empowerBonus > 0 && sourceHeroInstanceId) {
     events.push({ type: "STATUS_REMOVED", targetId: sourceHeroInstanceId, status: "empower" });
+  }
+  if (charmReduction > 0 && sourceHeroInstanceId) {
+    events.push({ type: "STATUS_REMOVED", targetId: sourceHeroInstanceId, status: "charm" });
+  }
+  if (cheatedDeath) {
+    events.push({ type: "SURVIVED_LETHAL", targetId });
   }
 
   if (target.currentHp === 0 && !target.isDefeated) {
@@ -205,6 +231,20 @@ export function applyEmpower(ctx: CardResolveContext, targetId: HeroInstanceId, 
   events.push({ type: "STATUS_APPLIED", targetId, status: "empower" });
 }
 
+/** Debuffs an enemy's next damage-dealing action; overwrites rather than stacks, like Empower. */
+export function applyCharm(ctx: CardResolveContext, targetId: HeroInstanceId, damageReduction: number): void {
+  const { state, events } = ctx;
+  const target = getHero(state, targetId);
+  if (target.isDefeated) return;
+  const existing = target.statuses.find((s) => s.type === "charm");
+  if (existing && existing.type === "charm") {
+    existing.damageReduction = damageReduction;
+  } else {
+    target.statuses.push({ type: "charm", damageReduction });
+  }
+  events.push({ type: "STATUS_APPLIED", targetId, status: "charm" });
+}
+
 function removeWet(ctx: CardResolveContext, targetId: HeroInstanceId): boolean {
   const { state, events } = ctx;
   const target = getHero(state, targetId);
@@ -216,11 +256,11 @@ function removeWet(ctx: CardResolveContext, targetId: HeroInstanceId): boolean {
 }
 
 /**
- * Deals base damage to a target, adding the Lightning bonus and consuming
+ * Deals base damage to a target, adding the Spark bonus and consuming
  * Wet if present. When `triggerPassive` is set and the hit is Wet-boosted,
- * the Lightning Duelist source gains its passive shield.
+ * the Spark Duelist source gains its passive shield.
  */
-export function dealLightningDamage(
+export function dealSparkDamage(
   ctx: CardResolveContext,
   {
     targetId,
@@ -246,7 +286,7 @@ export function dealLightningDamage(
     removeWet(ctx, targetId);
     if (triggerPassive && sourceHeroInstanceId) {
       const source = getHero(state, sourceHeroInstanceId);
-      if (source.heroId === "lightning-duelist" && !source.isDefeated) {
+      if (source.heroId === "spark-duelist" && !source.isDefeated) {
         addShield(ctx, sourceHeroInstanceId, 2);
       }
     }

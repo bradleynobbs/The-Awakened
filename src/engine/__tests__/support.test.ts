@@ -4,7 +4,7 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putInHand, readyBoth } from "./helpers";
 
-const P2: [HeroId, HeroId, HeroId] = ["shadow-assassin", "lightning-duelist", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "water-healer"];
 
 describe("Empower (damage-boost support buff)", () => {
   it("adds bonus damage to the empowered hero's next hit, then is consumed", () => {
@@ -17,7 +17,7 @@ describe("Empower (damage-boost support buff)", () => {
     });
     const boltId = putInHand(state, "player1", "fire-bolt");
     state = queueCard(state, "player1", boltId, {
-      primaryTargetId: heroInstanceId("player2", "shadow-assassin"),
+      primaryTargetId: heroInstanceId("player2", "undead-assassin"),
     });
 
     state = readyBoth(state);
@@ -25,11 +25,11 @@ describe("Empower (damage-boost support buff)", () => {
     const fireMage = getHeroFrom(state, "player1", "fire-mage");
     expect(fireMage.statuses.some((s) => s.type === "empower")).toBe(false);
 
-    // Shadow Assassin's passive reduces the first hit taken by 3: 5 base +
+    // Undead Assassin's passive reduces the first hit taken by 3: 5 base +
     // 4 Empower = 9, minus 3 = 6. Fire Bolt also applies Burn, and resolving
     // rolls straight into the next round, which ticks Burn once immediately
     // (DESIGN.md 5.3) — so there's a further 3 damage on top.
-    const target = getHeroFrom(state, "player2", "shadow-assassin");
+    const target = getHeroFrom(state, "player2", "undead-assassin");
     expect(target.currentHp).toBe(target.maxHp - 6 - 3);
 
     expect(state.log.some((e) => e.type === "STATUS_APPLIED" && e.status === "empower")).toBe(true);
@@ -51,20 +51,20 @@ describe("Empower (damage-boost support buff)", () => {
 
     const boltId = putInHand(state, "player1", "fire-bolt");
     state = queueCard(state, "player1", boltId, {
-      primaryTargetId: heroInstanceId("player2", "lightning-duelist"),
+      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
     });
     state = readyBoth(state); // round 2: the buff finally gets consumed
 
     fireMage = getHeroFrom(state, "player1", "fire-mage");
     expect(fireMage.statuses.some((s) => s.type === "empower")).toBe(false);
-    const target = getHeroFrom(state, "player2", "lightning-duelist");
+    const target = getHeroFrom(state, "player2", "spark-duelist");
     // 5 base + 4 Empower = 9, then Burn ticks once immediately on the
     // round-3 transition (DESIGN.md 5.3): 9 + 3 = 12.
     expect(target.currentHp).toBe(target.maxHp - 9 - 3);
   });
 
   it("overwrites rather than stacks when re-applied before being consumed", () => {
-    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "shadow-assassin"];
+    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "undead-assassin"];
     let state = createMatch(P1, P2, createSeededRng(1));
     state.players.player1.energy = 4; // two 2-cost support cards this round
 
@@ -88,8 +88,8 @@ describe("Empower (damage-boost support buff)", () => {
   });
 });
 
-describe("Static Charge (Lightning support, Wet-aware Empower)", () => {
-  const P1: [HeroId, HeroId, HeroId] = ["lightning-duelist", "fire-mage", "water-healer"];
+describe("Static Charge (Spark support, Wet-aware Empower)", () => {
+  const P1: [HeroId, HeroId, HeroId] = ["spark-duelist", "fire-mage", "water-healer"];
 
   it("grants only the base bonus when the ally isn't Wet", () => {
     let state = createMatch(P1, P2, createSeededRng(1));

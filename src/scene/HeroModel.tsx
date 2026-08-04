@@ -35,10 +35,10 @@ const WOOD_COLOR = "#4a3524";
 const TORSO_SHAPE: Record<Role, { top: number; bottom: number; height: number }> = {
   Mage: { top: 0.19, bottom: 0.33, height: 0.6 },
   Support: { top: 0.21, bottom: 0.29, height: 0.58 },
-  Defender: { top: 0.35, bottom: 0.26, height: 0.55 },
-  Fighter: { top: 0.27, bottom: 0.24, height: 0.55 },
+  Tank: { top: 0.35, bottom: 0.26, height: 0.55 },
+  Brawler: { top: 0.27, bottom: 0.24, height: 0.55 },
   Assassin: { top: 0.21, bottom: 0.18, height: 0.5 },
-  Controller: { top: 0.25, bottom: 0.27, height: 0.56 },
+  Gunslinger: { top: 0.24, bottom: 0.3, height: 0.56 },
 };
 
 interface BodyMat {
@@ -78,7 +78,7 @@ function RoleGear({
           </mesh>
         </group>
       );
-    case "Defender":
+    case "Tank":
       return (
         <>
           <mesh position={[-0.46, 0.95, 0.05]}>
@@ -107,7 +107,7 @@ function RoleGear({
           />
         </mesh>
       );
-    case "Fighter":
+    case "Brawler":
       return (
         <group position={[0.42, 0.85, 0]} rotation={[0, 0, -0.18]}>
           <mesh position={[0, 0.35, 0]}>
@@ -137,7 +137,27 @@ function RoleGear({
           </mesh>
         </>
       );
-    case "Controller":
+    case "Gunslinger":
+      return (
+        <>
+          <mesh position={[0, headTopY + 0.02, 0]}>
+            <cylinderGeometry args={[0.27, 0.27, 0.03, 12]} />
+            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+          </mesh>
+          <mesh position={[0, headTopY + 0.09, 0]}>
+            <cylinderGeometry args={[0.13, 0.16, 0.12, 10]} />
+            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+          </mesh>
+          <mesh position={[0.4, 0.78, 0]} rotation={[0, 0, -0.1]}>
+            <boxGeometry args={[0.05, 0.16, 0.08]} />
+            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+          </mesh>
+          <mesh position={[0.4, 0.7, 0.09]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.018, 0.018, 0.16, 8]} />
+            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+          </mesh>
+        </>
+      );
     default:
       return null;
   }
@@ -179,6 +199,7 @@ export function HeroModel({
   const burn = hero.statuses.find((s) => s.type === "burn");
   const wet = hero.statuses.some((s) => s.type === "wet");
   const empower = hero.statuses.find((s) => s.type === "empower");
+  const charm = hero.statuses.find((s) => s.type === "charm");
 
   const mat: BodyMat = {
     transparent: true,
@@ -190,7 +211,7 @@ export function HeroModel({
   const torso = TORSO_SHAPE[def.role];
   const legTop = 0.62;
   const torsoTop = legTop + torso.height;
-  const headRadius = def.role === "Defender" ? 0.21 : 0.19;
+  const headRadius = def.role === "Tank" ? 0.21 : 0.19;
   const headY = torsoTop + 0.07 + headRadius;
   const headTopY = headY + headRadius;
 
@@ -277,6 +298,9 @@ export function HeroModel({
             {wet && <span className="badge wet">💧</span>}
             {empower && empower.type === "empower" && (
               <span className="badge empower">💪+{empower.bonusDamage}</span>
+            )}
+            {charm && charm.type === "charm" && (
+              <span className="badge charm">💫-{charm.damageReduction}</span>
             )}
           </div>
         </div>

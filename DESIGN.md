@@ -129,10 +129,12 @@ later without touching the engine.
 | Hero | Role | Element | Max HP | Notes |
 |---|---|---|---|---|
 | Fire Mage | Mage | Fire | 18 | |
-| Earth Guardian | Defender | Earth | 24 | starts with 4 Shield |
+| Earth Guardian | Tank | Earth | 24 | starts with 4 Shield |
 | Water Healer | Support | Water | 20 | |
-| Lightning Duelist | Fighter | Lightning | 20 | |
-| Shadow Assassin | Assassin | Shadow | 16 | first hit taken reduced by 3 |
+| Spark Duelist | Brawler | Spark | 20 | |
+| Undead Assassin | Assassin | Undead | 16 | first hit taken reduced by 3 |
+| Charm Gunslinger | Gunslinger | Charm | 17 | +1 dmg vs. Charmed targets |
+| Spirit Mage | Mage | Spirit | 16 | survives one lethal hit at 1 HP per match |
 
 | Card | Hero | Cost | Effect |
 |---|---|---|---|
@@ -145,23 +147,32 @@ later without touching the engine.
 | Tidal Shot (attack) | Water Healer | 1 | 3 dmg to one enemy + apply Wet |
 | Restoring Current (ability) | Water Healer | 2 | heal 6 (7 if first heal this match) to one ally |
 | Encouraging Current (support) | Water Healer | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
-| Charged Slash (attack) | Lightning Duelist | 1 | 5 dmg; if target Wet, +3 bonus dmg and remove Wet |
-| Chain Spark (ability) | Lightning Duelist | 2 | 4 dmg to primary target, 2 dmg to secondary target; each gets +3/removes Wet independently if Wet |
-| Static Charge (support) | Lightning Duelist | 2 | Empower one ally: +4 dmg (+7 total and cleanses Wet, if that ally is currently Wet) |
-| Quick Strike (attack) | Shadow Assassin | 1 | 5 dmg to one enemy |
-| Execute (ability) | Shadow Assassin | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
-| Marked Opening (support) | Shadow Assassin | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
+| Charged Slash (attack) | Spark Duelist | 1 | 5 dmg; if target Wet, +3 bonus dmg and remove Wet |
+| Chain Spark (ability) | Spark Duelist | 2 | 4 dmg to primary target, 2 dmg to secondary target; each gets +3/removes Wet independently if Wet |
+| Static Charge (support) | Spark Duelist | 2 | Empower one ally: +4 dmg (+7 total and cleanses Wet, if that ally is currently Wet) |
+| Quick Strike (attack) | Undead Assassin | 1 | 5 dmg to one enemy |
+| Execute (ability) | Undead Assassin | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
+| Marked Opening (support) | Undead Assassin | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
+| Quickdraw (attack) | Charm Gunslinger | 1 | 5 dmg to one enemy (+1 if they're Charmed, via passive) |
+| Called Shot (ability) | Charm Gunslinger | 2 | 4 dmg + Charm one enemy: their next damage-dealing action deals 3 less (min 1) |
+| Cover Fire (support) | Charm Gunslinger | 2 | Empower one ally: +5 dmg on their next damage-dealing action |
+| Spirit Bolt (attack) | Spirit Mage | 1 | 4 dmg to one enemy + heal this hero for 2 |
+| Soul Siphon (ability) | Spirit Mage | 2 | 6 dmg to one enemy + heal this hero for 4 |
+| Spirit Ward (support) | Spirit Mage | 2 | Heal one ally for 5 |
 
 Passives:
 - **Fire Mage**: +1 damage dealt by this hero to any target that currently has Burn.
 - **Earth Guardian**: begins the match with 4 Shield.
 - **Water Healer**: the first healing card *this player* uses each match heals +1 additional.
-- **Lightning Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
-- **Shadow Assassin**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
+- **Spark Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
+- **Undead Assassin**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
+- **Charm Gunslinger**: +1 damage dealt by this hero to any target that currently has Charm.
+- **Spirit Mage**: the first hit that would defeat this hero each match instead leaves them at 1 HP.
 
 Team-Up cards:
 - **Steam Surge** (Fire Mage + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
-- **Thunder Tide** (Water Healer + Lightning Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
+- **Thunder Tide** (Water Healer + Spark Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
+- Charm Gunslinger and Spirit Mage don't have a Team-Up yet — more Team-Ups are intentionally out of scope for this pass (see section 3), not an oversight.
 
 Deck: 3 copies each of a hero's Attack, Ability, and Support card → 27
 cards per player (3 heroes × 3 cards × 3 copies). Hand size 5,
@@ -424,3 +435,92 @@ planning interaction simple: if the Empowered hero's queued action
 fizzles (see section 5.2) before it resolves, the buff was never
 consumed and just carries into the next round untouched, since nothing
 ever reads or clears it except `dealDamage` actually firing.
+
+## 7. Expanding elements and roles, and two new heroes
+
+The original 5 elements (Fire, Water, Lightning, Earth, Shadow) and the
+`Role` type's grab-bag of labels (Fighter, Defender, Support, Assassin,
+Controller, Mage — `Controller` was never actually used by a hero) are
+replaced with a fixed, deliberately chosen set: **7 elements** (Fire,
+Water, Spark, Earth, Undead, Charm, Spirit) and **6 roles** (Mage,
+Brawler, Tank, Assassin, Gunslinger, Support). Two existing heroes were
+renamed to fit, and two new heroes were added to give every element and
+role at least one hero.
+
+### 7.1 Renames: Lightning → Spark, Shadow → Undead
+
+Lightning Duelist → **Spark Duelist** (element `lightning`→`spark`, role
+`Fighter`→`Brawler`) and Shadow Assassin → **Undead Assassin** (element
+`shadow`→`undead`). These are pure renames — the mechanics don't change
+at all (Spark still consumes Wet for bonus damage and grants Shield on
+the interaction; Undead Assassin's first-hit reduction is untouched).
+`HeroId` values (`lightning-duelist`→`spark-duelist`,
+`shadow-assassin`→`undead-assassin`) were renamed too, since leaving the
+internal id stale while the display name changed would've been the kind
+of quiet inconsistency that's cheap to avoid now and confusing to find
+later. `dealLightningDamage` (combat.ts) is renamed `dealSparkDamage` for
+the same reason — code should use the game's current vocabulary, not its
+history.
+
+### 7.2 Two new heroes, and why these two
+
+Filling every role and element with the existing 5 heroes left exactly
+one role gap (**Gunslinger**) and two element gaps (**Charm**,
+**Spirit**). Two new heroes cover all three:
+
+- **Charm Gunslinger** (Charm element, Gunslinger role, 17 HP)
+- **Spirit Mage** (Spirit element, Mage role, 16 HP — Mage is reused,
+  since roles aren't required to be unique across the roster any more
+  than "Support" was unique to Water Healer before section 6)
+
+Neither has a Team-Up yet (see section 3) — that's still explicitly out
+of scope for this pass, not an oversight.
+
+### 7.3 Charm: a debuff that mirrors Empower
+
+Charm needed its own signature mechanic the way Fire has Burn and Water
+has Wet. Rather than invent something unrelated, it's the direct
+inverse of Empower (section 6.1): a new `StatusCharmed` status sits on
+the *charmed* hero and subtracts (floor 1) from their next
+damage-dealing action, then is consumed — same storage location, same
+consume-on-`dealDamage` mechanism, just negative and applied to an
+enemy instead of an ally. Reusing that exact code path (rather than
+building a second, parallel buff/debuff system) is why Called Shot's
+Charm application was cheap to add and easy to verify: it's the same
+`dealDamage` branch Empower already exercises, just subtracting instead
+of adding. Charm Gunslinger's passive, Steady Aim (+1 damage to
+currently-Charmed targets), mirrors Fire Mage's own Burn-synergy passive
+for the same reason — a player who's already learned one of these
+patterns has effectively learned both.
+
+### 7.4 Spirit: lifesteal cards + a "cheat death once" passive
+
+Spirit's two damage cards (Spirit Bolt, Soul Siphon) deal damage and
+heal the caster in the same resolve — no new engine primitive, just
+`dealDamage` followed by `healHero` in one card, which was already
+enough to make Spirit Mage read as a distinct "sustain mage" next to
+Water Healer's "dedicated healer."
+
+The passive, Lingering Spirit, is new: the first hit that would defeat
+this hero each match instead leaves them at 1 HP. Implemented as a
+`hasCheatedDeath` flag on `HeroInstance` (mirroring Undead Assassin's
+existing `hasTakenFirstHit` flag) checked in `dealDamage` right before
+HP would hit 0 — if the hit is lethal, `hasCheatedDeath` is unset, and
+the target is `spirit-mage`, HP clamps to 1 and the flag is set instead
+of the normal defeat path running. A `SURVIVED_LETHAL` event marks it
+in the log/UI so it doesn't look like a silent bug when a lethal-looking
+hit doesn't defeat its target.
+
+### 7.5 What stayed deliberately unchanged
+
+Card resolution, targeting, round planning/resolution, online sync, and
+every other existing hero's numbers are untouched — this pass only
+touched hero data (`heroes.ts`), the `Element`/`Role`/`HeroId` type
+unions, two `combat.ts` helpers, and the small set of UI files that key
+off role for 3D hero-model shape (`HeroModel.tsx`) or color/symbol
+(`heroVisuals.ts`). `deck.ts`, `cards.ts`, `targeting.ts`, `bot.ts`,
+`DeckBuilder.tsx`, and `CardHand.tsx` needed **no changes at all** —
+they were already written generically against `HERO_LIST`/
+`CardDefinition` rather than any specific hero, role, or element, which
+is exactly what made adding two heroes safe to do without touching the
+resolution engine.

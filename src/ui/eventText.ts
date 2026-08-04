@@ -21,6 +21,7 @@ const STATUS_LABEL: Record<string, string> = {
   burn: "Burning",
   wet: "Wet",
   empower: "Empowered",
+  charm: "Charmed",
 };
 
 /** Renders a single engine event as a short, readable combat-log line, from myRole's perspective. */
@@ -41,6 +42,7 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
       const bonuses: string[] = [];
       if ((e.firePassiveBonus as number) > 0) bonuses.push("+1 Burn bonus");
       if ((e.empowerBonus as number) > 0) bonuses.push(`+${e.empowerBonus} Empower bonus`);
+      if ((e.charmReduction as number) > 0) bonuses.push(`-${e.charmReduction} Charmed`);
       const bonus = bonuses.length > 0 ? ` (${bonuses.join(", ")})` : "";
       return `${heroName(state, e.targetId as string)} takes ${amount} damage${bonus}.`;
     }
@@ -59,6 +61,8 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
       return `${heroName(state, e.targetId as string)} takes ${e.amount} Burn damage.`;
     case "HERO_DEFEATED":
       return `${heroName(state, e.heroInstanceId as string)} has been defeated!`;
+    case "SURVIVED_LETHAL":
+      return `${heroName(state, e.targetId as string)}'s spirit lingers — they survive at 1 HP!`;
     case "TEAM_UP_TRIGGERED":
       return `Team-Up! ${e.teamUpName}.`;
     case "ACTION_FIZZLED": {

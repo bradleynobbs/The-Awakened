@@ -2,10 +2,11 @@ import type { CardDefinition, HeroDefinition } from "./types";
 import {
   addShield,
   applyBurn,
+  applyCharm,
   applyEmpower,
   applyWet,
   dealDamage,
-  dealLightningDamage,
+  dealSparkDamage,
   getHero,
   healHero,
   livingHeroes,
@@ -113,15 +114,15 @@ const restoringCurrent: CardDefinition = {
 
 const chargedSlash: CardDefinition = {
   id: "charged-slash",
-  heroId: "lightning-duelist",
+  heroId: "spark-duelist",
   kind: "attack",
   name: "Charged Slash",
   cost: 1,
   targetType: "singleEnemy",
-  element: "lightning",
+  element: "spark",
   description: "Deal 5 damage; +3 and remove Wet if the target is Wet.",
   resolve: (ctx) => {
-    dealLightningDamage(ctx, {
+    dealSparkDamage(ctx, {
       targetId: ctx.targets.primaryTargetId!,
       baseDamage: 5,
       bonusDamage: 3,
@@ -133,16 +134,16 @@ const chargedSlash: CardDefinition = {
 
 const chainSpark: CardDefinition = {
   id: "chain-spark",
-  heroId: "lightning-duelist",
+  heroId: "spark-duelist",
   kind: "ability",
   name: "Chain Spark",
   cost: 2,
   targetType: "twoEnemies",
-  element: "lightning",
+  element: "spark",
   description:
     "Deal 4 damage to one enemy and 2 to another; each gets +3 and loses Wet if Wet.",
   resolve: (ctx) => {
-    dealLightningDamage(ctx, {
+    dealSparkDamage(ctx, {
       targetId: ctx.targets.primaryTargetId!,
       baseDamage: 4,
       bonusDamage: 3,
@@ -150,7 +151,7 @@ const chainSpark: CardDefinition = {
       triggerPassive: true,
     });
     if (ctx.targets.secondaryTargetId) {
-      dealLightningDamage(ctx, {
+      dealSparkDamage(ctx, {
         targetId: ctx.targets.secondaryTargetId,
         baseDamage: 2,
         bonusDamage: 3,
@@ -163,12 +164,12 @@ const chainSpark: CardDefinition = {
 
 const quickStrike: CardDefinition = {
   id: "quick-strike",
-  heroId: "shadow-assassin",
+  heroId: "undead-assassin",
   kind: "attack",
   name: "Quick Strike",
   cost: 1,
   targetType: "singleEnemy",
-  element: "shadow",
+  element: "undead",
   description: "Deal 5 damage to one enemy.",
   resolve: (ctx) => {
     dealDamage(ctx, {
@@ -184,12 +185,12 @@ const EXECUTE_BONUS_DAMAGE = 6;
 
 const execute: CardDefinition = {
   id: "execute",
-  heroId: "shadow-assassin",
+  heroId: "undead-assassin",
   kind: "ability",
   name: "Execute",
   cost: 2,
   targetType: "singleEnemy",
-  element: "shadow",
+  element: "undead",
   description: `Deal 4 damage; +${EXECUTE_BONUS_DAMAGE} if the target is at or below ${EXECUTE_THRESHOLD_FRACTION * 100}% max HP.`,
   resolve: (ctx) => {
     const targetId = ctx.targets.primaryTargetId!;
@@ -246,12 +247,12 @@ const encouragingCurrent: CardDefinition = {
 
 const staticCharge: CardDefinition = {
   id: "static-charge",
-  heroId: "lightning-duelist",
+  heroId: "spark-duelist",
   kind: "support",
   name: "Static Charge",
   cost: 2,
   targetType: "singleAlly",
-  element: "lightning",
+  element: "spark",
   description: "Empower one ally for +4 damage (+7 total and cleanses Wet, if they're currently Wet).",
   resolve: (ctx) => {
     const targetId = ctx.targets.primaryTargetId!;
@@ -264,15 +265,115 @@ const staticCharge: CardDefinition = {
 
 const markedOpening: CardDefinition = {
   id: "marked-opening",
-  heroId: "shadow-assassin",
+  heroId: "undead-assassin",
   kind: "support",
   name: "Marked Opening",
   cost: 2,
   targetType: "singleAlly",
-  element: "shadow",
+  element: "undead",
   description: "Empower one ally: their next damage-dealing action deals +6 damage.",
   resolve: (ctx) => {
     applyEmpower(ctx, ctx.targets.primaryTargetId!, 6);
+  },
+};
+
+const quickdraw: CardDefinition = {
+  id: "quickdraw",
+  heroId: "charm-gunslinger",
+  kind: "attack",
+  name: "Quickdraw",
+  cost: 1,
+  targetType: "singleEnemy",
+  element: "charm",
+  description: "Deal 5 damage to one enemy (+1 if they're currently Charmed).",
+  resolve: (ctx) => {
+    dealDamage(ctx, {
+      targetId: ctx.targets.primaryTargetId!,
+      amount: 5,
+      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
+    });
+  },
+};
+
+const calledShot: CardDefinition = {
+  id: "called-shot",
+  heroId: "charm-gunslinger",
+  kind: "ability",
+  name: "Called Shot",
+  cost: 2,
+  targetType: "singleEnemy",
+  element: "charm",
+  description: "Deal 4 damage and Charm one enemy: their next damage-dealing action deals 3 less (min 1).",
+  resolve: (ctx) => {
+    const targetId = ctx.targets.primaryTargetId!;
+    dealDamage(ctx, { targetId, amount: 4, sourceHeroInstanceId: ctx.sourceHeroInstanceId });
+    applyCharm(ctx, targetId, 3);
+  },
+};
+
+const coverFire: CardDefinition = {
+  id: "cover-fire",
+  heroId: "charm-gunslinger",
+  kind: "support",
+  name: "Cover Fire",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "charm",
+  description: "Empower one ally: their next damage-dealing action deals +5 damage.",
+  resolve: (ctx) => {
+    applyEmpower(ctx, ctx.targets.primaryTargetId!, 5);
+  },
+};
+
+const spiritBolt: CardDefinition = {
+  id: "spirit-bolt",
+  heroId: "spirit-mage",
+  kind: "attack",
+  name: "Spirit Bolt",
+  cost: 1,
+  targetType: "singleEnemy",
+  element: "spirit",
+  description: "Deal 4 damage to one enemy and heal this hero for 2.",
+  resolve: (ctx) => {
+    dealDamage(ctx, {
+      targetId: ctx.targets.primaryTargetId!,
+      amount: 4,
+      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
+    });
+    if (ctx.sourceHeroInstanceId) healHero(ctx, ctx.sourceHeroInstanceId, 2);
+  },
+};
+
+const soulSiphon: CardDefinition = {
+  id: "soul-siphon",
+  heroId: "spirit-mage",
+  kind: "ability",
+  name: "Soul Siphon",
+  cost: 2,
+  targetType: "singleEnemy",
+  element: "spirit",
+  description: "Deal 6 damage to one enemy and heal this hero for 4.",
+  resolve: (ctx) => {
+    dealDamage(ctx, {
+      targetId: ctx.targets.primaryTargetId!,
+      amount: 6,
+      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
+    });
+    if (ctx.sourceHeroInstanceId) healHero(ctx, ctx.sourceHeroInstanceId, 4);
+  },
+};
+
+const spiritWard: CardDefinition = {
+  id: "spirit-ward",
+  heroId: "spirit-mage",
+  kind: "support",
+  name: "Spirit Ward",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "spirit",
+  description: "Heal one ally for 5.",
+  resolve: (ctx) => {
+    healHero(ctx, ctx.targets.primaryTargetId!, 5);
   },
 };
 
@@ -295,7 +396,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "earth-guardian": {
     id: "earth-guardian",
     name: "Earth Guardian",
-    role: "Defender",
+    role: "Tank",
     element: "earth",
     maxHp: 24,
     startingShield: 4,
@@ -322,11 +423,11 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
       description: "This player's first healing card each match restores 1 additional HP.",
     },
   },
-  "lightning-duelist": {
-    id: "lightning-duelist",
-    name: "Lightning Duelist",
-    role: "Fighter",
-    element: "lightning",
+  "spark-duelist": {
+    id: "spark-duelist",
+    name: "Spark Duelist",
+    role: "Brawler",
+    element: "spark",
     maxHp: 20,
     startingShield: 0,
     attack: chargedSlash,
@@ -334,14 +435,14 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     support: staticCharge,
     passive: {
       name: "Storm Reflex",
-      description: "Gains 2 Shield after triggering a Water + Lightning interaction.",
+      description: "Gains 2 Shield after triggering a Water + Spark interaction.",
     },
   },
-  "shadow-assassin": {
-    id: "shadow-assassin",
-    name: "Shadow Assassin",
+  "undead-assassin": {
+    id: "undead-assassin",
+    name: "Undead Assassin",
     role: "Assassin",
-    element: "shadow",
+    element: "undead",
     maxHp: 16,
     startingShield: 0,
     attack: quickStrike,
@@ -350,6 +451,36 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     passive: {
       name: "Evasive Instinct",
       description: "The first attack against this hero each match deals 3 less damage (min 1).",
+    },
+  },
+  "charm-gunslinger": {
+    id: "charm-gunslinger",
+    name: "Charm Gunslinger",
+    role: "Gunslinger",
+    element: "charm",
+    maxHp: 17,
+    startingShield: 0,
+    attack: quickdraw,
+    ability: calledShot,
+    support: coverFire,
+    passive: {
+      name: "Steady Aim",
+      description: "This hero deals +1 damage to targets that are currently Charmed.",
+    },
+  },
+  "spirit-mage": {
+    id: "spirit-mage",
+    name: "Spirit Mage",
+    role: "Mage",
+    element: "spirit",
+    maxHp: 16,
+    startingShield: 0,
+    attack: spiritBolt,
+    ability: soulSiphon,
+    support: spiritWard,
+    passive: {
+      name: "Lingering Spirit",
+      description: "The first time this hero would be defeated each match, they survive with 1 HP instead.",
     },
   },
 };

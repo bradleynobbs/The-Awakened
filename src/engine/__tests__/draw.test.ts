@@ -6,7 +6,7 @@ import type { GameEvent, PlayerState } from "../types";
 function makePlayer(overrides: Partial<PlayerState>): PlayerState {
   return {
     id: "player1",
-    heroIds: ["fire-mage", "water-healer", "shadow-assassin"],
+    heroIds: ["fire-mage", "water-healer", "undead-assassin"],
     heroes: [],
     drawPile: [],
     discardPile: [],

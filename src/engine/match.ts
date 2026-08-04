@@ -38,6 +38,7 @@ function createPlayerState(id: PlayerId, heroIds: HeroTrio, rng: Rng): PlayerSta
       statuses: [],
       isDefeated: false,
       hasTakenFirstHit: false,
+      hasCheatedDeath: false,
     };
   });
 

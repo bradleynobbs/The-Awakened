@@ -5,16 +5,16 @@ import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putInHand, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
+const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("damage and healing", () => {
   it("deals fixed damage with no shield in the way", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
-    const target = heroInstanceId("player2", "lightning-duelist");
+    const target = heroInstanceId("player2", "spark-duelist");
     const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target }));
 
-    const hero = getHeroFrom(next, "player2", "lightning-duelist");
+    const hero = getHeroFrom(next, "player2", "spark-duelist");
     expect(hero.currentHp).toBe(hero.maxHp - 5);
   });
 
@@ -46,13 +46,13 @@ describe("damage and healing", () => {
 describe("shield absorption", () => {
   it("absorbs damage with shield before touching HP", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
-    const target = getHeroFrom(state, "player2", "lightning-duelist");
+    const target = getHeroFrom(state, "player2", "spark-duelist");
     target.shield = 3;
 
     const cardId = putInHand(state, "player1", "stone-strike"); // 5 damage
     const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target.instanceId }));
 
-    const hit = getHeroFrom(next, "player2", "lightning-duelist");
+    const hit = getHeroFrom(next, "player2", "spark-duelist");
     expect(hit.shield).toBe(0);
     expect(hit.currentHp).toBe(hit.maxHp - 2); // 5 damage - 3 absorbed
     expect(next.log.some((e) => e.type === "SHIELD_ABSORBED")).toBe(true);
@@ -60,13 +60,13 @@ describe("shield absorption", () => {
 
   it("fully absorbs damage that doesn't exceed the shield", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
-    const target = getHeroFrom(state, "player2", "lightning-duelist");
+    const target = getHeroFrom(state, "player2", "spark-duelist");
     target.shield = 10;
 
     const cardId = putInHand(state, "player1", "stone-strike"); // 5 damage
     const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target.instanceId }));
 
-    const hit = getHeroFrom(next, "player2", "lightning-duelist");
+    const hit = getHeroFrom(next, "player2", "spark-duelist");
     expect(hit.shield).toBe(5);
     expect(hit.currentHp).toBe(hit.maxHp);
   });

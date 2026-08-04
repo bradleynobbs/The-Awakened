@@ -5,7 +5,7 @@ import type { GameEvent, HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putCopyInHand, putInHand, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["earth-guardian", "fire-mage", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["shadow-assassin", "lightning-duelist", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "water-healer"];
 
 describe("resolution order", () => {
   it("interleaves both players' queued actions, alternating starting with player1", () => {
@@ -16,7 +16,7 @@ describe("resolution order", () => {
     const p2a = putCopyInHand(state, "player2", "quick-strike", 0);
     const p2b = putCopyInHand(state, "player2", "quick-strike", 1);
 
-    state = queueCard(state, "player1", p1a, { primaryTargetId: heroInstanceId("player2", "lightning-duelist") });
+    state = queueCard(state, "player1", p1a, { primaryTargetId: heroInstanceId("player2", "spark-duelist") });
     state = queueCard(state, "player2", p2a, { primaryTargetId: heroInstanceId("player1", "fire-mage") });
     state = queueCard(state, "player1", p1b, { primaryTargetId: heroInstanceId("player2", "water-healer") });
     state = queueCard(state, "player2", p2b, { primaryTargetId: heroInstanceId("player1", "water-healer") });
@@ -53,7 +53,7 @@ describe("unqueueing", () => {
   it("refunds energy and returns the card to hand", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
-    state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "shadow-assassin") });
+    state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
     expect(state.players.player1.energy).toBe(2);
     expect(state.players.player1.hand).not.toContain(cardId);
 
@@ -68,7 +68,7 @@ describe("unqueueing", () => {
   it("cannot edit the queue after readying up", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
-    state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "shadow-assassin") });
+    state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
     state = setReady(state, "player1");
 
     const otherCardId = putInHand(state, "player1", "fire-bolt");
@@ -90,11 +90,11 @@ describe("fizzling", () => {
     // kill lands (as p2[0]) before player1's Fire Bolt (p1[1]) resolves.
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {
-      primaryTargetId: heroInstanceId("player2", "shadow-assassin"),
+      primaryTargetId: heroInstanceId("player2", "undead-assassin"),
     });
     const boltId = putInHand(state, "player1", "fire-bolt");
     state = queueCard(state, "player1", boltId, {
-      primaryTargetId: heroInstanceId("player2", "lightning-duelist"),
+      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
     });
 
     const killId = putInHand(state, "player2", "quick-strike");
@@ -104,7 +104,7 @@ describe("fizzling", () => {
 
     expect(getHeroFrom(state, "player1", "fire-mage").isDefeated).toBe(true);
     // Fire Bolt's target never took damage — the action fizzled instead.
-    const boltTarget = getHeroFrom(state, "player2", "lightning-duelist");
+    const boltTarget = getHeroFrom(state, "player2", "spark-duelist");
     expect(boltTarget.currentHp).toBe(boltTarget.maxHp);
     expect(
       state.log.some((e) => e.type === "ACTION_FIZZLED" && e.reason === "source-defeated"),
@@ -113,16 +113,16 @@ describe("fizzling", () => {
 
   it("fizzles a singleEnemy action whose target was defeated by an earlier action this round", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
-    // player2's shadow-assassin already at 1 HP.
-    getHeroFrom(state, "player2", "shadow-assassin").currentHp = 1;
+    // player2's undead-assassin already at 1 HP.
+    getHeroFrom(state, "player2", "undead-assassin").currentHp = 1;
 
     // player1 queues two hits at the same target: the first (resolves
     // first, player1 goes first in the interleave) kills it, so the
     // second should fizzle instead of double-killing it.
     const first = putCopyInHand(state, "player1", "stone-strike", 0);
     const second = putCopyInHand(state, "player1", "stone-strike", 1);
-    state = queueCard(state, "player1", first, { primaryTargetId: heroInstanceId("player2", "shadow-assassin") });
-    state = queueCard(state, "player1", second, { primaryTargetId: heroInstanceId("player2", "shadow-assassin") });
+    state = queueCard(state, "player1", first, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
+    state = queueCard(state, "player1", second, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
 
     state = readyBoth(state);
 
@@ -133,7 +133,7 @@ describe("fizzling", () => {
 
   it("partially fizzles Chain Spark when only the secondary target dies first, resolving the primary hit anyway", () => {
     let state = createMatch(
-      ["water-healer", "fire-mage", "lightning-duelist"] as [HeroId, HeroId, HeroId],
+      ["water-healer", "fire-mage", "spark-duelist"] as [HeroId, HeroId, HeroId],
       P2,
       createSeededRng(1),
     );
@@ -146,7 +146,7 @@ describe("fizzling", () => {
 
     const chainSparkId = putInHand(state, "player1", "chain-spark");
     state = queueCard(state, "player1", chainSparkId, {
-      primaryTargetId: heroInstanceId("player2", "lightning-duelist"),
+      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
       secondaryTargetId: heroInstanceId("player2", "water-healer"),
     });
 
@@ -157,7 +157,7 @@ describe("fizzling", () => {
       state.log.some((e) => e.type === "ACTION_FIZZLED" && e.reason === "secondary-target-defeated"),
     ).toBe(true);
     // Primary target still took Chain Spark's hit (4 dmg, no Wet bonus).
-    const primary = getHeroFrom(state, "player2", "lightning-duelist");
+    const primary = getHeroFrom(state, "player2", "spark-duelist");
     expect(primary.currentHp).toBe(primary.maxHp - 4);
   });
 
@@ -176,7 +176,7 @@ describe("fizzling", () => {
     // p1[0] (harmless strike) -> p2[0] (kills water-healer) -> p1[1] (Team-Up, now fizzles).
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {
-      primaryTargetId: heroInstanceId("player2", "shadow-assassin"),
+      primaryTargetId: heroInstanceId("player2", "undead-assassin"),
     });
     state = queueTeamUp(state, "player1", "steam-surge");
 

@@ -148,7 +148,7 @@ The main menu has:
    with the next other player who's also looking (public queue — see
    `DESIGN.md` §4.1). (Or tap **Practice vs Bot** to skip matchmaking
    entirely.)
-2. **Hero Selection.** Pick exactly 3 of your 5 offered heroes and lock
+2. **Hero Selection.** Pick exactly 3 of your 7 offered heroes and lock
    in. You see only your own picks; once both players have locked in,
    both teams' full rosters become visible on the battlefield. A locked
    team cannot change for the rest of the match.
@@ -191,15 +191,17 @@ The 📜 icon opens the full battle log; the latest event also shows as a
 small banner on the battlefield. The 🐞 icon (bottom-right, low-key on
 purpose) opens a raw state inspector for debugging.
 
-## The 5 heroes (prototype names — easy to reskin later)
+## The 7 heroes (prototype names — easy to reskin later)
 
 | Hero | Role | Element | HP | Passive |
 |---|---|---|---|---|
 | Fire Mage | Mage | Fire | 18 | +1 damage to targets already Burning |
-| Earth Guardian | Defender | Earth | 24 | Starts the match with 4 Shield |
+| Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
-| Lightning Duelist | Fighter | Lightning | 20 | +2 Shield after a Water+Lightning interaction |
-| Shadow Assassin | Assassin | Shadow | 16 | First hit taken each match is reduced by 3 (min 1) |
+| Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
+| Undead Assassin | Assassin | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
+| Charm Gunslinger | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
+| Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
 
 Each hero has one Attack card (1 energy), one Ability card (2 energy), one
 Support card (2 energy — heals, shields, or Empowers an ally, see
@@ -207,19 +209,30 @@ Support card (2 energy — heals, shields, or Empowers an ally, see
 `DESIGN.md` §2.
 
 **Team-Ups:** *Steam Surge* (Fire Mage + Water Healer) and *Thunder Tide*
-(Water Healer + Lightning Duelist) — 3 energy, once per match, with a
-fixed resolution order shown in the card's description.
+(Water Healer + Spark Duelist) — 3 energy, once per match, with a
+fixed resolution order shown in the card's description. Charm Gunslinger
+and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
 
 ## Elements
 
 - **Fire** → Burn: fixed damage at the start of the burned hero's
   controller's next 2 turns.
-- **Water** → Wet: a flag that Lightning cards consume for bonus damage.
-- **Lightning** → deals bonus fixed damage to Wet targets and removes Wet.
+- **Water** → Wet: a flag that Spark cards consume for bonus damage.
+- **Spark** → deals bonus fixed damage to Wet targets and removes Wet.
 - **Earth** → Shield: absorbs incoming damage before HP.
+- **Charm** → Charmed: subtracts fixed damage (floor 1) from the
+  charmed hero's next damage-dealing action, then clears. The inverse
+  of Empower (see `DESIGN.md` §6.1, §7.3) — a debuff on an enemy
+  instead of a buff on an ally, using the same mechanism.
+- **Spirit** → no shared status of its own; expressed instead through
+  lifesteal cards (deal damage, heal the caster) and Spirit Mage's
+  "survive one lethal hit" passive (`DESIGN.md` §7.4).
+- **Undead** → no shared status either; currently just Undead
+  Assassin's flavor plus its existing first-hit-reduction passive.
 
 All interactions are deterministic and reflected as status badges on each
-hero's health plate (🔥 Burn ticks remaining, 💧 Wet, 🛡 Shield amount).
+hero's health plate (🔥 Burn ticks remaining, 💧 Wet, 🛡 Shield amount,
+💪 Empower bonus, 💫 Charm reduction).
 
 ## Architecture
 
@@ -233,7 +246,7 @@ for why, and its tradeoffs).
 ```
 src/engine/       Pure rules engine (unchanged whether local or online)
   types.ts         Core typed models (Hero, Card, Status, MatchState, GameEvent…)
-  heroes.ts        The 5 hero definitions + their Attack/Ability/Support card resolvers
+  heroes.ts        The 7 hero definitions + their Attack/Ability/Support card resolvers
   teamups.ts       The 2 Team-Up card definitions
   cards.ts         Card-id → CardDefinition registry
   selection.ts     Hero-pick validation (exactly 3 of 5, lock-in)
@@ -302,8 +315,8 @@ without touching damage, targeting, or status-effect code.
 
 ## What's deliberately out of scope (see DESIGN.md §3 and §4.3)
 
-Ultimates, more than 4 elements, more than 5 heroes, more than 2
-Team-Ups. Online multiplayer is intentionally simple: no accounts, no
+Ultimates and more than 2 Team-Ups (Charm Gunslinger and Spirit Mage
+don't have one yet). Online multiplayer is intentionally simple: no accounts, no
 server-side move validation (each client trusts the other's broadcast
 state), and no reconnect/resume — a disconnect ends the match. Fine for
 a casual hobby prototype; flagged here so it isn't mistaken for an

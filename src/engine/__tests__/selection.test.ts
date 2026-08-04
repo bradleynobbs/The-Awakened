@@ -6,12 +6,14 @@ const OFFERED: HeroId[] = [
   "fire-mage",
   "earth-guardian",
   "water-healer",
-  "lightning-duelist",
-  "shadow-assassin",
+  "spark-duelist",
+  "undead-assassin",
+  "charm-gunslinger",
+  "spirit-mage",
 ];
 
 describe("hero selection", () => {
-  it("selects exactly 3 of the 5 offered heroes", () => {
+  it("selects exactly 3 of the 7 offered heroes", () => {
     let state = createTeamSelection("player1", OFFERED);
     state = toggleHero(state, "fire-mage");
     state = toggleHero(state, "earth-guardian");
@@ -24,7 +26,7 @@ describe("hero selection", () => {
     state = toggleHero(state, "fire-mage");
     state = toggleHero(state, "earth-guardian");
     state = toggleHero(state, "water-healer");
-    expect(() => toggleHero(state, "lightning-duelist")).toThrow(/Only 3 heroes/);
+    expect(() => toggleHero(state, "spark-duelist")).toThrow(/Only 3 heroes/);
   });
 
   it("allows deselecting before locking", () => {
@@ -47,6 +49,6 @@ describe("hero selection", () => {
     state = toggleHero(state, "water-healer");
     state = lockSelection(state);
     expect(state.isLocked).toBe(true);
-    expect(() => toggleHero(state, "shadow-assassin")).toThrow(/locked/);
+    expect(() => toggleHero(state, "undead-assassin")).toThrow(/locked/);
   });
 });

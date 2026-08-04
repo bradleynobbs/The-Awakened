@@ -9,18 +9,20 @@ export type HeroId =
   | "fire-mage"
   | "earth-guardian"
   | "water-healer"
-  | "lightning-duelist"
-  | "shadow-assassin";
+  | "spark-duelist"
+  | "undead-assassin"
+  | "charm-gunslinger"
+  | "spirit-mage";
 
-export type Element = "fire" | "water" | "lightning" | "earth" | "shadow";
+export type Element = "fire" | "water" | "spark" | "earth" | "undead" | "charm" | "spirit";
 
 export type Role =
-  | "Fighter"
-  | "Defender"
-  | "Support"
+  | "Mage"
+  | "Brawler"
+  | "Tank"
   | "Assassin"
-  | "Controller"
-  | "Mage";
+  | "Gunslinger"
+  | "Support";
 
 export type TargetType =
   | "singleEnemy"
@@ -54,7 +56,13 @@ export interface StatusEmpower {
   bonusDamage: number;
 }
 
-export type StatusEffect = StatusBurn | StatusWet | StatusEmpower;
+export interface StatusCharmed {
+  type: "charm";
+  /** Damage subtracted (floor 1) from this hero's next damage-dealing action, then consumed. */
+  damageReduction: number;
+}
+
+export type StatusEffect = StatusBurn | StatusWet | StatusEmpower | StatusCharmed;
 
 export interface HeroDefinition {
   id: HeroId;
@@ -114,8 +122,10 @@ export interface HeroInstance {
   shield: number;
   statuses: StatusEffect[];
   isDefeated: boolean;
-  /** Shadow Assassin passive: has this hero already taken its first reduced hit? */
+  /** Undead Assassin passive: has this hero already taken its first reduced hit? */
   hasTakenFirstHit: boolean;
+  /** Spirit Mage passive: has this hero already survived a lethal hit at 1 HP this match? */
+  hasCheatedDeath: boolean;
 }
 
 export interface CardInstance {
@@ -180,6 +190,7 @@ export type GameEventType =
   | "STATUS_REMOVED"
   | "STATUS_TRIGGERED"
   | "HERO_DEFEATED"
+  | "SURVIVED_LETHAL"
   | "TEAM_UP_AVAILABLE"
   | "TEAM_UP_TRIGGERED"
   | "ROUND_RESOLVED"

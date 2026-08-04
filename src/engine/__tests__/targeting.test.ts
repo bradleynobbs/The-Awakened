@@ -5,8 +5,8 @@ import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putInHand } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P1_WITH_DUELIST: [HeroId, HeroId, HeroId] = ["fire-mage", "lightning-duelist", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
+const P1_WITH_DUELIST: [HeroId, HeroId, HeroId] = ["fire-mage", "spark-duelist", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("target validation", () => {
   it("accepts a valid single-enemy target", () => {
@@ -45,7 +45,7 @@ describe("target validation", () => {
   it("requires a distinct secondary target for Chain Spark when 2+ enemies are alive", () => {
     const state = createMatch(P1_WITH_DUELIST, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "chain-spark");
-    const primary = heroInstanceId("player2", "lightning-duelist");
+    const primary = heroInstanceId("player2", "spark-duelist");
     expect(() => queueCard(state, "player1", cardId, { primaryTargetId: primary })).toThrow(
       /second/i,
     );
@@ -53,11 +53,11 @@ describe("target validation", () => {
 
   it("allows Chain Spark with just a primary target once only one enemy remains", () => {
     const state = createMatch(P1_WITH_DUELIST, P2, createSeededRng(1));
-    getHeroFrom(state, "player2", "shadow-assassin").isDefeated = true;
+    getHeroFrom(state, "player2", "undead-assassin").isDefeated = true;
     getHeroFrom(state, "player2", "fire-mage").isDefeated = true;
 
     const cardId = putInHand(state, "player1", "chain-spark");
-    const primary = heroInstanceId("player2", "lightning-duelist");
+    const primary = heroInstanceId("player2", "spark-duelist");
     expect(() => queueCard(state, "player1", cardId, { primaryTargetId: primary })).not.toThrow();
   });
 

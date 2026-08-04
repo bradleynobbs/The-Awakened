@@ -4,7 +4,7 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 
 describe("deck creation", () => {
-  const heroIds: HeroId[] = ["fire-mage", "water-healer", "shadow-assassin"];
+  const heroIds: HeroId[] = ["fire-mage", "water-healer", "undead-assassin"];
 
   it("creates 3 copies each of the selected heroes' attack, ability, and support cards", () => {
     const cardsById = buildDeck("player1", heroIds);

@@ -7,7 +7,7 @@ import type { HeroId } from "../types";
 import { getHeroFrom, putInHand } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
+const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("chooseBotAction", () => {
   it("picks an affordable card with a living, correctly-sided target", () => {
@@ -40,7 +40,7 @@ describe("chooseBotAction", () => {
 
   it("omits the secondary target for a two-enemy card once only one enemy remains", () => {
     const state = createMatch(
-      ["water-healer", "lightning-duelist", "shadow-assassin"],
+      ["water-healer", "spark-duelist", "undead-assassin"],
       P1,
       createSeededRng(1),
     );

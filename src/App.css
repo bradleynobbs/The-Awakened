@@ -385,6 +385,9 @@ button {
 .badge.empower {
   color: #ffb84a;
 }
+.badge.charm {
+  color: #e065b0;
+}
 
 /* ---------- Team-Ups: compact pills, expand on tap ---------- */
 

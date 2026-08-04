@@ -675,103 +675,83 @@ decides turn order on its own, and letting one stat govern two
 different axes of power would make it the only stat worth investing
 in, which directly contradicts "no role should dominate the meta."
 
-## 9. Art direction: a unified character style (within a real tooling gap)
+## 9. Presentation: from a 3D battlefield to a 2D side-on scene
 
-A full art-direction brief was given for the roster: semi-realistic
-~7-heads-tall proportions, modern clothing with supernatural
-influences, elemental powers as glowing energy rather than armor,
-unique faces (skin tone, hairstyle, eye color, a small identifying
-feature per hero), role-driven body language, a fixed per-element
-color, and production requirements (shared rig/skeleton, consistent
-polygon budget, PBR materials, mobile-optimized) at a "Brawl Stars /
-Wild Rift / Marvel Rivals" quality bar.
+The battle screen was originally a React Three Fiber / Three.js 3D
+scene (`src/scene/Battlefield.tsx` driving a `<Canvas>`, with heroes
+built procedurally out of Three.js primitives in `HeroModel.tsx`). It
+was rebuilt from scratch as a flat 2D side-on presentation, closer to
+*Slay the Spire* — two facing columns of hand-drawn SVG character
+sprites on a static backdrop, no camera, no 3D scene graph at all.
+`@react-three/fiber`, `@react-three/drei`, and `three` were removed
+from the project entirely (dropping the production bundle from ~1.37MB
+to ~460KB) — there is no 3D rendering anywhere in the app anymore.
 
-**The honest ceiling:** this project has no 3D modeling, sculpting,
-rigging, texturing, or image-generation tooling — heroes are built
-procedurally out of Three.js primitives (spheres, cylinders, cones,
-boxes) directly in `src/scene/HeroModel.tsx`, the same approach used
-since the first "human instead of a capsule" pass. Actual mesh-based
-character art at that quality bar isn't achievable this way. What
-follows is what the brief translates to *within that constraint* —
-confirmed with the requester as "cartoony but semi-realistic,
-clean," not literal AAA parity.
+**The honest ceiling hasn't changed, only its shape:** this project
+still has no image-generation or illustration tooling. What changed is
+the medium the hand-built art lives in — flat, hand-coded SVG shapes
+instead of hand-placed 3D primitives. The visual language is a bold,
+flat "cartoon" style (thick dark outlines, flat fills, chunky
+proportions) rather than an attempt at painted or photo-real
+illustration, which stays out of reach for the same reason it always
+was: nothing in this environment can generate or paint an image.
 
-### 9.1 What was carried over faithfully
+### 9.1 Layout: two facing formations
 
-- **Every hero got a distinct face**: a per-hero skin tone, eye color,
-  hairstyle (a small hand-built shape per hero — a tousled cap, a
-  buzzcut, flowing side-locks, a mohawk, a hood-sliver, a ponytail, or
-  long trailing hair), and one small identifying feature (an ember
-  freckle, a stone chip, a teardrop mark, a lightning-bolt scar, a
-  brow scar, a visor, or a glowing forehead rune) — see
-  `src/scene/heroCosmetics.ts` for the data and `src/scene/HeroFace.tsx`
-  for the geometry. "No two characters should feel similar" is checked
-  at the face level now, not just the element-color level.
-- **Elements read as glowing energy, not armor**: a new
-  `src/scene/ElementAura.tsx` renders a handful of small emissive
-  shapes per element — rising embers (Fire), a ripple ring + drifting
-  mist (Water), floating rock chunks (Earth), flickering arcs (Spark),
-  drifting wisps (Spirit), a dark mist ring + a rune-glow spot
-  (Undead), floating "petals" (Charm) — animated with a shared
-  `useFrame` bob/rotate, not a real particle system, and capped at 2-3
-  shapes per hero so it reads as an accent instead of visual noise
-  competing with the gameplay-critical status badges.
-- **Role-driven body language**: already-existing per-role torso
-  shapes (Tank broad, Speedster slim, Mage robed, etc. — section 7's
-  `TORSO_SHAPE` table) are the "large and broad" / "slim and
-  lightweight" rule already implemented; this pass didn't need to
-  touch it.
-- **A closer-to-semi-realistic silhouette**: legs lengthened (0.62 ->
-  0.7 relative units) so the rig reads less "chibi," and skin/cloth
-  materials picked up explicit `roughness`/`metalness` values (matte
-  skin and cloth, shinier metal accessories) — a lightweight stand-in
-  for real PBR texture work, using only material *parameters* since
-  there's no texture-authoring pipeline to produce actual maps.
-- **One shared rig for every hero**: there was never a per-hero mesh
-  to begin with, so "same skeleton, same proportions" was true by
-  construction before this pass and stays true after it — every hero
-  still shares the exact same body-part layout, just with different
-  colors, hair, and gear layered on top.
+`Battlefield.tsx` renders a `.battlefield-2d` container with two
+`Formation` columns — the player's team on the left (facing right),
+the opponent's on the right (facing left) — each a vertical stack of
+up to 3 heroes on a shared "ground," matching the classic side-view
+JRPG/roguelike-deckbuilder framing the request asked for. Each hero
+slot pairs a `hero-plate` (name, HP bar, Speed, shield badge — plain
+DOM now, no longer an R3F `<Html>` overlay) with a `HeroSprite`.
 
-### 9.2 What's explicitly not attempted
+### 9.2 `HeroSprite.tsx`: the shared 2D rig
 
-Hand-sculpted or hand-painted textures, a real bone/skinning rig,
-authored animation clips (idle/movement/attack/ultimate as distinct
-hand-made animations), and a real GPU particle system for ultimates —
-none of these have a tool in this project to produce them. The
-existing procedural cues (lunge-on-attack, flash-on-hit/heal/shield,
-the defeat collapse) are the full extent of "animation" here, and stay
-that way until an actual art/animation pipeline exists.
+Every hero is drawn from one shared "chassis" (the 2D equivalent of
+the old `TORSO_SHAPE`/skeleton system): fixed leg/arm/head anchor
+points, with only torso width/height varying by role. Per-hero
+identity is layered on top exactly like before, just re-expressed as
+flat SVG shapes instead of 3D meshes:
 
-### 9.3 Concept art briefs
+- **Cosmetics** (`heroCosmetics.ts`, unchanged): skin/eye/hair color
+  per hero, reused as-is since it was never 3D-specific.
+- **Hair** (`Hair()`): a hand-drawn silhouette path per hero — a swept
+  fringe + bun (Inferna), a buzzcut dome, flowing side-locks, a
+  three-spike mohawk, a hood-sliver, a ponytail + sharp spike, or long
+  trailing hair.
+- **Role gear** (`RoleGear()`): a staff for Mages, shoulder plates +
+  gauntlet for Tank, a halo for Support, a bat for Brawler, a hood
+  silhouette for Speedster, a pistol (+ visor for Charm) for
+  Gunslinger — anchored at the shared front-hand/head points.
+  Mirrors the old per-role `RoleGear` switch one-for-one.
+- **Element aura** (`ElementAura()`): a few small floating colored
+  dots per element, animated with a CSS `@keyframes` bob instead of a
+  Three.js `useFrame` loop — same "glowing energy accent, not a real
+  particle system" intent as before.
+- **Animation cues**: attacking lunge, hit/heal/shield flash, and the
+  defeated collapse are all CSS transitions/classes toggled from the
+  same `AnimCue` prop the 3D version used, driven by
+  `useEventQueue`/`cuesForEvent()` — the animation *logic* didn't
+  change, only the rendering technology underneath it.
 
-There's no image-generation tool in this project either, so actual
-concept art (2D illustrated character sheets — large expressive eyes,
-clean line art, bold silhouettes, modern-streetwear-meets-supernatural
-outfits) can't be produced here. [`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md)
-has a full written brief per hero instead — hairstyle, outfit,
-signature weapon/focus, personality, color palette, pose direction —
-detailed enough to paste into an external image generator or hand to
-an illustrator. Each brief keeps the identity already established in
-`heroCosmetics.ts` (skin/eye/hair color) so real concept art and the
-in-game version would read as the same character once produced.
+### 9.3 Inferna: the one hero-specific redesign
 
-### 9.4 Inferna's rig: the first hero-specific redesign
+Inferna keeps her bespoke look from the 3D era, ported to SVG: a
+cropped black jacket (a rounded `<rect>` over her base tank top) with
+glowing orange `<line>` "lava-crack" seams (a `glow-line` CSS class
+adds the drop-shadow glow), a hair bun instead of the shared Mage
+hairstyle, and no staff — she channels fire bare-handed, drawn as a
+glowing circle cupped at her front hand. `InfernaOverlay()` in
+`HeroSprite.tsx` is the direct 2D equivalent of the old
+`isInferna`-gated blocks in `HeroModel.tsx`.
 
-Inferna is the first hero to break from the shared per-role rig
-(§9.1) and get a bespoke primitive build, based on real reference art
-the player provided (a modern black cropped jacket with glowing
-lava-crack seams, dark hair pulled back). `HeroModel.tsx` special-cases
-`heroId === "fire-mage"` to swap the generic Mage-role torso cylinder
-for a fitted charcoal base layer plus a shorter, wider "jacket"
-cylinder worn over it, with several small emissive boxes laid on its
-front face as glowing crack seams. She also skips the shared Mage
-staff (`RoleGear`) entirely — her Fire Bolt/Flame Wave read as flame
-cupped directly in each palm (a small emissive sphere at the hand,
-above a dark fingerless-glove cuff), matching the "channels fire
-through bare hands" brief in `CHARACTER_CONCEPTS.md`. `HeroFace.tsx`
-gives her a swept-back hairstyle with a bun at the back of the head
-instead of the original short spiky-tuft hair. This is still built
-entirely from primitives (no mesh assets) — it's a proof that the
-existing rig can absorb hero-specific silhouettes, not a departure
-from the capability ceiling documented in §9.2.
+### 9.4 What's still explicitly not attempted
+
+Hand-painted or photo-real illustration, per-hero unique poses/rigs
+(every hero still shares one chassis), and a real animation/particle
+pipeline — none of these have a tool in this project to produce them.
+[`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md) remains the written
+creative reference for what real 2D concept art would look like per
+hero, should an actual illustrator or image-generation tool ever enter
+the picture.

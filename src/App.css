@@ -265,10 +265,6 @@ button {
   position: relative;
 }
 
-.battle-main canvas {
-  outline: none;
-}
-
 .latest-event-toast {
   position: absolute;
   bottom: 8px;
@@ -328,15 +324,179 @@ button {
   border-bottom: 1px solid #1b2033;
 }
 
-/* ---------- Hero plates (3D overlay) ---------- */
+/* ---------- 2D battlefield (side-on formations) ---------- */
+
+.battlefield-2d {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 8px 6px 16px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.battlefield-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #131728 0%, #0d1020 70%);
+}
+
+.battlefield-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38%;
+  background: linear-gradient(180deg, #1a2030 0%, #11141f 100%);
+  border-top: 1px solid #2a3350;
+}
+
+.formation {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+}
+.formation-left {
+  align-items: flex-start;
+  padding-left: 4%;
+}
+.formation-right {
+  align-items: flex-end;
+  padding-right: 4%;
+}
+
+.hero-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hero-sprite-wrap {
+  position: relative;
+  width: 74px;
+  height: 92px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: default;
+  transform: scaleX(var(--facing, 1));
+  transition: filter 0.15s ease, transform 0.18s ease-out;
+}
+.hero-sprite-wrap:disabled {
+  cursor: default;
+}
+.hero-sprite-wrap.targetable {
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px #ffd24a);
+}
+.hero-sprite-wrap.selected-target {
+  filter: drop-shadow(0 0 10px #ffffff);
+}
+.hero-sprite-wrap.focused {
+  transform: scaleX(var(--facing, 1)) scale(1.08);
+}
+.hero-sprite-wrap.defeated {
+  opacity: 0.4;
+  filter: grayscale(1);
+  transform: scaleX(var(--facing, 1)) rotate(calc(var(--facing, 1) * 80deg)) translateY(20px);
+}
+.hero-sprite-wrap.lunging {
+  transform: scaleX(var(--facing, 1)) translateX(calc(var(--facing, 1) * 16px));
+}
+.hero-sprite-wrap.flash-hit .hero-sprite-svg {
+  filter: brightness(1.7) drop-shadow(0 0 10px #ff4444);
+}
+.hero-sprite-wrap.flash-heal .hero-sprite-svg {
+  filter: brightness(1.6) drop-shadow(0 0 8px #43d17a);
+}
+.hero-sprite-wrap.flash-shield .hero-sprite-svg {
+  filter: brightness(1.6) drop-shadow(0 0 8px #4aa8ff);
+}
+
+.hero-sprite-ground {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 52px;
+  height: 12px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.hero-sprite-svg {
+  display: block;
+  overflow: visible;
+}
+
+.glow-line {
+  filter: drop-shadow(0 0 3px #ff6a1f);
+}
+
+.hero-aura .aura-mote {
+  opacity: 0.85;
+  filter: blur(0.3px);
+  animation: aura-bob 2.6s ease-in-out infinite;
+}
+.aura-mote-1 {
+  animation-delay: 0.5s;
+}
+.aura-mote-2 {
+  animation-delay: 1s;
+}
+@keyframes aura-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.sprite-badge {
+  position: absolute;
+  top: -4px;
+  font-size: 12px;
+  background: rgba(10, 12, 20, 0.85);
+  border-radius: 999px;
+  padding: 0 3px;
+  line-height: 1.4;
+}
+.sprite-badge.burn {
+  right: -6px;
+}
+.sprite-badge.wet {
+  left: -6px;
+  top: 14px;
+}
+.sprite-badge.empower {
+  left: -6px;
+  top: -4px;
+  font-size: 9px;
+}
+.sprite-badge.charm {
+  right: -6px;
+  top: 14px;
+  font-size: 9px;
+}
+
+/* ---------- Hero plates (name/HP overlay above each sprite) ---------- */
 
 .hero-plate {
-  width: 128px;
+  width: 110px;
   background: rgba(10, 12, 20, 0.85);
   border: 1px solid #3a4260;
   border-radius: 6px;
   padding: 4px 6px;
-  pointer-events: none;
   font-size: 10px;
   color: #e8eaf0;
 }

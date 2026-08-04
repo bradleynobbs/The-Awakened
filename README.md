@@ -1,7 +1,7 @@
 # The Awakened
 
-A mobile-first, online 1v1 tactical card battler, presented as a
-cinematic 3D battlefield in the style of *Slay the Spire* meets
+A mobile-first, online 1v1 tactical card battler, presented as a flat
+2D side-on battlefield in the style of *Slay the Spire* meets
 team-based PvP. Two players each lock in a 3-hero team and fight it out
 over the network with a shared action deck, elemental status
 interactions, and a full RPG-style stat system (Attack, Defense, Speed,
@@ -84,7 +84,7 @@ Android build, and `npm run build` on its own are unaffected).
 
 The game is wrapped as a native Android app with
 [Capacitor](https://capacitorjs.com/) — the web build runs inside a
-WebView, so the entire engine, UI, and 3D battlefield above are unchanged.
+WebView, so the entire engine, UI, and battlefield above are unchanged.
 The `android/` folder is a standard Gradle/Android Studio project.
 
 ### Option A: GitHub Actions (no local Android setup needed)
@@ -284,7 +284,7 @@ from Inferna's burst-damage template.
 ## Architecture
 
 The rules engine (`src/engine/`) is plain TypeScript with no dependency on
-React, Three.js, or the network layer — every action is a pure function
+React, the rendering layer, or the network layer — every action is a pure function
 that takes a `MatchState` and returns a new `MatchState` plus an ordered
 `GameEvent[]` list. Both players' devices run the exact same engine code
 locally; nothing server-side re-simulates the game (see `DESIGN.md` §4.2
@@ -334,16 +334,15 @@ src/state/
   objectives.ts       Daily/weekly matches-played/won counters (localStorage,
                         date-keyed reset), recorded on every match end
 
-src/scene/         React Three Fiber battlefield: HeroModel (procedural
-                     low-poly humanoid rig + HTML health plate — no mesh
-                     assets, every hero is built from primitives),
-                     HeroFace + heroCosmetics.ts (per-hero skin/eye/hair/
-                     small feature, DESIGN.md §9.1), ElementAura (small
-                     animated per-element glow effects), Battlefield
-                     (camera + single-perspective layout — your team
-                     always renders nearest the camera regardless of
-                     engine player id), useEventQueue (steps engine
-                     events into per-event animation cues one at a time)
+src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
+                     rendering library at all: HeroSprite (hand-coded
+                     SVG hero rig — shared chassis + per-hero hair/gear/
+                     color, no image assets), heroCosmetics.ts (per-hero
+                     skin/eye/hair color), Battlefield (two facing DOM
+                     "formations," your team always on the left
+                     regardless of engine player id), useEventQueue
+                     (steps engine events into per-event animation cues
+                     one at a time)
 src/ui/             MainMenu (hero showcase, objectives), DeckBuilder,
                      Store, Matchmaking, OnlineHeroSelection (shared by
                      online + practice), Battle (TopBar, CardHand,
@@ -355,7 +354,7 @@ Every round's resolution produces an ordered list of `GameEvent`s (e.g.
 `ACTION_QUEUED`, `CARD_PLAYED`, `DAMAGE_DEALT`, `SHIELD_ABSORBED`,
 `STATUS_APPLIED`, `ACTION_FIZZLED`, `HERO_DEFEATED`, `TEAM_UP_TRIGGERED`,
 `ROUND_RESOLVED`, `MATCH_ENDED`…). `useEventQueue` steps through a fresh
-batch one event at a time so the 3D scene can animate a hero lunging
+batch one event at a time so the battlefield can animate a hero lunging
 forward, a target flashing red on a hit, or a shield glow — in the exact
 order the engine produced them, on *both* players' screens (since the
 resolving client's resulting state — including its full event log — is

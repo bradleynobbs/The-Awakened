@@ -1,12 +1,12 @@
-import { Suspense, useMemo, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { useMemo } from "react";
+import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { HeroModel, type AnimCue } from "./HeroModel";
+import { ELEMENT_SYMBOL } from "../ui/heroVisuals";
+import { HeroSprite, type AnimCue } from "./HeroSprite";
 
 interface BattlefieldProps {
   state: MatchState;
-  /** Whichever team should render nearest the camera — always "you", online. */
+  /** Whichever team should render on the left, nearest the player — always "you", online. */
   myRole: PlayerId;
   activeEvent: GameEvent | null;
   targetablePlayerId: PlayerId | null;
@@ -14,11 +14,6 @@ interface BattlefieldProps {
   selectedTargetIds: HeroInstanceId[];
   onSelectTarget: (heroId: HeroInstanceId) => void;
 }
-
-// Kept tight so all 3 heroes per side stay on-screen on narrow/portrait
-// (phone) viewports, where the horizontal field of view is much smaller
-// than on a wide desktop window.
-const X_SLOTS = [-1.5, 0, 1.5];
 
 function cuesForEvent(event: GameEvent | null): Record<HeroInstanceId, AnimCue> {
   const cues: Record<HeroInstanceId, AnimCue> = {};
@@ -45,27 +40,80 @@ function cuesForEvent(event: GameEvent | null): Record<HeroInstanceId, AnimCue> 
   return cues;
 }
 
-function focusXForEvent(state: MatchState, event: GameEvent | null): number | null {
-  if (!event) return null;
+/** Which hero instance(s) the active event revolves around — used to give
+ * that hero a brief spotlight highlight, replacing the old 3D camera dolly. */
+function focusIdsForEvent(event: GameEvent | null): Set<HeroInstanceId> {
+  const ids = new Set<HeroInstanceId>();
+  if (!event) return ids;
   const e = event as Record<string, unknown>;
-  const id = (e.sourceHeroInstanceId ?? e.targetId ?? e.heroInstanceId) as string | undefined;
-  if (!id) return null;
-  for (const player of Object.values(state.players)) {
-    const index = player.heroes.findIndex((h) => h.instanceId === id);
-    if (index !== -1) return X_SLOTS[index] * 0.4;
+  for (const key of ["sourceHeroInstanceId", "targetId", "heroInstanceId"]) {
+    const id = e[key] as string | undefined;
+    if (id) ids.add(id);
   }
-  return null;
+  return ids;
 }
 
-function CameraRig({ focusX }: { focusX: number | null }) {
-  const { camera } = useThree();
-  const targetX = useRef(0);
-  useFrame((_, delta) => {
-    targetX.current = focusX ?? 0;
-    camera.position.x += (targetX.current - camera.position.x) * Math.min(1, delta * 3);
-    camera.lookAt(targetX.current * 0.3, 0.6, 0);
-  });
-  return null;
+function Formation({
+  state,
+  playerId,
+  facing,
+  cues,
+  focusIds,
+  targetablePlayerId,
+  targetableHeroIds,
+  selectedTargetIds,
+  onSelectTarget,
+}: {
+  state: MatchState;
+  playerId: PlayerId;
+  facing: 1 | -1;
+  cues: Record<HeroInstanceId, AnimCue>;
+  focusIds: Set<HeroInstanceId>;
+  targetablePlayerId: PlayerId | null;
+  targetableHeroIds: HeroInstanceId[];
+  selectedTargetIds: HeroInstanceId[];
+  onSelectTarget: (heroId: HeroInstanceId) => void;
+}) {
+  return (
+    <div className={`formation ${facing === 1 ? "formation-left" : "formation-right"}`}>
+      {state.players[playerId].heroes.map((hero) => {
+        const def = HERO_DEFINITIONS[hero.heroId];
+        return (
+          <div key={hero.instanceId} className="hero-slot">
+            <div className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}>
+              <div className="hero-plate-name">
+                {ELEMENT_SYMBOL[def.element]} {def.name}
+                <span className="hero-plate-speed" title="Speed — decides resolution order">
+                  🏃{def.stats.speed}
+                </span>
+              </div>
+              <div className="hero-plate-hpbar">
+                <div
+                  className="hero-plate-hpfill"
+                  style={{ width: `${Math.max(0, (hero.currentHp / hero.maxHp) * 100)}%` }}
+                />
+              </div>
+              <div className="hero-plate-stats">
+                <span>
+                  {hero.currentHp}/{hero.maxHp} HP
+                </span>
+                {hero.shield > 0 && <span className="badge shield">🛡{hero.shield}</span>}
+              </div>
+            </div>
+            <HeroSprite
+              hero={hero}
+              facing={facing}
+              cue={cues[hero.instanceId] ?? null}
+              isTargetable={targetablePlayerId === playerId && targetableHeroIds.includes(hero.instanceId)}
+              isSelectedTarget={selectedTargetIds.includes(hero.instanceId)}
+              isFocused={focusIds.has(hero.instanceId)}
+              onClick={() => onSelectTarget(hero.instanceId)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function Battlefield({
@@ -78,43 +126,35 @@ export function Battlefield({
   onSelectTarget,
 }: BattlefieldProps) {
   const cues = useMemo(() => cuesForEvent(activeEvent), [activeEvent]);
-  const focusX = useMemo(() => focusXForEvent(state, activeEvent), [state, activeEvent]);
+  const focusIds = useMemo(() => focusIdsForEvent(activeEvent), [activeEvent]);
   const opponentRole: PlayerId = myRole === "player1" ? "player2" : "player1";
-  const teamZ: Record<PlayerId, number> = { [myRole]: 2.4, [opponentRole]: -2.8 } as Record<PlayerId, number>;
-  const facing: Record<PlayerId, 1 | -1> = { [myRole]: 1, [opponentRole]: -1 } as Record<PlayerId, 1 | -1>;
 
   return (
-    <Canvas shadows camera={{ position: [0, 6.2, 10.5], fov: 50 }}>
-      <Suspense fallback={null}>
-        <color attach="background" args={["#0c0f16"]} />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[4, 8, 4]} intensity={1.1} castShadow />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-          <planeGeometry args={[16, 12]} />
-          <meshStandardMaterial color="#1a2030" />
-        </mesh>
-        <gridHelper args={[16, 16, "#2a3350", "#232a3d"]} position={[0, 0.01, 0]} />
-
-        {(["player1", "player2"] as PlayerId[]).map((playerId) =>
-          state.players[playerId].heroes.map((hero, index) => (
-            <HeroModel
-              key={hero.instanceId}
-              hero={hero}
-              position={[X_SLOTS[index], 0, teamZ[playerId]]}
-              facing={facing[playerId]}
-              cue={cues[hero.instanceId] ?? null}
-              isTargetable={
-                targetablePlayerId === playerId && targetableHeroIds.includes(hero.instanceId)
-              }
-              isSelectedTarget={selectedTargetIds.includes(hero.instanceId)}
-              onClick={() => onSelectTarget(hero.instanceId)}
-            />
-          )),
-        )}
-
-        <CameraRig focusX={focusX} />
-        <OrbitControls enableRotate={false} enablePan={false} minDistance={7} maxDistance={13} />
-      </Suspense>
-    </Canvas>
+    <div className="battlefield-2d">
+      <div className="battlefield-sky" />
+      <div className="battlefield-ground" />
+      <Formation
+        state={state}
+        playerId={myRole}
+        facing={1}
+        cues={cues}
+        focusIds={focusIds}
+        targetablePlayerId={targetablePlayerId}
+        targetableHeroIds={targetableHeroIds}
+        selectedTargetIds={selectedTargetIds}
+        onSelectTarget={onSelectTarget}
+      />
+      <Formation
+        state={state}
+        playerId={opponentRole}
+        facing={-1}
+        cues={cues}
+        focusIds={focusIds}
+        targetablePlayerId={targetablePlayerId}
+        targetableHeroIds={targetableHeroIds}
+        selectedTargetIds={selectedTargetIds}
+        onSelectTarget={onSelectTarget}
+      />
+    </div>
   );
 }

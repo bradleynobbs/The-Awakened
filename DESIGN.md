@@ -968,3 +968,28 @@ screenshots) across three viewport heights (900px/700px/640px) — the
 extreme 640px case still clips slightly, which is shorter than
 essentially any real phone's logical viewport height, so not chased
 further at the cost of making everyone uncomfortably tiny.
+
+### 9.8 Minimal hero-plates
+
+The hero-plate was cut down to just what's needed at a glance during
+play: name on one line, a role emblem and an element emblem in that
+line's top-right corner, and an HP bar underneath with the number
+overlaid directly on the bar rather than a separate text row. Dropped
+entirely: the Speed stat pill and the separate HP-text/shield row from
+earlier passes (§9.6) — this plate is for "who is this and how hurt
+are they," not a full stat readout.
+
+`ROLE_SYMBOL: Record<Role, string>` in `heroVisuals.ts` is the new
+counterpart to `ELEMENT_SYMBOL` — 🪄 Mage, 👊 Brawler, 🛡️ Tank, 💨
+Speedster, 🔫 Gunslinger, 💚 Support — deliberately no overlap with any
+element emoji. The shield indicator that used to live on the plate
+moved to a `sprite-badge` on the hero's own sprite instead (matching
+where burn/wet/empower/charm already lived), so removing it from the
+plate didn't remove the information, just relocated it next to the
+other status badges.
+
+Net effect (bonus, not the point of the change): the shorter plate
+further reduced the 3-hero stack's total height, which cleared even
+the unrealistically-short 640px case that §9.7's fixes left slightly
+clipped — verified again with the same `getBoundingClientRect()` check
+across all three viewport heights.

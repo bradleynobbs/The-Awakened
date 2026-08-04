@@ -590,16 +590,22 @@ button {
   top: 14px;
   font-size: 9px;
 }
+.sprite-badge.shield {
+  left: 50%;
+  top: -8px;
+  transform: translateX(-50%);
+  color: #4aa8ff;
+}
 
 /* ---------- Hero plates (name/HP overlay above each sprite) ---------- */
 
 .hero-plate {
-  width: 148px;
+  width: 136px;
   background: linear-gradient(180deg, rgba(22, 25, 40, 0.94), rgba(10, 12, 20, 0.94));
   border: 1px solid #3a4260;
   border-top: 3px solid var(--element-color, #3a4260);
   border-radius: 8px;
-  padding: 3px 6px 3px;
+  padding: 3px 6px;
   font-size: 10px;
   color: #e8eaf0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
@@ -612,7 +618,7 @@ button {
   align-items: center;
   gap: 4px;
   font-weight: 700;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 .hero-plate-name-text {
   flex: 1;
@@ -621,23 +627,22 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hero-plate-speed {
+.hero-plate-emblems {
   flex-shrink: 0;
-  font-weight: 700;
-  font-size: 9px;
-  color: #0d0f1a;
-  background: #a8b0c8;
-  border-radius: 999px;
-  padding: 1px 4px;
+  display: flex;
+  gap: 2px;
+}
+.hero-plate-emblem {
+  font-size: 11px;
+  line-height: 1;
 }
 .hero-plate-hpbar {
   position: relative;
-  height: 5px;
+  height: 12px;
   background: #1a1520;
   border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 2px;
 }
 .hero-plate-hpbar::after {
   content: "";
@@ -667,36 +672,17 @@ button {
     filter: brightness(1.35);
   }
 }
-.hero-plate-stats {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  flex-wrap: wrap;
-  color: #b7bcd6;
-}
 .hero-plate-hptext {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-}
-.badge {
-  font-size: 9px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  background: #1e2337;
-}
-.badge.shield {
-  color: #4aa8ff;
-}
-.badge.burn {
-  color: #ff7a45;
-}
-.badge.wet {
-  color: #4ac3ff;
-}
-.badge.empower {
-  color: #ffb84a;
-}
-.badge.charm {
-  color: #e065b0;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 /* ---------- Team-Ups: compact pills, expand on tap ---------- */

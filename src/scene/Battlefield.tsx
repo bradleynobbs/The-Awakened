@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_SYMBOL, ROLE_SYMBOL } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
@@ -95,10 +95,14 @@ function Formation({
               style={{ "--element-color": ELEMENT_COLOR[def.element] } as CSSProperties}
             >
               <div className="hero-plate-name">
-                <span>{ELEMENT_SYMBOL[def.element]}</span>
                 <span className="hero-plate-name-text">{def.name}</span>
-                <span className="hero-plate-speed" title="Speed — decides resolution order">
-                  🏃{def.stats.speed}
+                <span className="hero-plate-emblems">
+                  <span className="hero-plate-emblem" title={def.role}>
+                    {ROLE_SYMBOL[def.role]}
+                  </span>
+                  <span className="hero-plate-emblem" title={def.element}>
+                    {ELEMENT_SYMBOL[def.element]}
+                  </span>
                 </span>
               </div>
               <div className="hero-plate-hpbar">
@@ -106,12 +110,9 @@ function Formation({
                   className={`hero-plate-hpfill ${hpTier(hero.currentHp, hero.maxHp)}`}
                   style={{ width: `${Math.max(0, (hero.currentHp / hero.maxHp) * 100)}%` }}
                 />
-              </div>
-              <div className="hero-plate-stats">
                 <span className="hero-plate-hptext">
-                  {hero.currentHp}/{hero.maxHp} HP
+                  {hero.currentHp}/{hero.maxHp}
                 </span>
-                {hero.shield > 0 && <span className="badge shield">🛡{hero.shield}</span>}
               </div>
             </div>
             <HeroSprite

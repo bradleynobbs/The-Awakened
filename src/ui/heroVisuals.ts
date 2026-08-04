@@ -1,4 +1,13 @@
-import type { Element } from "../engine/types";
+import type { Element, Role } from "../engine/types";
+
+export const ROLE_SYMBOL: Record<Role, string> = {
+  Mage: "\u{1FA84}",
+  Brawler: "\u{1F44A}",
+  Tank: "\u{1F6E1}\u{FE0F}",
+  Speedster: "\u{1F4A8}",
+  Gunslinger: "\u{1F52B}",
+  Support: "\u{1F49A}",
+};
 
 export const ELEMENT_COLOR: Record<Element, string> = {
   fire: "#e2582b",

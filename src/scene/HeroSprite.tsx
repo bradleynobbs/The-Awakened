@@ -350,6 +350,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
       >
         <div className="hero-sprite-ground" />
         <img className="hero-sprite-img hero-sprite-visual" src={realArtSrc} alt={def.name} draggable={false} />
+        {hero.shield > 0 && <span className="sprite-badge shield">🛡{hero.shield}</span>}
         {burn && <span className="sprite-badge burn">🔥{burn.remainingTriggers}</span>}
         {wet && <span className="sprite-badge wet">💧</span>}
         {empower && empower.type === "empower" && <span className="sprite-badge empower">💪+{empower.bonusDamage}</span>}
@@ -414,6 +415,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
         <RoleGear role={def.role} heroId={def.id} c={c} clothColor={clothColor} />
       </svg>
 
+      {hero.shield > 0 && <span className="sprite-badge shield">🛡{hero.shield}</span>}
       {burn && <span className="sprite-badge burn">🔥{burn.remainingTriggers}</span>}
       {wet && <span className="sprite-badge wet">💧</span>}
       {empower && empower.type === "empower" && <span className="sprite-badge empower">💪+{empower.bonusDamage}</span>}

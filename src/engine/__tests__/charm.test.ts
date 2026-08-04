@@ -9,7 +9,7 @@ describe("Charm (damage-reduction debuff)", () => {
   const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "earth-guardian", "spark-duelist"];
 
   it("reduces the charmed hero's next hit, then clears", () => {
-    // Charm Gunslinger (speed 11) needs to out-pace whoever it charms so
+    // Kairo (speed 11) needs to out-pace whoever it charms so
     // the debuff lands *before* that hero's own attack, under the new
     // speed-sorted order (DESIGN.md §8.5) — Mourn (speed 13)
     // would now be too fast for that, so Spark Duelist (speed 10) is the
@@ -64,7 +64,7 @@ describe("Charm (damage-reduction debuff)", () => {
     expect(charm.type === "charm" ? charm.damageReduction : null).toBe(3);
   });
 
-  it("Steady Aim: Charm Gunslinger deals +1 to a target that's already Charmed", () => {
+  it("Steady Aim: Kairo deals +1 to a target that's already Charmed", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
 
     const calledShotId = putInHand(state, "player1", "called-shot");

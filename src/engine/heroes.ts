@@ -520,7 +520,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   },
   "charm-gunslinger": {
     id: "charm-gunslinger",
-    name: "Charm Gunslinger",
+    name: "Kairo",
     role: "Gunslinger",
     element: "charm",
     maxHp: 17,

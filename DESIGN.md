@@ -133,7 +133,7 @@ later without touching the engine.
 | Water Healer | Support | Water | 20 | |
 | Spark Duelist | Brawler | Spark | 20 | |
 | Mourn | Speedster | Undead | 16 | first hit taken reduced by 3 |
-| Charm Gunslinger | Gunslinger | Charm | 17 | +1 dmg vs. Charmed targets |
+| Kairo | Gunslinger | Charm | 17 | +1 dmg vs. Charmed targets |
 | Spirit Mage | Mage | Spirit | 16 | survives one lethal hit at 1 HP per match |
 
 | Card | Hero | Cost | Effect |
@@ -153,9 +153,9 @@ later without touching the engine.
 | Quick Strike (attack) | Mourn | 1 | 5 dmg to one enemy |
 | Execute (ability) | Mourn | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
 | Marked Opening (support) | Mourn | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
-| Quickdraw (attack) | Charm Gunslinger | 1 | 5 dmg to one enemy (+1 if they're Charmed, via passive) |
-| Called Shot (ability) | Charm Gunslinger | 2 | 4 dmg + Charm one enemy: their next damage-dealing action deals 3 less (min 1) |
-| Cover Fire (support) | Charm Gunslinger | 2 | Empower one ally: +5 dmg on their next damage-dealing action |
+| Quickdraw (attack) | Kairo | 1 | 5 dmg to one enemy (+1 if they're Charmed, via passive) |
+| Called Shot (ability) | Kairo | 2 | 4 dmg + Charm one enemy: their next damage-dealing action deals 3 less (min 1) |
+| Cover Fire (support) | Kairo | 2 | Empower one ally: +5 dmg on their next damage-dealing action |
 | Spirit Bolt (attack) | Spirit Mage | 1 | 4 dmg to one enemy + heal this hero for 2 |
 | Soul Siphon (ability) | Spirit Mage | 2 | 6 dmg to one enemy + heal this hero for 4 |
 | Spirit Ward (support) | Spirit Mage | 2 | Heal one ally for 5 |
@@ -166,13 +166,13 @@ Passives:
 - **Water Healer**: the first healing card *this player* uses each match heals +1 additional.
 - **Spark Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
 - **Mourn**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
-- **Charm Gunslinger**: +1 damage dealt by this hero to any target that currently has Charm.
+- **Kairo**: +1 damage dealt by this hero to any target that currently has Charm.
 - **Spirit Mage**: the first hit that would defeat this hero each match instead leaves them at 1 HP.
 
 Team-Up cards:
 - **Steam Surge** (Inferna + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
 - **Thunder Tide** (Water Healer + Spark Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
-- Charm Gunslinger and Spirit Mage don't have a Team-Up yet — more Team-Ups are intentionally out of scope for this pass (see section 3), not an oversight.
+- Kairo and Spirit Mage don't have a Team-Up yet — more Team-Ups are intentionally out of scope for this pass (see section 3), not an oversight.
 
 Deck: 3 copies each of a hero's Attack, Ability, and Support card → 27
 cards per player (3 heroes × 3 cards × 3 copies). Hand size 5,
@@ -514,7 +514,7 @@ Filling every role and element with the existing 5 heroes left exactly
 one role gap (**Gunslinger**) and two element gaps (**Charm**,
 **Spirit**). Two new heroes cover all three:
 
-- **Charm Gunslinger** (Charm element, Gunslinger role, 17 HP)
+- **Kairo** (Charm element, Gunslinger role, 17 HP)
 - **Spirit Mage** (Spirit element, Mage role, 16 HP — Mage is reused,
   since roles aren't required to be unique across the roster any more
   than "Support" was unique to Water Healer before section 6)
@@ -534,7 +534,7 @@ enemy instead of an ally. Reusing that exact code path (rather than
 building a second, parallel buff/debuff system) is why Called Shot's
 Charm application was cheap to add and easy to verify: it's the same
 `dealDamage` branch Empower already exercises, just subtracting instead
-of adding. Charm Gunslinger's passive, Steady Aim (+1 damage to
+of adding. Kairo's passive, Steady Aim (+1 damage to
 currently-Charmed targets), mirrors Inferna's own Burn-synergy passive
 for the same reason — a player who's already learned one of these
 patterns has effectively learned both.
@@ -1103,3 +1103,31 @@ jump (78×88 chassis, 78×108 real-art) clipped badly at 640px even
 with the smaller plates; the final numbers above are the largest that
 clear all three heights, with a few pixels of margin at the shortest
 one this time instead of none.
+
+### 9.11 Third real-art hero: Kairo, and the keying pipeline paying off
+
+The Charm Gunslinger got the same treatment as Inferna and Mourn —
+flavor rename to **Kairo** (`heroId` stays `"charm-gunslinger"`), real
+art wired into `REAL_ART`. Unlike the previous two, this one was
+uneventful: the supplied source image was already on a plain white
+background with no dark-costume-vs-background conflict (§9.9), so the
+keying script from that section — wide alpha ramp, color
+decontamination, erosion, drawn-shadow strip — was reused as-is and
+produced a clean cutout on the first try, verified the same way
+(composited onto both a dark and a warm-floor-colored checkerboard).
+Worth calling out only because it confirms the pipeline built for
+Mourn's harder case generalizes: it's now the default approach for any
+new real-art hero, not a one-off fix.
+
+**Facing:** unlike Mourn, Kairo's face is fully visible and clearly
+turned/gazing toward image-left in the source art (head tilted, eyes
+cast down-left) — the same kind of gaze cue Inferna had. Pre-flipped
+with `sharp().flop()` before ever wiring him in, on the theory from
+§9.3 rather than needing a live in-game correction like Mourn did.
+
+He's also a different build than the previous two real-art heroes —
+tall and slim rather than a flowing dress silhouette — which trims
+down to a narrower box after `trim()` (225×700 vs. Inferna/Mourn's
+~500×700). No code changes needed for this: `object-fit: contain`
+on `.hero-sprite-img` already centers and scales whatever aspect
+ratio a given hero's art has within the shared `real-art` box.

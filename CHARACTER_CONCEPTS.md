@@ -156,7 +156,7 @@ mid-swing.
 
 ---
 
-## Charm Gunslinger — Charm · Gunslinger
+## Kairo — Charm · Gunslinger
 
 **Personality:** Flirty, self-assured, treats every duel like she's
 already won it.

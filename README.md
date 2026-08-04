@@ -212,7 +212,7 @@ purpose) opens a raw state inspector for debugging.
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
 | Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
-| Charm Gunslinger | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
+| Kairo | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
 | Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
 
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
@@ -227,7 +227,7 @@ Support card (2 energy — heals, shields, or Empowers an ally, see
 
 **Team-Ups:** *Steam Surge* (Inferna + Water Healer) and *Thunder Tide*
 (Water Healer + Spark Duelist) — 3 energy, once per match, with a
-fixed resolution order shown in the card's description. Charm Gunslinger
+fixed resolution order shown in the card's description. Kairo
 and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
 
 ## Elements
@@ -372,7 +372,7 @@ without touching damage, targeting, or status-effect code.
 
 ## What's deliberately out of scope (see DESIGN.md §3 and §4.3)
 
-Ultimates and more than 2 Team-Ups (Charm Gunslinger and Spirit Mage
+Ultimates and more than 2 Team-Ups (Kairo and Spirit Mage
 don't have one yet). Online multiplayer is intentionally simple: no accounts, no
 server-side move validation (each client trusts the other's broadcast
 state), and no reconnect/resume — a disconnect ends the match. Fine for

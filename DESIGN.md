@@ -1331,3 +1331,36 @@ with a fixed-size container (the plate), preview it *in that
 container*, not just on its own — an isolated preview can validate
 "is this legible" while completely missing "does this fit," and those
 are independent questions.
+
+### 9.17 §9.16 still overlapped the bar — stop hand-positioning, go back to flex
+
+§9.16's "contained" badge still visibly sat on top of the health bar
+in the next screenshot ("why would I want them on the health bar").
+Root cause: `.hero-plate-emblems` was absolutely positioned relative
+to the *whole plate* (`top: 3px` from the plate's top edge), so
+getting it to land only within the name row and never touch the bar
+below meant its size had to be hand-tuned against the exact pixel
+math of the plate's padding + name-row height + margin — fragile, and
+wrong in this case (15px tall vs. roughly a 10px budget before the bar
+starts).
+
+Fixed by giving up on absolute positioning for this element entirely
+and going back to a plain flex child of `.hero-plate-name`, which is
+what it was before all of §9.14-9.16's churn. As a normal flex item
+with `align-items: center` on its parent row, the row's own height
+simply grows to fit whatever the badge's height is, and the hp bar —
+a sibling `<div>` below that row in normal flow — always sits cleanly
+after it, however big or small the badge ends up. No pixel math to
+get right or wrong. Landed on 12px for both the role icon and the
+element emoji (explicitly matched per the request that they read as
+one visual unit), tucked at the row's right edge by the name text's
+`flex: 1` pushing everything else to the end — which is what "top
+right corner of the box" actually meant, not a corner overlay
+independent of the row structure.
+
+The recurring mistake across §9.14-9.17 was reaching for
+`position: absolute` to place something "in a corner" when the
+existing flex layout already puts things in that corner for free,
+correctly, and without needing to hand-verify pixel budgets — absolute
+positioning here kept relitigating the same "does it fit against its
+neighbors" question that flexbox exists to answer automatically.

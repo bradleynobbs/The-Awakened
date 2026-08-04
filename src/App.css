@@ -635,31 +635,28 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 30px;
 }
-/* Pinned inside the plate's own top-right corner — contained within the
- * box, not overflowing past its edges. .hero-plate is already
- * position: absolute, so this positions relative to the plate itself
- * regardless of its DOM nesting inside .hero-plate-name. The name text
- * reserves room on the right (padding-right above) so it truncates
- * before running under these instead of behind them. */
+/* Back to a plain inline flex child of .hero-plate-name (not absolutely
+ * positioned) — that was the source of the last two bugs: positioning
+ * relative to the whole plate meant the badge's own size had to be
+ * hand-tuned against the plate's padding/name-row/hp-bar math to avoid
+ * spilling onto the bar below. As a normal flex item, the name row's
+ * height simply grows to fit it and the hp bar always sits cleanly
+ * below, however big or small this ends up being. */
 .hero-plate-emblems {
-  position: absolute;
-  top: 3px;
-  right: 4px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 2px;
-  z-index: 4;
+  gap: 3px;
 }
 .hero-plate-emblem {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
 }
 .hero-plate-role-icon {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));

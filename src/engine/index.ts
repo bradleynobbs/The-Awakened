@@ -12,3 +12,4 @@ export * from "./targeting";
 export * from "./match";
 export * from "./rng";
 export * from "./selection";
+export * from "./bot";

@@ -10,13 +10,16 @@ const OFFERED: HeroId[] = HERO_LIST.map((h) => h.id);
 
 interface OnlineHeroSelectionProps {
   waitingOnOpponent: boolean;
+  /** Pre-fills selection, e.g. from a Deck Builder loadout. Still freely editable. */
+  initialHeroIds?: HeroTrio;
   onLockIn: (heroIds: HeroTrio) => void;
 }
 
-export function OnlineHeroSelection({ waitingOnOpponent, onLockIn }: OnlineHeroSelectionProps) {
-  const [selection, setSelection] = useState<TeamSelectionState>(() =>
-    createTeamSelection("player1", OFFERED),
-  );
+export function OnlineHeroSelection({ waitingOnOpponent, initialHeroIds, onLockIn }: OnlineHeroSelectionProps) {
+  const [selection, setSelection] = useState<TeamSelectionState>(() => ({
+    ...createTeamSelection("player1", OFFERED),
+    selected: initialHeroIds ? [...initialHeroIds] : [],
+  }));
 
   const handleToggle = (heroId: HeroId) => {
     if (waitingOnOpponent) return;

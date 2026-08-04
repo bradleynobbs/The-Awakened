@@ -123,9 +123,31 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 
 ## How to play
 
+The main menu has:
+- **Find Match** — real online matchmaking (needs Supabase configured; see
+  above). Grayed out with an explanation if it isn't.
+- **Practice vs Bot** — a local, offline match against a simple bot
+  opponent (`src/engine/bot.ts` + `src/state/usePracticeMatch.ts`). No
+  network involved, good for trying out mechanics or verifying a change
+  without needing a second device. The bot plays a random affordable,
+  legal card each turn and never uses Team-Ups — it's a punching bag, not
+  a serious AI.
+- **Deck Builder** — browse every hero's full card text and save a
+  preferred 3-hero loadout (stored locally), which pre-fills team
+  selection in both modes above. The engine's decks are fixed per hero
+  (3 copies of their Attack + Ability card each) — there's no separate
+  card-picking mechanic yet, so this is really "choose your team," just
+  with full card details up front.
+- **Store** — honest "coming soon" placeholder. No currency or
+  purchases exist in this prototype by design.
+- A **Daily/Weekly objectives** summary (matches played/won, tracked
+  locally, reset at local midnight / Monday) — no rewards wired up yet,
+  just progress visibility.
+
 1. **Find Match.** Tap **Find Match** on the main menu. You're paired
    with the next other player who's also looking (public queue — see
-   `DESIGN.md` §4.1).
+   `DESIGN.md` §4.1). (Or tap **Practice vs Bot** to skip matchmaking
+   entirely.)
 2. **Hero Selection.** Pick exactly 3 of your 5 offered heroes and lock
    in. You see only your own picks; once both players have locked in,
    both teams' full rosters become visible on the battlefield. A locked
@@ -202,6 +224,8 @@ src/engine/       Pure rules engine (unchanged whether local or online)
   turn.ts          Begin/end-of-turn sequencing (energy reset, draw, status ticks)
   match.ts         Public API: createMatch / playCard / playTeamUp / endTurn
   rng.ts           Injectable RNG (seeded for tests; Math.random in the app)
+  bot.ts           chooseBotAction() for Practice mode — picks a random
+                     affordable, legal card + target; never uses Team-Ups
 
 src/net/          Supabase-backed networking (matchmaking + realtime sync)
   identity.ts       Anonymous per-device id (localStorage), not auth
@@ -209,10 +233,16 @@ src/net/          Supabase-backed networking (matchmaking + realtime sync)
   matchmaking.ts    find_match RPC + waitForMatch() queue subscription
   matchChannel.ts   Per-match Realtime Broadcast channel + presence
 
-src/state/useOnlineMatch.ts   Drives the whole online flow: matchmaking →
-                                hero-selection sync → state-broadcast sync,
-                                exposing a small API (state, phase, myRole,
-                                playCard/playTeamUp/endTurn) to the UI
+src/state/
+  useOnlineMatch.ts   Drives the online flow: matchmaking → hero-selection
+                        sync → state-broadcast sync, exposing a small API
+                        (state, phase, myRole, playCard/playTeamUp/endTurn)
+  usePracticeMatch.ts Local vs-bot flow with the same API shape, no network —
+                        drives the bot's turn via chooseBotAction on a timer
+  loadout.ts          Preferred 3-hero loadout (localStorage), set by Deck
+                        Builder, read by both hero-selection screens
+  objectives.ts       Daily/weekly matches-played/won counters (localStorage,
+                        date-keyed reset), recorded on every match end
 
 src/scene/         React Three Fiber battlefield: HeroModel (capsule +
                      HTML health plate), Battlefield (camera + single-
@@ -220,9 +250,11 @@ src/scene/         React Three Fiber battlefield: HeroModel (capsule +
                      nearest the camera regardless of engine player id),
                      useEventQueue (steps engine events into per-event
                      animation cues one at a time)
-src/ui/             Mobile screens: MainMenu, Matchmaking, OnlineHeroSelection,
-                     Battle (TopBar, CardHand, TeamUpBar, CombatLog sheet,
-                     LatestEventToast), VictoryScreen, DebugPanel
+src/ui/             MainMenu (hero showcase, objectives), DeckBuilder,
+                     Store, Matchmaking, OnlineHeroSelection (shared by
+                     online + practice), Battle (TopBar, CardHand,
+                     TeamUpBar, CombatLog sheet, LatestEventToast),
+                     VictoryScreen, DebugPanel
 ```
 
 Every player action produces an ordered list of `GameEvent`s (e.g.

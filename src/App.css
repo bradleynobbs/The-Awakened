@@ -433,8 +433,8 @@ button {
 
 .hero-sprite-wrap {
   position: relative;
-  width: 58px;
-  height: 66px;
+  width: 64px;
+  height: 72px;
   background: none;
   border: none;
   padding: 0;
@@ -507,8 +507,8 @@ button {
  * to the SVG heroes' footprint so it doesn't crowd the rest of the
  * formation on a real phone screen. */
 .hero-sprite-wrap.real-art {
-  width: 58px;
-  height: 82px;
+  width: 64px;
+  height: 88px;
 }
 
 .hero-sprite-ground {

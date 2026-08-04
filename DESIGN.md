@@ -1034,3 +1034,52 @@ battlefield. Lesson for future faceless/hooded real-art heroes:
 the tell is subtler (posture/cloth-flow instead of eyes) — still
 needs the live in-game check both ways, not just an assumption from
 the static source image.
+
+**A real-device screenshot then showed a pale halo tracing her whole
+silhouette** — worst along the tattered cloth edges, which have a lot
+of fine, high-frequency linework relative to their solid area, so the
+artifact was far more visible than it had been on Inferna's flatter
+shapes. Root cause: §9.3's keying script only ever set the *alpha*
+channel from color distance; it never touched the *RGB* of the
+partially-transparent ramp pixels. On a white background, anti-aliased
+ink lines blend toward white at the edges, so those ramp pixels are
+still carrying white-contaminated color even once alpha says
+"mostly transparent" — composited onto the game's dark floor art, that
+contaminated color reads as a pale fringe. Tightening the alpha ramp
+(tried first) made it *worse*: a soft ink line's white→black
+transition is genuinely wide, so a tight threshold just snaps more of
+the mid-gray transition pixels to fully-opaque-as-is instead of
+letting them fade.
+
+Fixed with two additions to the keying script, applied in this order:
+
+1. **Color decontamination.** For any pixel with partial alpha, solve
+   for the true foreground color assuming it's a linear blend with the
+   sampled background (`fg = (pixel - (1-a)·bg) / a`, clamped to a
+   valid byte range) instead of keeping the blended color as-is.
+2. **A one-pixel alpha erosion** (3×3 min-filter, applied twice) after
+   a *wider* distance ramp. The wider ramp lets genuine anti-aliasing
+   fade out gradually (which decontamination alone doesn't fully
+   clean up, since the distance-based alpha estimate is still only an
+   estimate); the erosion then eats what's left of the fringe ring.
+   A 1-2px shrink is imperceptible on a stroke this size but removes a
+   fringe that's exactly that thin.
+
+Also stripped the illustration's own drawn floor-contact shadow (a
+smooth, near-white gradient blob under her shoes on the original art)
+with a small local-variance pass: pixels in the bottom band of the
+image that are both light and *smooth* (low variance in a 5×5
+neighborhood, unlike the high-contrast linework of the shoes
+themselves) get their alpha zeroed. The game already draws its own
+`hero-sprite-ground` contact shadow at render time, so the source
+art's baked-in one was redundant and, on the reddish arena floor, read
+as another patch of unwanted white.
+
+Same pass also bumped every hero's on-screen size up a notch (SVG
+chassis 58×66 → 64×72, `real-art` box 58×82 → 64×88) per feedback that
+the whole formation read too small on a real device. Re-verified with
+the same `getBoundingClientRect()` cross-viewport check from §9.7
+(900/700/640px) before settling on these numbers — an initial larger
+bump (66×76 / 66×94) reintroduced clipping at the shortest case, so
+the final sizes are the largest that still clear all three with margin
+to spare.

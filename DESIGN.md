@@ -1174,3 +1174,37 @@ emblem 9px → 7px, padding/border-radius trimmed to match. Legibility
 is getting close to a real floor: the HP number at 5px is readable on
 a real screen's higher pixel density but genuinely tiny in a plain
 screenshot crop — worth a real-device check before going any smaller.
+
+### 9.13 Un-stacking the plate: the actual lever for bigger heroes
+
+§9.12's conclusion — "the largest sprite that fits is a small bump,
+2× just doesn't fit" — was true for the layout at the time, but it
+was accepting a self-imposed constraint rather than the real one. The
+hero-plate and the sprite were laid out as two stacked in-flow
+children of `.hero-slot`, so the plate's own height was permanently
+subtracted from every hero-slot's vertical budget. Following up on
+"heroes need to be bigger, they're the heart of this game," the actual
+fix was to stop paying that tax: `.hero-plate` is now
+`position: absolute`, anchored to `bottom: 100%` of `.hero-slot`
+(floating just above the sprite with a 2px gap) instead of sitting
+in-flow above it. Pulled out of the flex flow, its height no longer
+counts against the slot at all — every pixel it used to cost is now
+free for the sprite. No JSX changes needed; `.hero-plate` and the
+`HeroSprite` were already siblings in the DOM, this is purely a
+positioning change.
+
+Net result: SVG chassis 75×80 → 84×89, `real-art` box 75×94 → 84×105 —
+a much bigger jump than §9.12's, on top of §9.12's already-smaller
+plate. Sized the same iterative way (§9.7/§9.10/§9.12): push a size,
+run both cross-viewport checks, back off if either clips.
+
+**Also hardened the checks themselves**, because chasing a razor-thin
+margin against `getBoundingClientRect()` turned out to be measuring
+noise as much as signal: the idle-bob animation and (per §9.12) hero
+composition both shift the observed margin run-to-run by a
+meaningful amount. A size that "passed" on one run clipped on the
+next. Fixed by requiring a genuine safety margin (tens of px, not a
+handful) confirmed across *many* repeated runs of both the random
+check and the forced-worst-case check before trusting a size — one
+clean run is not evidence, given how much these numbers move between
+otherwise-identical runs.

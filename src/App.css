@@ -400,10 +400,10 @@ button {
 }
 
 .hero-slot {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
 }
 /* Scatter each team loosely across their half of the floor instead of
  * stacking all 3 heroes in one rigid vertical line — still grouped on
@@ -433,8 +433,8 @@ button {
 
 .hero-sprite-wrap {
   position: relative;
-  width: 75px;
-  height: 80px;
+  width: 84px;
+  height: 89px;
   background: none;
   border: none;
   padding: 0;
@@ -507,8 +507,8 @@ button {
  * to the SVG heroes' footprint so it doesn't crowd the rest of the
  * formation on a real phone screen. */
 .hero-sprite-wrap.real-art {
-  width: 75px;
-  height: 94px;
+  width: 84px;
+  height: 105px;
 }
 
 .hero-sprite-ground {
@@ -597,9 +597,18 @@ button {
   color: #4aa8ff;
 }
 
-/* ---------- Hero plates (name/HP overlay above each sprite) ---------- */
+/* ---------- Hero plates (name/HP overlay above each sprite) ----------
+ * Absolutely positioned, floating above the sprite instead of stacked
+ * in-flow above it — the plate no longer costs any of the hero-slot's
+ * vertical budget, so all of that height goes to the sprite itself. */
 
 .hero-plate {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  z-index: 3;
   width: 84px;
   background: linear-gradient(180deg, rgba(22, 25, 40, 0.94), rgba(10, 12, 20, 0.94));
   border: 1px solid #3a4260;

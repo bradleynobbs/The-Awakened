@@ -915,3 +915,18 @@ offsets so both scatter toward their own outer edge, never toward the
 center where they'd cross into the opposing team's space). This is
 static per-slot-index jitter, not a real per-hero position system —
 still fine for a fixed 3-per-side roster.
+
+**Follow-up bug:** `.formation` still had `height: 100%` with
+`justify-content: space-evenly` from before the scatter change, which
+spread the 3 slots across the *entire* battlefield height — including
+the sky/pillar area of the new plaza background (9.5), not just its
+floor. The tallest hero in a formation would visually stand up in the
+architecture instead of on the ground. Fixed by dropping the fixed
+height so `.formation` sizes to its own content, letting the parent
+`.battlefield-2d`'s existing `align-items: flex-end` cluster the whole
+team down onto the floor the way it was already set up to for a
+content-sized child. That in turn pushed the lowest hero close enough
+to the bottom edge to clip under the "Round N — ..." toast
+(`.latest-event-toast`, absolutely positioned near the bottom of the
+same area) — fixed by giving `.battlefield-2d` more bottom padding
+(16px -> 52px) as clearance.

@@ -345,7 +345,10 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 8px 6px 16px;
+  /* Extra bottom clearance keeps the now-floor-anchored formations (9.7)
+   * from sitting under the "Round N — ..." toast, which floats near the
+   * bottom of this same area. */
+  padding: 8px 6px 52px;
   overflow: hidden;
   min-width: 0;
 }
@@ -378,11 +381,14 @@ button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: flex-end;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
   min-width: 0;
-  height: 100%;
+  /* No fixed height — sized to its own content so the parent's
+   * align-items: flex-end clusters the whole team down onto the floor
+   * portion of the background art, instead of space-evenly spreading them
+   * across the full height (which put someone up in the sky/pillars). */
 }
 .formation-left {
   align-items: flex-start;

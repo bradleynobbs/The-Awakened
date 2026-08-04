@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { DoubleSide, type Group } from "three";
 import { HERO_DEFINITIONS } from "../engine/heroes";
-import type { HeroInstance, Role } from "../engine/types";
+import type { HeroId, HeroInstance, Role } from "../engine/types";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
@@ -28,6 +28,8 @@ const SKIN_COLOR = "#d9a874";
 const PANTS_COLOR = "#2b2b34";
 const METAL_COLOR = "#c6c8d2";
 const WOOD_COLOR = "#4a3524";
+const CHARM_HAIR_COLOR = "#ff5fc0";
+const VISOR_COLOR = "#14121c";
 
 /** Torso silhouette per role — a cylinder frustum, so robes vs. armor come
  * for free from just picking top/bottom radii (wider at bottom = robe flare,
@@ -37,7 +39,7 @@ const TORSO_SHAPE: Record<Role, { top: number; bottom: number; height: number }>
   Support: { top: 0.21, bottom: 0.29, height: 0.58 },
   Tank: { top: 0.35, bottom: 0.26, height: 0.55 },
   Brawler: { top: 0.27, bottom: 0.24, height: 0.55 },
-  Assassin: { top: 0.21, bottom: 0.18, height: 0.5 },
+  Speedster: { top: 0.21, bottom: 0.18, height: 0.5 },
   Gunslinger: { top: 0.24, bottom: 0.3, height: 0.56 },
 };
 
@@ -50,14 +52,20 @@ interface BodyMat {
 
 function RoleGear({
   role,
+  heroId,
   clothColor,
   mat,
   headTopY,
+  facing,
+  headRadius,
 }: {
   role: Role;
+  heroId: HeroId;
   clothColor: string;
   mat: BodyMat;
   headTopY: number;
+  facing: 1 | -1;
+  headRadius: number;
 }) {
   switch (role) {
     case "Mage":
@@ -120,7 +128,7 @@ function RoleGear({
           </mesh>
         </group>
       );
-    case "Assassin":
+    case "Speedster":
       return (
         <>
           <mesh position={[0, headTopY - 0.05, 0]}>
@@ -137,17 +145,9 @@ function RoleGear({
           </mesh>
         </>
       );
-    case "Gunslinger":
-      return (
+    case "Gunslinger": {
+      const pistol = (
         <>
-          <mesh position={[0, headTopY + 0.02, 0]}>
-            <cylinderGeometry args={[0.27, 0.27, 0.03, 12]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
-          </mesh>
-          <mesh position={[0, headTopY + 0.09, 0]}>
-            <cylinderGeometry args={[0.13, 0.16, 0.12, 10]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
-          </mesh>
           <mesh position={[0.4, 0.78, 0]} rotation={[0, 0, -0.1]}>
             <boxGeometry args={[0.05, 0.16, 0.08]} />
             <meshStandardMaterial color={METAL_COLOR} {...mat} />
@@ -158,6 +158,49 @@ function RoleGear({
           </mesh>
         </>
       );
+
+      if (heroId === "charm-gunslinger") {
+        // Original look (not a copy of any existing character): sharp,
+        // cartoony idol-meets-gunslinger — a swept pink ponytail, two
+        // angular hair spikes, and a dark visor instead of a plain hat.
+        const eyeZ = -facing * headRadius * 0.95;
+        return (
+          <>
+            {pistol}
+            <mesh position={[0, headTopY - 0.02, -0.06 * facing]} rotation={[-facing * 0.5, 0, 0]}>
+              <coneGeometry args={[0.09, 0.42, 8]} />
+              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
+            </mesh>
+            <mesh position={[-0.14, headTopY - 0.02, 0]} rotation={[0, 0, 0.5]}>
+              <coneGeometry args={[0.05, 0.2, 6]} />
+              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
+            </mesh>
+            <mesh position={[0.14, headTopY - 0.02, 0]} rotation={[0, 0, -0.5]}>
+              <coneGeometry args={[0.05, 0.2, 6]} />
+              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
+            </mesh>
+            <mesh position={[0, headTopY - 0.1, eyeZ]}>
+              <boxGeometry args={[0.24, 0.05, 0.02]} />
+              <meshStandardMaterial color={VISOR_COLOR} {...mat} emissive={CHARM_HAIR_COLOR} emissiveIntensity={0.3} />
+            </mesh>
+          </>
+        );
+      }
+
+      return (
+        <>
+          {pistol}
+          <mesh position={[0, headTopY + 0.02, 0]}>
+            <cylinderGeometry args={[0.27, 0.27, 0.03, 12]} />
+            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+          </mesh>
+          <mesh position={[0, headTopY + 0.09, 0]}>
+            <cylinderGeometry args={[0.13, 0.16, 0.12, 10]} />
+            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+          </mesh>
+        </>
+      );
+    }
     default:
       return null;
   }
@@ -269,7 +312,15 @@ export function HeroModel({
           <meshStandardMaterial color="#1a1a1a" />
         </mesh>
 
-        <RoleGear role={def.role} clothColor={clothColor} mat={mat} headTopY={headTopY} />
+        <RoleGear
+          role={def.role}
+          heroId={def.id}
+          clothColor={clothColor}
+          mat={mat}
+          headTopY={headTopY}
+          facing={facing}
+          headRadius={headRadius}
+        />
       </group>
 
       {isTargetable && (
@@ -282,6 +333,9 @@ export function HeroModel({
         <div className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}>
           <div className="hero-plate-name">
             {ELEMENT_SYMBOL[def.element]} {def.name}
+            <span className="hero-plate-speed" title="Speed — decides resolution order">
+              🏃{def.stats.speed}
+            </span>
           </div>
           <div className="hero-plate-hpbar">
             <div

@@ -9,28 +9,34 @@ describe("Charm (damage-reduction debuff)", () => {
   const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "earth-guardian", "spark-duelist"];
 
   it("reduces the charmed hero's next hit, then clears", () => {
+    // Charm Gunslinger (speed 11) needs to out-pace whoever it charms so
+    // the debuff lands *before* that hero's own attack, under the new
+    // speed-sorted order (DESIGN.md §8.5) — Undead Assassin (speed 13)
+    // would now be too fast for that, so Spark Duelist (speed 10) is the
+    // target here instead.
     let state = createMatch(P1, P2, createSeededRng(1));
 
     const calledShotId = putInHand(state, "player1", "called-shot");
     state = queueCard(state, "player1", calledShotId, {
-      primaryTargetId: heroInstanceId("player2", "undead-assassin"),
+      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
     });
-    const quickStrikeId = putInHand(state, "player2", "quick-strike");
-    state = queueCard(state, "player2", quickStrikeId, {
+    const slashId = putInHand(state, "player2", "charged-slash");
+    state = queueCard(state, "player2", slashId, {
       primaryTargetId: heroInstanceId("player1", "water-healer"),
     });
 
     state = readyBoth(state);
 
-    // Called Shot's 4 dmg is itself reduced by Undead Assassin's own
-    // first-hit passive (4 -> 1), independent of Charm.
-    const assassin = getHeroFrom(state, "player2", "undead-assassin");
-    expect(assassin.currentHp).toBe(assassin.maxHp - 1);
-    expect(assassin.statuses.some((s) => s.type === "charm")).toBe(false);
+    // Called Shot: (4 base + 1 Attack) = 5, neutral Charm-vs-Spark
+    // matchup (×1), minus 1 Defense = 4.
+    const duelist = getHeroFrom(state, "player2", "spark-duelist");
+    expect(duelist.currentHp).toBe(duelist.maxHp - 4);
+    expect(duelist.statuses.some((s) => s.type === "charm")).toBe(false);
 
-    // Quick Strike (5 base) is reduced by Charm's -3: water-healer takes 2.
+    // Charged Slash: 5 base, minus Charm's -3 = 2, + 2 Attack = 4,
+    // × 1.25 (Spark beats Water, §8.3) = 5, minus 1 Defense = 4.
     const healer = getHeroFrom(state, "player1", "water-healer");
-    expect(healer.currentHp).toBe(healer.maxHp - 2);
+    expect(healer.currentHp).toBe(healer.maxHp - 4);
 
     expect(state.log.some((e) => e.type === "STATUS_APPLIED" && e.status === "charm")).toBe(true);
     expect(state.log.some((e) => e.type === "STATUS_REMOVED" && e.status === "charm")).toBe(true);

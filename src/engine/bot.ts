@@ -1,5 +1,6 @@
 import { getCardDefinition } from "./cards";
 import { livingHeroes, otherPlayer } from "./combat";
+import { effectiveCardCost } from "./heroes";
 import type { Rng } from "./rng";
 import { shuffle } from "./rng";
 import type { CardInstanceId, MatchState, PlayerId, TargetSelection } from "./types";
@@ -28,7 +29,7 @@ export function chooseBotAction(
   for (const cardInstanceId of hand) {
     const instance = player.cardsById[cardInstanceId];
     const cardDef = getCardDefinition(instance.cardId);
-    if (cardDef.cost > player.energy) continue;
+    if (effectiveCardCost(cardDef, instance.heroId) > player.energy) continue;
 
     const sourceHero = player.heroes.find((h) => h.heroId === instance.heroId);
     if (!sourceHero || sourceHero.isDefeated) continue;

@@ -41,7 +41,8 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
         <p className="selection-hint">
           Choose your preferred 3 heroes. This loadout pre-fills team selection when you start a
           match — you can still change it there. Each hero's deck is fixed: 3 copies each of
-          their Attack, Ability, and Support card.
+          their Attack, Ability, and Support card. The stats below modify those cards'
+          numbers every time — no dice rolls, every outcome is calculable.
         </p>
 
         <div className="hero-select-grid">
@@ -64,6 +65,19 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
                   {hero.role} · {hero.element}
                 </span>
                 <span className="hero-select-hp">{hero.maxHp} HP</span>
+                <div className="deck-builder-stat-grid">
+                  <span>⚔️ ATK {hero.stats.attack}</span>
+                  <span>🛡️ DEF {hero.stats.defense}</span>
+                  <span>🏃 SPD {hero.stats.speed}</span>
+                  <span>🎯 ACC {hero.stats.accuracy}</span>
+                  <span>💨 EVA {hero.stats.evasion}</span>
+                  <span>✨ CRIT {hero.stats.criticalChance}</span>
+                  <span>💥 CRIT DMG {hero.stats.criticalDamage}%</span>
+                  <span>⚡ ENERGY +{hero.stats.energy}</span>
+                  <span>⏱️ CDR {hero.stats.cooldownReduction}</span>
+                  <span>💚 HEAL {hero.stats.healingPower}%</span>
+                  <span>🔷 SHIELD {hero.stats.shieldStrength}%</span>
+                </div>
                 <div className="deck-builder-cards">
                   <div className="deck-builder-card-line">
                     <b>{hero.attack.name}</b> ({hero.attack.cost}⚡) — {hero.attack.description}

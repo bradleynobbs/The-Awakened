@@ -43,6 +43,10 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
       if ((e.firePassiveBonus as number) > 0) bonuses.push("+1 Burn bonus");
       if ((e.empowerBonus as number) > 0) bonuses.push(`+${e.empowerBonus} Empower bonus`);
       if ((e.charmReduction as number) > 0) bonuses.push(`-${e.charmReduction} Charmed`);
+      if ((e.elementalMult as number) > 1) bonuses.push("super effective");
+      if ((e.elementalMult as number) < 1) bonuses.push("not very effective");
+      if (e.wasGraze) bonuses.push("grazed");
+      if (e.wasCrit) bonuses.push("critical hit");
       const bonus = bonuses.length > 0 ? ` (${bonuses.join(", ")})` : "";
       return `${heroName(state, e.targetId as string)} takes ${amount} damage${bonus}.`;
     }

@@ -12,7 +12,7 @@ import type {
   TargetSelection,
 } from "./types";
 import { IllegalActionError } from "./errors";
-import { HERO_DEFINITIONS } from "./heroes";
+import { effectiveCardCost, HERO_DEFINITIONS } from "./heroes";
 import { getCardDefinition } from "./cards";
 import { TEAM_UP_DEFINITIONS } from "./teamups";
 import { isTeamUpAvailable } from "./teamup";
@@ -132,14 +132,15 @@ export function queueCard(
   if (!sourceHero || sourceHero.isDefeated) {
     throw new IllegalActionError("The hero for this card has been defeated.");
   }
-  if (player.energy < cardDef.cost) {
+  const cost = effectiveCardCost(cardDef, sourceHero.heroId);
+  if (player.energy < cost) {
     throw new IllegalActionError("Not enough energy to queue this card.");
   }
 
   validateTargets(state, playerId, cardDef, targets);
 
-  player.energy -= cardDef.cost;
-  events.push({ type: "ENERGY_SPENT", playerId, amount: cardDef.cost, remaining: player.energy });
+  player.energy -= cost;
+  events.push({ type: "ENERGY_SPENT", playerId, amount: cost, remaining: player.energy });
 
   player.hand = player.hand.filter((id) => id !== cardInstanceId);
 
@@ -220,7 +221,13 @@ export function unqueueAction(
   if (index === -1) throw new IllegalActionError("That action isn't queued.");
   const [action] = player.queuedActions.splice(index, 1);
 
-  const cost = action.kind === "card" ? getCardDefinition(player.cardsById[action.cardInstanceId!].cardId).cost : teamUpCost(action.teamUpId!);
+  const cost =
+    action.kind === "card"
+      ? effectiveCardCost(
+          getCardDefinition(player.cardsById[action.cardInstanceId!].cardId),
+          getHero(state, action.sourceHeroInstanceId!).heroId,
+        )
+      : teamUpCost(action.teamUpId!);
   player.energy += cost;
   events.push({ type: "ENERGY_REFUNDED", playerId, amount: cost, remaining: player.energy });
 
@@ -254,19 +261,36 @@ export function setReady(inputState: MatchState, playerId: PlayerId, rng: Rng = 
   return state;
 }
 
-function interleavedQueue(state: MatchState): QueuedAction[] {
+/** Team-Ups have no single acting hero, so they use a fixed baseline lower than any hero's Speed (§8.5). */
+const TEAM_UP_SPEED = 0;
+
+function speedOf(state: MatchState, action: QueuedAction): number {
+  if (action.kind === "teamup") return TEAM_UP_SPEED;
+  return HERO_DEFINITIONS[getHero(state, action.sourceHeroInstanceId!).heroId].stats.speed;
+}
+
+/**
+ * Every queued action from both players, ordered fastest-hero-first
+ * (DESIGN.md §8.5 — replaces the old strict player1/player2 alternation).
+ * Ties (equal Speed, or multiple Team-Ups) keep that original alternating
+ * order as a stable tiebreak, via a stable sort over the old interleave.
+ */
+function speedSortedQueue(state: MatchState): QueuedAction[] {
   const p1 = state.players.player1.queuedActions;
   const p2 = state.players.player2.queuedActions;
-  const result: QueuedAction[] = [];
+  const alternating: QueuedAction[] = [];
   for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
-    if (p1[i]) result.push(p1[i]);
-    if (p2[i]) result.push(p2[i]);
+    if (p1[i]) alternating.push(p1[i]);
+    if (p2[i]) alternating.push(p2[i]);
   }
-  return result;
+  return alternating
+    .map((action, index) => ({ action, index, speed: speedOf(state, action) }))
+    .sort((a, b) => b.speed - a.speed || a.index - b.index)
+    .map((entry) => entry.action);
 }
 
 function resolveRound(state: MatchState, rng: Rng, events: GameEvent[]): void {
-  for (const action of interleavedQueue(state)) {
+  for (const action of speedSortedQueue(state)) {
     if (state.isMatchOver) break;
     const player = state.players[action.playerId];
 

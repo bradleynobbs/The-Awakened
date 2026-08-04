@@ -1,4 +1,4 @@
-import type { CardDefinition, HeroDefinition } from "./types";
+import type { CardDefinition, HeroDefinition, HeroId } from "./types";
 import {
   addShield,
   applyBurn,
@@ -385,6 +385,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "fire",
     maxHp: 18,
     startingShield: 0,
+    stats: {
+      attack: 2,
+      defense: 0,
+      speed: 9,
+      accuracy: 100,
+      evasion: 5,
+      criticalChance: 10,
+      criticalDamage: 100,
+      energy: 1,
+      cooldownReduction: 0,
+      healingPower: 100,
+      shieldStrength: 100,
+    },
     attack: fireBolt,
     ability: flameWave,
     support: kindleSpirit,
@@ -400,6 +413,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "earth",
     maxHp: 24,
     startingShield: 4,
+    stats: {
+      attack: 0,
+      defense: 3,
+      speed: 4,
+      accuracy: 100,
+      evasion: 0,
+      criticalChance: 0,
+      criticalDamage: 100,
+      energy: 0,
+      cooldownReduction: 0,
+      healingPower: 100,
+      shieldStrength: 125,
+    },
     attack: stoneStrike,
     ability: fortify,
     support: guardiansWatch,
@@ -415,6 +441,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "water",
     maxHp: 20,
     startingShield: 0,
+    stats: {
+      attack: 0,
+      defense: 1,
+      speed: 7,
+      accuracy: 100,
+      evasion: 5,
+      criticalChance: 0,
+      criticalDamage: 100,
+      energy: 0,
+      cooldownReduction: 1,
+      healingPower: 130,
+      shieldStrength: 100,
+    },
     attack: tidalShot,
     ability: restoringCurrent,
     support: encouragingCurrent,
@@ -430,6 +469,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "spark",
     maxHp: 20,
     startingShield: 0,
+    stats: {
+      attack: 2,
+      defense: 1,
+      speed: 10,
+      accuracy: 100,
+      evasion: 10,
+      criticalChance: 15,
+      criticalDamage: 110,
+      energy: 0,
+      cooldownReduction: 0,
+      healingPower: 100,
+      shieldStrength: 100,
+    },
     attack: chargedSlash,
     ability: chainSpark,
     support: staticCharge,
@@ -441,10 +493,23 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "undead-assassin": {
     id: "undead-assassin",
     name: "Undead Assassin",
-    role: "Assassin",
+    role: "Speedster",
     element: "undead",
     maxHp: 16,
     startingShield: 0,
+    stats: {
+      attack: 1,
+      defense: 0,
+      speed: 13,
+      accuracy: 100,
+      evasion: 25,
+      criticalChance: 15,
+      criticalDamage: 120,
+      energy: 0,
+      cooldownReduction: 1,
+      healingPower: 100,
+      shieldStrength: 100,
+    },
     attack: quickStrike,
     ability: execute,
     support: markedOpening,
@@ -460,6 +525,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "charm",
     maxHp: 17,
     startingShield: 0,
+    stats: {
+      attack: 1,
+      defense: 0,
+      speed: 11,
+      accuracy: 115,
+      evasion: 10,
+      criticalChance: 40,
+      criticalDamage: 140,
+      energy: 0,
+      cooldownReduction: 0,
+      healingPower: 100,
+      shieldStrength: 100,
+    },
     attack: quickdraw,
     ability: calledShot,
     support: coverFire,
@@ -475,6 +553,19 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     element: "spirit",
     maxHp: 16,
     startingShield: 0,
+    stats: {
+      attack: 2,
+      defense: 0,
+      speed: 8,
+      accuracy: 100,
+      evasion: 8,
+      criticalChance: 5,
+      criticalDamage: 100,
+      energy: 1,
+      cooldownReduction: 0,
+      healingPower: 110,
+      shieldStrength: 100,
+    },
     attack: spiritBolt,
     ability: soulSiphon,
     support: spiritWard,
@@ -486,3 +577,15 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
 };
 
 export const HERO_LIST: HeroDefinition[] = Object.values(HERO_DEFINITIONS);
+
+/**
+ * A card's energy cost after its owning hero's Cooldown Reduction stat
+ * (§8.2) — CDR only discounts Ability/Support cards, floored at 1 energy,
+ * since Attack cards are already the cheapest tier and Team-Ups aren't
+ * owned by a single hero.
+ */
+export function effectiveCardCost(card: CardDefinition, heroId: HeroId): number {
+  if (card.kind === "attack" || card.kind === "teamup") return card.cost;
+  const cdr = HERO_DEFINITIONS[heroId].stats.cooldownReduction;
+  return Math.max(1, card.cost - cdr);
+}

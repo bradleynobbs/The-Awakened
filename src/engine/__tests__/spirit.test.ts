@@ -19,6 +19,10 @@ describe("Spirit lifesteal cards", () => {
     });
     state = readyBoth(state);
 
+    // (4 base + 2 Attack) × 0.8 (Spirit vs. Water disadvantage, §8.3) =
+    // 4.8 -> 5, minus 1 Defense = 4 (coincidentally unchanged from the
+    // pre-stat-system flat number). Self-heal 2 × 110% = 2.2 -> 2, also
+    // coincidentally unchanged.
     expect(getHeroFrom(state, "player2", "water-healer").currentHp).toBe(20 - 4);
     expect(getHeroFrom(state, "player1", "spirit-mage").currentHp).toBe(12);
   });
@@ -33,7 +37,10 @@ describe("Spirit lifesteal cards", () => {
     });
     state = readyBoth(state);
 
-    expect(getHeroFrom(state, "player2", "water-healer").currentHp).toBe(20 - 6);
+    // (6 base + 2 Attack) × 0.8 (Spirit is disadvantaged against Water,
+    // §8.3) = 6.4 -> 6, minus 1 Defense = 5.
+    expect(getHeroFrom(state, "player2", "water-healer").currentHp).toBe(20 - 5);
+    // Self-heal 4 × 110% Healing Power = 4.4 -> 4 (rounds down).
     expect(getHeroFrom(state, "player1", "spirit-mage").currentHp).toBe(14);
   });
 
@@ -47,7 +54,8 @@ describe("Spirit lifesteal cards", () => {
     });
     state = readyBoth(state);
 
-    expect(getHeroFrom(state, "player1", "fire-mage").currentHp).toBe(15);
+    // 5 base × 110% Healing Power (Spirit Mage, the caster) = 5.5 -> 6.
+    expect(getHeroFrom(state, "player1", "fire-mage").currentHp).toBe(16);
   });
 });
 

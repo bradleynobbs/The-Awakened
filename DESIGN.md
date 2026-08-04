@@ -524,3 +524,153 @@ they were already written generically against `HERO_LIST`/
 `CardDefinition` rather than any specific hero, role, or element, which
 is exactly what made adding two heroes safe to do without touching the
 resolution engine.
+
+## 8. Character stat system (Health/Attack/Defense/Speed + 8 secondary stats)
+
+This section replaces "every card just has a fixed damage/heal/shield
+number" with real per-hero stats that modify those numbers, plus
+speed-based turn order and a 7-element advantage web. It's the biggest
+single change to the engine since section 5 (simultaneous planning).
+
+**The one rule every formula below obeys: nothing here is random.**
+The game has been fully deterministic since the original brief — no
+crits, no accuracy rolls, every outcome predictable from what both
+players queued. Accuracy, Evasion, and Critical Chance are normally
+probability stats; here they're all resolved as **stat-vs-stat
+comparisons**, never a dice roll against the engine's RNG. A player
+who knows both rosters' stat blocks (which the UI always shows — no
+hidden information beyond the blind-queued actions themselves) can
+calculate the exact outcome of any matchup before it happens. That's
+what keeps "predict what your opponent is about to do" as the core
+skill instead of "hope the percentages go your way."
+
+### 8.1 Primary stats
+
+- **Health** — unchanged: `HeroInstance.maxHp`/`currentHp`.
+- **Attack** — added to a card's base power before Defense is applied.
+- **Defense** — subtracted from incoming damage before Shield absorbs
+  the rest (floor 1, same "never quite zero" floor already used for
+  Undead Assassin's first-hit reduction and Charm's debuff).
+- **Speed** — decides resolution order within the Fight phase (see
+  8.5) — replaces the old "always interleave starting with player1"
+  rule from section 5.2.
+
+### 8.2 Secondary stats, and how each resolves without randomness
+
+- **Accuracy** (attacker) vs **Evasion** (target): if
+  `Accuracy >= Evasion`, the hit lands in full. If `Accuracy < Evasion`,
+  the hit **grazes** instead of missing outright — damage is halved
+  (floor 1) rather than zeroed. A full miss would waste an entire
+  blind-queued action for nothing, which feels bad in a game where
+  actions are locked in before you see the result; grazing keeps
+  Evasion meaningful without that swing.
+- **Critical Chance**: a flat stat value, not a percentage. If
+  `attacker.CriticalChance >= CRIT_THRESHOLD` (50), every hit from that
+  hero crits — deterministically, every time, not "50% of the time."
+  Base hero kits sit well under 50 (0–20), so crit is something you
+  build toward (via Empower-style buffs from future cards) rather than
+  something that happens on its own — Gunslinger-role heroes start
+  closer to the threshold, matching "Gunslingers excel at... Critical
+  Hits."
+- **Critical Damage**: a percentage multiplier applied only when a crit
+  triggers (base 100 = the crit still happens but adds nothing; higher
+  numbers add more). Meaningless without enough Critical Chance to
+  actually cross the threshold, which is intentional — the two stats
+  are a matched pair.
+- **Energy**: repurposed, since Ultimates don't exist and are still
+  explicitly out of scope (section 3). Instead, each living roster
+  hero's Energy stat adds directly to their controller's per-round
+  energy budget: `roundEnergy = 3 + sum(hero.energy for hero in
+  livingHeroes)`. Most heroes have 0; Mage-role heroes have 1, since
+  "Mages focus on... Energy usage" and this is the cleanest way to
+  make that literally true against a resource that already exists,
+  without inventing a whole cooldown/ultimate layer this pass.
+- **Cooldown Reduction**: repurposed the same way, for the same reason
+  — there's no cooldown system (cards are drawn/discarded, not
+  cooled down), so CDR becomes a flat energy-cost discount on that
+  hero's Ability and Support cards specifically (`cost - CDR`, floor
+  1). Support-role and Speedster-role heroes get a point of it.
+- **Healing Power**: a percentage multiplier (base 100) applied in
+  `healHero` when the *source* hero has it above 100. Support-role
+  heroes run hot on this.
+- **Shield Strength**: same shape, applied in `addShield` when the
+  source hero has it above 100. Tank-role heroes run hot on this.
+
+### 8.3 Elemental advantage web (7 elements, balanced by construction)
+
+Arranged as a 7-element cycle — Fire → Earth → Spark → Water → Spirit →
+Undead → Charm → (back to Fire) — where each element beats the next
+**two** elements clockwise and loses to the previous **two**. With 7
+elements that leaves exactly 2 "neutral" match-ups per element too, so
+**every element has exactly 2 favorable, 2 unfavorable, and 2 neutral
+match-ups** — nothing is ever strictly dominant, by construction, not
+by hand-tuning:
+
+| Attacker ↓ / Defender → | Fire | Earth | Spark | Water | Spirit | Undead | Charm |
+|---|---|---|---|---|---|---|---|
+| **Fire** | — | ✅ | ✅ | ⬜ | ⬜ | ❌ | ❌ |
+| **Earth** | ❌ | — | ✅ | ✅ | ⬜ | ⬜ | ❌ |
+| **Spark** | ❌ | ❌ | — | ✅ | ✅ | ⬜ | ⬜ |
+| **Water** | ⬜ | ❌ | ❌ | — | ✅ | ✅ | ⬜ |
+| **Spirit** | ⬜ | ⬜ | ❌ | ❌ | — | ✅ | ✅ |
+| **Undead** | ✅ | ⬜ | ⬜ | ❌ | ❌ | — | ✅ |
+| **Charm** | ✅ | ✅ | ⬜ | ⬜ | ❌ | ❌ | — |
+
+(✅ = attacker favored ×1.25, ❌ = attacker disadvantaged ×0.8,
+⬜ = neutral ×1.0. Damage is `round(base × multiplier)`, so the effect
+is felt but never swings a fight on its own — a deliberately gentle
+number, the same instinct behind Charm's damage-reduction floor of 1.)
+
+Loose flavor (the table is what's balanced; the flavor is just to make
+it memorable, the same way not every Pokémon type match-up has a
+perfectly airtight real-world justification): Fire scorches Earth and
+burns through Spark's circuits; Earth grounds Spark and dams Water;
+Spark electrifies Water and disrupts Spirit's energy; Water is hostile
+ground for Spirit and cleanses Undead; Spirit overcomes Undead and
+resists Charm's manipulation; Undead is fearless against Fire and
+immune to Charm; Charm redirects Fire's passion and out-maneuvers
+Earth's brute physicality.
+
+Elemental multiplier only applies to **damage**, not healing or
+shielding — keeps the system's surface area contained to the thing
+players are already used to predicting (combat), rather than also
+making support numbers element-dependent.
+
+### 8.4 Role stat archetypes
+
+Each role favors a different 2–3 stats, expressed as each hero's actual
+stat block rather than an enforced rule — a future hero can still bend
+its role's archetype the way Spirit Mage already bends "Mage" away from
+pure Fire Mage-style burst. Rough shape per role:
+
+- **Tank**: high Health/Defense, high Shield Strength, low Speed.
+- **Support**: high Healing Power, moderate Energy/CDR, low Attack.
+- **Brawler**: balanced Attack/Health, moderate Defense, moderate Speed.
+- **Mage**: high Attack, high Energy, low Defense/Health.
+- **Speedster**: high Speed/Evasion, low Health/Defense.
+- **Gunslinger**: high Accuracy/Critical Chance, moderate Attack, low
+  Health.
+
+Concrete numbers are in section 2's updated hero table.
+
+### 8.5 Speed-based resolution order (replaces "player1 always first")
+
+Section 5.2's interleave ("player1's 1st queued action, player2's 1st,
+player1's 2nd, …") is replaced by sorting **all** queued actions from
+both players into a single list ordered by the acting hero's Speed,
+highest first — the Pokémon-style "faster mon moves first" rule, applied
+per-action rather than per-turn since both players queue several
+actions a round. Ties (equal Speed, or a Team-Up with no single acting
+hero) keep the old alternating-starting-with-player1 rule as a
+stable tiebreak, so existing tests that don't care about Speed keep
+their original resolution order. Everything else about resolution —
+fizzling when a target/source/required-hero dies earlier in the same
+sorted order, stopping instantly on match-over — is unchanged from
+section 5.2, just reading from a Speed-sorted list instead of a
+strictly-alternating one.
+
+This is also why Speed stays out of the Critical Chance formula in
+8.2 despite the obvious "faster = more precise" flavor: Speed already
+decides turn order on its own, and letting one stat govern two
+different axes of power would make it the only stat worth investing
+in, which directly contradicts "no role should dominate the meta."

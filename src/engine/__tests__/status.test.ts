@@ -16,18 +16,20 @@ describe("Burn timing", () => {
 
     state = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target }));
 
-    // Resolving rolls straight into the next round, and Burn ticks once at
-    // the start of every round (DESIGN.md 5.3) — so the Burn Fire Bolt just
-    // applied has already ticked once here too: 5 (bolt) + 3 (first tick).
+    // Fire Bolt: 5 base + 2 Attack (Fire Mage) = 7, neutral Fire-vs-Fire
+    // matchup (×1), 0 Defense. Resolving then rolls straight into the next
+    // round, and Burn ticks once at the start of every round (DESIGN.md
+    // 5.3, unaffected by stats — see §8.2) — so the Burn Fire Bolt just
+    // applied has already ticked once here too: 7 (bolt) + 3 (first tick).
     let hero = getHeroFrom(state, "player2", "fire-mage");
-    expect(hero.currentHp).toBe(maxHp - 5 - 3);
+    expect(hero.currentHp).toBe(maxHp - 7 - 3);
     expect(hero.statuses.some((s) => s.type === "burn")).toBe(true);
     expect(state.log.some((e) => e.type === "STATUS_TRIGGERED")).toBe(true);
 
     // An empty round (nobody queues anything): Burn ticks a second time and expires.
     state = readyBoth(state);
     hero = getHeroFrom(state, "player2", "fire-mage");
-    expect(hero.currentHp).toBe(maxHp - 5 - 3 - 3);
+    expect(hero.currentHp).toBe(maxHp - 7 - 3 - 3);
     expect(hero.statuses.some((s) => s.type === "burn")).toBe(false);
     expect(
       state.log.some((e) => e.type === "STATUS_REMOVED" && (e as { status?: string }).status === "burn"),
@@ -37,26 +39,39 @@ describe("Burn timing", () => {
 
 describe("Wet and Spark interaction", () => {
   it("adds bonus damage and removes Wet when a Spark card hits a Wet target", () => {
-    const state = createMatch(
+    let state = createMatch(
       ["water-healer", "spark-duelist", "undead-assassin"],
       P2,
       createSeededRng(1),
     );
-    const tidal = putInHand(state, "player1", "tidal-shot");
-    const slash = putInHand(state, "player1", "charged-slash");
     const target = heroInstanceId("player2", "fire-mage");
     const hpBefore = getHeroFrom(state, "player2", "fire-mage").currentHp;
 
-    let s = queueCard(state, "player1", tidal, { primaryTargetId: target });
-    s = queueCard(s, "player1", slash, { primaryTargetId: target });
-    s = readyBoth(s);
+    // Water Healer (speed 7) is slower than Spark Duelist (speed 10), so
+    // queuing both in the same round would resolve Charged Slash *first*
+    // under the new speed-sorted order (DESIGN.md §8.5) — the opposite of
+    // what this test needs. Splitting across two rounds sidesteps that
+    // and additionally proves Wet survives the round boundary.
+    const tidal = putInHand(state, "player1", "tidal-shot");
+    state = readyBoth(queueCard(state, "player1", tidal, { primaryTargetId: target }));
 
-    const afterSlash = getHeroFrom(s, "player2", "fire-mage");
-    expect(afterSlash.currentHp).toBe(hpBefore - 3 - 8); // Tidal Shot 3, then Charged Slash 5+3 Wet bonus
+    // Tidal Shot: 3 base + 0 Attack (Water Healer), neutral Water-vs-Fire
+    // matchup (×1), 0 Defense.
+    const afterTidal = getHeroFrom(state, "player2", "fire-mage");
+    expect(afterTidal.currentHp).toBe(hpBefore - 3);
+    expect(afterTidal.statuses.some((st) => st.type === "wet")).toBe(true);
+
+    const slash = putInHand(state, "player1", "charged-slash");
+    state = readyBoth(queueCard(state, "player1", slash, { primaryTargetId: target }));
+
+    // Charged Slash: (5 base + 3 Wet bonus + 2 Attack) × 0.8 (Spark is
+    // disadvantaged against Fire in the elemental web, §8.3) = 8, 0 Defense.
+    const afterSlash = getHeroFrom(state, "player2", "fire-mage");
+    expect(afterSlash.currentHp).toBe(hpBefore - 3 - 8);
     expect(afterSlash.statuses.some((st) => st.type === "wet")).toBe(false);
 
     // Spark Duelist passive: gains 2 shield after the interaction
-    expect(getHeroFrom(s, "player1", "spark-duelist").shield).toBe(2);
+    expect(getHeroFrom(state, "player1", "spark-duelist").shield).toBe(2);
   });
 
   it("deals no bonus damage when the target isn't Wet", () => {
@@ -70,7 +85,8 @@ describe("Wet and Spark interaction", () => {
     const before = getHeroFrom(state, "player2", "fire-mage").currentHp;
     const next = readyBoth(queueCard(state, "player1", slash, { primaryTargetId: target }));
 
-    expect(getHeroFrom(next, "player2", "fire-mage").currentHp).toBe(before - 5);
+    // (5 base + 2 Attack) × 0.8 (Spark vs. Fire disadvantage) = 5.6 -> 6, 0 Defense.
+    expect(getHeroFrom(next, "player2", "fire-mage").currentHp).toBe(before - 6);
     expect(getHeroFrom(next, "player1", "spark-duelist").shield).toBe(0);
   });
 });
@@ -87,11 +103,13 @@ describe("Fire Mage passive", () => {
     s = queueCard(s, "player1", boltB, { primaryTargetId: target });
     s = readyBoth(s);
 
-    // Bolt 1: 5 dmg, target not yet burning, then applies Burn.
-    // Bolt 2: 5 + 1 passive bonus, target already burning.
-    // Round-transition Burn tick: 3 more.
+    // Bolt 1: (5 base + 2 Attack) × 1.25 (Fire beats Spark, §8.3) = 8.75 ->
+    // 9, minus 1 Defense = 8. Target not yet burning; Bolt 1 then applies Burn.
+    // Bolt 2: (5 base + 1 passive bonus + 2 Attack) × 1.25 = 10, minus 1
+    // Defense = 9, target now burning for the passive bonus.
+    // Round-transition Burn tick: 3 more (flat, unaffected by stats).
     const hero = getHeroFrom(s, "player2", "spark-duelist");
-    expect(hero.currentHp).toBe(maxHp - 5 - 6 - 3);
+    expect(hero.currentHp).toBe(maxHp - 8 - 9 - 3);
   });
 });
 

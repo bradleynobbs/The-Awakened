@@ -6,6 +6,11 @@ import type {
   PlayerId,
 } from "./types";
 import { IllegalActionError } from "./errors";
+import { CRIT_THRESHOLD, elementalMultiplier } from "./elements";
+// Circular with heroes.ts by design (see DESIGN.md §8) — safe because both
+// sides only read HERO_DEFINITIONS/call these functions from inside
+// function bodies invoked later, never at module-evaluation time.
+import { HERO_DEFINITIONS } from "./heroes";
 
 export function getHero(
   state: MatchState,
@@ -82,9 +87,15 @@ export function dealDamage(
   let firePassiveBonus = 0;
   let empowerBonus = 0;
   let charmReduction = 0;
+  let elementalMult = 1;
+  let wasGraze = false;
+  let wasCrit = false;
 
   if (sourceHeroInstanceId) {
     const source = getHero(state, sourceHeroInstanceId);
+    const sourceDef = HERO_DEFINITIONS[source.heroId];
+    const targetDef = HERO_DEFINITIONS[target.heroId];
+
     if (source.heroId === "fire-mage" && hasBurn(target)) {
       firePassiveBonus = 1;
       total += firePassiveBonus;
@@ -106,6 +117,25 @@ export function dealDamage(
     if (source.heroId === "charm-gunslinger" && target.statuses.some((s) => s.type === "charm")) {
       total += 1;
     }
+
+    // Stat system (DESIGN.md §8): Attack adds flat power, the elemental web
+    // scales the whole total, then Accuracy/Evasion decides a full hit vs.
+    // a halved graze, and Critical Chance/Damage (deterministic threshold,
+    // never a roll — §8.2) applies only on a full hit.
+    total += sourceDef.stats.attack;
+    elementalMult = elementalMultiplier(sourceDef.element, targetDef.element);
+    total *= elementalMult;
+
+    if (sourceDef.stats.accuracy < targetDef.stats.evasion) {
+      wasGraze = true;
+      total /= 2;
+    } else if (sourceDef.stats.criticalChance >= CRIT_THRESHOLD) {
+      wasCrit = true;
+      total *= sourceDef.stats.criticalDamage / 100;
+    }
+
+    total = Math.max(1, Math.round(total));
+    total = Math.max(1, total - targetDef.stats.defense);
   }
 
   let firstHitReduction = 0;
@@ -146,6 +176,9 @@ export function dealDamage(
     empowerBonus,
     charmReduction,
     firstHitReduction,
+    elementalMult,
+    wasGraze,
+    wasCrit,
     targetHpAfter: target.currentHp,
   });
 
@@ -169,6 +202,22 @@ export function dealDamage(
   return remaining;
 }
 
+/** Applies the caster's Healing Power stat (§8.2), if this heal came from a hero-owned card. */
+function scaledByHealingPower(ctx: CardResolveContext, amount: number): number {
+  if (!ctx.sourceHeroInstanceId) return amount;
+  const source = getHero(ctx.state, ctx.sourceHeroInstanceId);
+  const healingPower = HERO_DEFINITIONS[source.heroId].stats.healingPower;
+  return Math.max(0, Math.round((amount * healingPower) / 100));
+}
+
+/** Applies the caster's Shield Strength stat (§8.2), if this Shield came from a hero-owned card. */
+function scaledByShieldStrength(ctx: CardResolveContext, amount: number): number {
+  if (!ctx.sourceHeroInstanceId) return amount;
+  const source = getHero(ctx.state, ctx.sourceHeroInstanceId);
+  const shieldStrength = HERO_DEFINITIONS[source.heroId].stats.shieldStrength;
+  return Math.max(0, Math.round((amount * shieldStrength) / 100));
+}
+
 export function healHero(
   ctx: CardResolveContext,
   targetId: HeroInstanceId,
@@ -178,7 +227,7 @@ export function healHero(
   const target = getHero(state, targetId);
   if (target.isDefeated) return;
   const before = target.currentHp;
-  target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
+  target.currentHp = Math.min(target.maxHp, target.currentHp + scaledByHealingPower(ctx, amount));
   const healed = target.currentHp - before;
   events.push({ type: "HEAL_APPLIED", targetId, amount: healed });
 }
@@ -191,7 +240,7 @@ export function addShield(
   const { state, events } = ctx;
   const target = getHero(state, targetId);
   if (target.isDefeated) return;
-  target.shield += amount;
+  target.shield += scaledByShieldStrength(ctx, amount);
   events.push({ type: "SHIELD_GAINED", targetId, amount, totalShield: target.shield });
 }
 

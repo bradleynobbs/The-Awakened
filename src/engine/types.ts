@@ -20,7 +20,7 @@ export type Role =
   | "Mage"
   | "Brawler"
   | "Tank"
-  | "Assassin"
+  | "Speedster"
   | "Gunslinger"
   | "Support";
 
@@ -64,6 +64,31 @@ export interface StatusCharmed {
 
 export type StatusEffect = StatusBurn | StatusWet | StatusEmpower | StatusCharmed;
 
+/**
+ * Secondary + Attack/Defense/Speed stats — see DESIGN.md §8. All resolved
+ * deterministically (stat-vs-stat comparisons), never against the RNG.
+ * Health lives separately as HeroDefinition.maxHp (unchanged since v1).
+ */
+export interface HeroStats {
+  attack: number;
+  defense: number;
+  speed: number;
+  accuracy: number;
+  evasion: number;
+  /** Flat threshold value (not a %) — crits when >= CRIT_THRESHOLD. See §8.2. */
+  criticalChance: number;
+  /** % multiplier applied only when a crit triggers; 100 = no bonus. */
+  criticalDamage: number;
+  /** Added to this hero's controller's per-round energy budget while alive. */
+  energy: number;
+  /** Flat energy-cost discount on this hero's Ability/Support cards. */
+  cooldownReduction: number;
+  /** % multiplier on healing this hero casts; 100 = no bonus. */
+  healingPower: number;
+  /** % multiplier on Shield this hero grants; 100 = no bonus. */
+  shieldStrength: number;
+}
+
 export interface HeroDefinition {
   id: HeroId;
   name: string;
@@ -71,6 +96,7 @@ export interface HeroDefinition {
   element: Element;
   maxHp: number;
   startingShield: number;
+  stats: HeroStats;
   attack: CardDefinition;
   ability: CardDefinition;
   /** A support card: heals or buffs an ally (or the whole team) rather than hitting an enemy. */

@@ -8,13 +8,16 @@ const P1: [HeroId, HeroId, HeroId] = ["earth-guardian", "fire-mage", "water-heal
 const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "water-healer"];
 
 describe("resolution order", () => {
-  it("interleaves both players' queued actions, alternating starting with player1", () => {
+  it("resolves fastest hero first (Speed stat), not player1-first (DESIGN.md §8.5)", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
 
-    const p1a = putCopyInHand(state, "player1", "stone-strike", 0);
-    const p1b = putCopyInHand(state, "player1", "stone-strike", 1);
-    const p2a = putCopyInHand(state, "player2", "quick-strike", 0);
-    const p2b = putCopyInHand(state, "player2", "quick-strike", 1);
+    // Speeds: Undead Assassin 13 > Spark Duelist 10 > Fire Mage 9 > Earth
+    // Guardian 4 — a fully-determined order with no ties, regardless of
+    // which player queued first.
+    const p1a = putInHand(state, "player1", "stone-strike"); // Earth Guardian, speed 4
+    const p1b = putInHand(state, "player1", "fire-bolt"); // Fire Mage, speed 9
+    const p2a = putInHand(state, "player2", "quick-strike"); // Undead Assassin, speed 13
+    const p2b = putInHand(state, "player2", "charged-slash"); // Spark Duelist, speed 10
 
     state = queueCard(state, "player1", p1a, { primaryTargetId: heroInstanceId("player2", "spark-duelist") });
     state = queueCard(state, "player2", p2a, { primaryTargetId: heroInstanceId("player1", "fire-mage") });
@@ -26,7 +29,7 @@ describe("resolution order", () => {
     const order = state.log
       .filter((e): e is GameEvent & { playerId: string } => e.type === "CARD_PLAYED")
       .map((e) => e.playerId);
-    expect(order).toEqual(["player1", "player2", "player1", "player2"]);
+    expect(order).toEqual(["player2", "player2", "player1", "player1"]);
   });
 
   it("stops resolving further queued actions the instant the match ends", () => {
@@ -54,13 +57,13 @@ describe("unqueueing", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
-    expect(state.players.player1.energy).toBe(2);
+    expect(state.players.player1.energy).toBe(3); // 4 (3 base + Fire Mage's Energy stat) - 1
     expect(state.players.player1.hand).not.toContain(cardId);
 
     const queuedId = state.players.player1.queuedActions[0].id;
     state = unqueueAction(state, "player1", queuedId);
 
-    expect(state.players.player1.energy).toBe(3);
+    expect(state.players.player1.energy).toBe(4);
     expect(state.players.player1.hand).toContain(cardId);
     expect(state.players.player1.queuedActions).toHaveLength(0);
   });
@@ -85,9 +88,9 @@ describe("fizzling", () => {
     getHeroFrom(state, "player1", "fire-mage").currentHp = 1;
 
     // player1 queues two actions: a harmless strike first, then a Fire
-    // Bolt from fire-mage second. player2 queues one killing blow on
-    // fire-mage. Interleave order is p1[0], p2[0], p1[1] — so player2's
-    // kill lands (as p2[0]) before player1's Fire Bolt (p1[1]) resolves.
+    // Bolt from fire-mage second. player2 queues one killing blow from
+    // Undead Assassin (speed 13) on fire-mage (speed 9) — being faster,
+    // the kill resolves before Fire Bolt regardless of queue order.
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {
       primaryTargetId: heroInstanceId("player2", "undead-assassin"),
@@ -132,17 +135,21 @@ describe("fizzling", () => {
   });
 
   it("partially fizzles Chain Spark when only the secondary target dies first, resolving the primary hit anyway", () => {
+    // Undead Assassin (speed 13) needs to out-pace Spark Duelist (speed
+    // 10, Chain Spark's caster) so its kill resolves first under the new
+    // speed-sorted order (DESIGN.md §8.5) — swapped in for Fire Mage,
+    // which at speed 9 would now resolve *after* Chain Spark instead.
     let state = createMatch(
-      ["water-healer", "fire-mage", "spark-duelist"] as [HeroId, HeroId, HeroId],
+      ["water-healer", "undead-assassin", "spark-duelist"] as [HeroId, HeroId, HeroId],
       P2,
       createSeededRng(1),
     );
-    // Kill the secondary target with a first queued action, then Chain
-    // Spark (queued second) should still land its primary hit.
+    // Kill the secondary target with a first-resolving action, then Chain
+    // Spark (slower, resolves second) should still land its primary hit.
     getHeroFrom(state, "player2", "water-healer").currentHp = 1;
 
-    const boltId = putInHand(state, "player1", "fire-bolt");
-    state = queueCard(state, "player1", boltId, { primaryTargetId: heroInstanceId("player2", "water-healer") });
+    const killId = putInHand(state, "player1", "quick-strike");
+    state = queueCard(state, "player1", killId, { primaryTargetId: heroInstanceId("player2", "water-healer") });
 
     const chainSparkId = putInHand(state, "player1", "chain-spark");
     state = queueCard(state, "player1", chainSparkId, {
@@ -156,9 +163,10 @@ describe("fizzling", () => {
     expect(
       state.log.some((e) => e.type === "ACTION_FIZZLED" && e.reason === "secondary-target-defeated"),
     ).toBe(true);
-    // Primary target still took Chain Spark's hit (4 dmg, no Wet bonus).
+    // Primary target still took Chain Spark's hit: 4 base + 2 Attack = 6,
+    // neutral Spark-vs-Spark matchup (×1), minus 1 Defense = 5.
     const primary = getHeroFrom(state, "player2", "spark-duelist");
-    expect(primary.currentHp).toBe(primary.maxHp - 4);
+    expect(primary.currentHp).toBe(primary.maxHp - 5);
   });
 
   it("fizzles a Team-Up if a required hero is defeated by an earlier action this round", () => {
@@ -170,10 +178,10 @@ describe("fizzling", () => {
     getHeroFrom(state, "player1", "water-healer").currentHp = 1;
     state.players.player1.energy = 4; // stone-strike (1) + steam-surge (3)
 
-    // Queueing order matters here: player1's Steam Surge must be queued
-    // *after* some other player1 action, so that player2's kill on
-    // water-healer — interleaved in between — resolves first:
-    // p1[0] (harmless strike) -> p2[0] (kills water-healer) -> p1[1] (Team-Up, now fizzles).
+    // Team-Ups always resolve last (they use a fixed baseline Speed lower
+    // than any hero's — DESIGN.md §8.5), so player2's kill on water-healer
+    // (from Undead Assassin) always lands before Steam Surge does here,
+    // regardless of what else player1 queues alongside it.
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {
       primaryTargetId: heroInstanceId("player2", "undead-assassin"),

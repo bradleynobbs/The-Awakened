@@ -1,5 +1,5 @@
 import { getCardDefinition } from "../engine/cards";
-import { HERO_DEFINITIONS } from "../engine/heroes";
+import { effectiveCardCost, HERO_DEFINITIONS } from "../engine/heroes";
 import type { CardInstanceId, MatchState, PlayerId } from "../engine/types";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
 
@@ -29,7 +29,8 @@ export function CardHand({ state, playerId, canAct, armedCardId, onCardClick }: 
         const cardDef = getCardDefinition(instance.cardId);
         const heroDef = HERO_DEFINITIONS[instance.heroId];
         const heroAlive = player.heroes.find((h) => h.heroId === instance.heroId && !h.isDefeated);
-        const affordable = player.energy >= cardDef.cost;
+        const cost = effectiveCardCost(cardDef, instance.heroId);
+        const affordable = player.energy >= cost;
         const playable = canAct && Boolean(heroAlive) && affordable;
         const armed = armedCardId === cardInstanceId;
 
@@ -42,7 +43,7 @@ export function CardHand({ state, playerId, canAct, armedCardId, onCardClick }: 
             disabled={!playable}
           >
             <div className="hand-card-top">
-              <span className="hand-card-cost">{cardDef.cost}⚡</span>
+              <span className="hand-card-cost">{cost}⚡</span>
               <span className="hand-card-element">
                 {heroDef ? ELEMENT_SYMBOL[heroDef.element] : ""}
               </span>

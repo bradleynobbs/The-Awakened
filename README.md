@@ -3,9 +3,12 @@
 A mobile-first, online 1v1 tactical card battler, presented as a
 cinematic 3D battlefield in the style of *Slay the Spire* meets
 team-based PvP. Two players each lock in a 3-hero team and fight it out
-over the network with a shared action deck, deterministic damage, and
-elemental status interactions. No random damage, no crits, no accuracy
-rolls — every outcome is predictable and shown in the interface.
+over the network with a shared action deck, elemental status
+interactions, and a full RPG-style stat system (Attack, Defense, Speed,
+Accuracy, Critical Chance, and more — see "Stats" below). None of it
+is randomized: Accuracy/Evasion and Critical Chance are stat-vs-stat
+comparisons, not dice rolls, so every outcome is calculable from what
+both players queued, before it resolves.
 
 See [`DESIGN.md`](./DESIGN.md) for the full list of rule decisions made
 while turning the original design brief into a buildable prototype (turn
@@ -18,7 +21,7 @@ matchmaking/sync design in section 4).
 ```bash
 npm install
 npm run dev        # start the dev server
-npm run test       # run the Vitest suite (63 tests, engine-only)
+npm run test       # run the Vitest suite (82 tests, engine-only)
 npm run typecheck  # tsc project build, no emit
 npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
@@ -153,9 +156,11 @@ The main menu has:
    both teams' full rosters become visible on the battlefield. A locked
    team cannot change for the rest of the match.
 3. **Battle.** Every round, both players plan simultaneously — there's
-   no waiting for a turn. Each round you get 3 energy and a fresh hand
-   of 5 cards drawn from your personal deck (built from your 3 heroes'
-   Attack, Ability, and Support cards, 3 copies of each).
+   no waiting for a turn. Each round you get a fresh hand of 5 cards
+   drawn from your personal deck (built from your 3 heroes' Attack,
+   Ability, and Support cards, 3 copies of each) and an energy budget of
+   3 plus each of your living heroes' Energy stat (shown per-hero in the
+   Deck Builder) — most heroes add 0, a couple add 1.
    - Tap a card in your hand to arm it, then tap a highlighted hero on
      the battlefield to target it. This queues the action (shown in
      your **Planned Actions** list) — nothing resolves yet, and your
@@ -170,12 +175,14 @@ The main menu has:
      back.
    - Unused energy does not carry over — spend it or lose it.
    - Tap **Fight** when you're done planning. Once both players are
-     ready, everyone's queued actions resolve together, interleaved
-     one-by-one starting with player 1 — so an early action can defeat a
+     ready, everyone's queued actions resolve together, fastest hero
+     first (by Speed stat, Pokémon-style — ties fall back to the same
+     alternating order as before) — so an early action can defeat a
      hero (or a Team-Up's required hero) before a later queued action
      against it gets to resolve, in which case that later action
      fizzles instead of firing. This is what makes prediction matter:
-     guessing what your opponent is likely to queue is a real skill.
+     guessing what your opponent is likely to queue — and how fast
+     their heroes are — is a real skill.
    - The next round then begins automatically — no separate "end turn"
      step.
 4. **Team-Ups.** Once both of a Team-Up's required heroes are alive and
@@ -199,9 +206,14 @@ purpose) opens a raw state inspector for debugging.
 | Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
-| Undead Assassin | Assassin | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
+| Undead Assassin | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
 | Charm Gunslinger | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
 | Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
+
+Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
+Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing
+Power, Shield Strength) shown in full in the Deck Builder — see "Stats"
+below and `DESIGN.md` §8 for exactly how each one is used.
 
 Each hero has one Attack card (1 energy), one Ability card (2 energy), one
 Support card (2 energy — heals, shields, or Empowers an ally, see
@@ -232,7 +244,37 @@ and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
 
 All interactions are deterministic and reflected as status badges on each
 hero's health plate (🔥 Burn ticks remaining, 💧 Wet, 🛡 Shield amount,
-💪 Empower bonus, 💫 Charm reduction).
+💪 Empower bonus, 💫 Charm reduction, 🏃 Speed).
+
+## Stats
+
+Every hero has Health, Attack, Defense, and Speed, plus 8 secondary
+stats (Accuracy, Evasion, Critical Chance/Damage, Energy, Cooldown
+Reduction, Healing Power, Shield Strength) — see the Deck Builder for
+every hero's full block, and `DESIGN.md` §8 for the exact formulas.
+**Nothing here is randomized** — the same "no dice rolls, every outcome
+predictable" rule from the top of this README applies to stats too:
+
+- **Speed** decides resolution order in the Fight phase — the fastest
+  acting hero across *both* players goes first, Pokémon-style, not
+  "player1 always first" like earlier versions of this game.
+- **Attack**/**Defense** are flat modifiers added to/subtracted from a
+  card's damage.
+- **Accuracy** vs. the target's **Evasion** decides a full hit or a
+  halved "graze" — never a miss, since wasting an entire blind-queued
+  action would feel bad.
+- **Critical Chance** is a flat threshold, not a %: cross it and every
+  hit crits, guaranteed. No hero's base kit crosses it on its own.
+- **Energy** adds to your per-round energy budget while that hero is
+  alive; **Cooldown Reduction** discounts that hero's Ability/Support
+  card costs; **Healing Power**/**Shield Strength** scale the heals/
+  Shield that hero grants.
+
+Roles lean into different stats — Tanks run high Health/Defense,
+Supports run high Healing Power, Gunslingers run high Accuracy/Critical
+Chance, and so on — but nothing is enforced; a hero's actual numbers
+are what matter, the same way Spirit Mage already bends "Mage" away
+from Fire Mage's burst-damage template.
 
 ## Architecture
 
@@ -246,19 +288,23 @@ for why, and its tradeoffs).
 ```
 src/engine/       Pure rules engine (unchanged whether local or online)
   types.ts         Core typed models (Hero, Card, Status, MatchState, GameEvent…)
-  heroes.ts        The 7 hero definitions + their Attack/Ability/Support card resolvers
+  heroes.ts        The 7 hero definitions (incl. stat blocks) + their
+                     Attack/Ability/Support card resolvers, effectiveCardCost()
+  elements.ts      The 7-element advantage web (elementalMultiplier()), see DESIGN.md §8.3
   teamups.ts       The 2 Team-Up card definitions
   cards.ts         Card-id → CardDefinition registry
-  selection.ts     Hero-pick validation (exactly 3 of 5, lock-in)
+  selection.ts     Hero-pick validation (exactly 3 of 7, lock-in)
   deck.ts          Deck building, draw/discard/reshuffle
-  combat.ts        Damage, healing, shields, Burn/Wet primitives, victory check
+  combat.ts        Damage (Attack/Defense/elemental/Accuracy/Crit, DESIGN.md §8),
+                     healing, shields, Burn/Wet/Empower/Charm primitives, victory check
   status.ts        Start-of-round Burn ticking
   targeting.ts     Target-selection validation per card's target type
   teamup.ts        Team-Up availability rules
-  turn.ts          Start-of-round sequencing (energy reset, draw, status ticks)
+  turn.ts          Start-of-round sequencing (energy budget = base + each
+                     living hero's Energy stat, draw, status ticks)
   match.ts         Public API: createMatch / queueCard / queueTeamUp /
-                     unqueueAction / setReady — planning + simultaneous
-                     "Fight" resolution, see DESIGN.md §5
+                     unqueueAction / setReady — planning + Speed-sorted
+                     "Fight" resolution, see DESIGN.md §5 and §8.5
   rng.ts           Injectable RNG (seeded for tests; Math.random in the app)
   bot.ts           chooseBotAction() for Practice mode — picks a random
                      affordable, legal card + target; never uses Team-Ups

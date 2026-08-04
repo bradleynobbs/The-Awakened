@@ -350,6 +350,12 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.hero-plate-speed {
+  float: right;
+  font-weight: 400;
+  font-size: 9px;
+  color: #a8b0c8;
+}
 .hero-plate-hpbar {
   height: 5px;
   background: #2a1414;
@@ -805,6 +811,19 @@ button {
 .deck-builder-body {
   justify-content: flex-start;
   padding-top: 20px;
+}
+
+.deck-builder-stat-grid {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px 8px;
+  font-size: 10px;
+  color: #b7bcd6;
+  text-align: left;
 }
 
 .deck-builder-cards {

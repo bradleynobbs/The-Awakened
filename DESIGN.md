@@ -377,6 +377,52 @@ resolution order — there is exactly one place resolution ever runs.
   waiting now happens only after readying up, until the opponent also
   readies).
 
+### 5.6 A real battle phase (gating on animation playback, not just readiness)
+
+Resolution used to unlock the *next* round's planning controls the
+instant the engine produced a result — but `useEventQueue` was still
+separately stepping through that round's `GameEvent[]` for the
+battlefield's animations, cosmetically, in the background. Nothing
+stopped a player from queuing (or even finishing) the next round's
+plan while the previous round's attacks were still visibly playing
+out, which doesn't read as a "battle phase" so much as animations
+happening to play while you've already moved on.
+
+`useEventQueue` now returns `isPlaying` alongside `activeEvent`, and
+`Battle.tsx` folds it into the existing ready-gate: `canAct = !isReady
+&& !isPlaying`. The hand, Fight button, Team-Up bar, and targeting all
+stay locked until the current batch has finished stepping, and
+`TopBar` shows a pulsing red "⚔️ Battle!" pill instead of "Plan your
+actions" for the duration.
+
+`isPlaying` is deliberately **not** just "a batch is queued" — most
+`pendingEvents` batches are routine planning bookkeeping (queuing a
+single card emits one `ACTION_QUEUED` event; a new round quietly
+starting emits `ROUND_STARTED`/`CARDS_DRAWN`/`ENERGY_SPENT`), and
+gating on those too would freeze the hand for a beat after every
+click. `useEventQueue` only sets `isPlaying` when the current batch
+contains at least one genuine combat event (`CARD_PLAYED`,
+`DAMAGE_DEALT`, `HERO_DEFEATED`, etc. — see `NON_BATTLE_EVENT_TYPES`
+for the exclusion list) — a real fight to watch, not bookkeeping.
+
+This surfaced a real bug in `usePracticeMatch.ts`: the bot silently
+planning its *next* round (so it can ready up the instant the human
+does) was calling `setPendingEvents` with its own planning log slice,
+which — since `useEventQueue` resets its queue whenever the `events`
+array reference changes — clobbered the *previous* round's real battle
+events almost immediately after they were set, cutting their animation
+short before a player could see more than the first beat or two. Fixed
+by having that effect update `state` only; the bot's plan is invisible
+bookkeeping from the player's POV until they ready up too, exactly like
+a real opponent's would be, so it should never touch `pendingEvents`.
+
+Also added variable step timing: a genuine combat event still holds
+the screen for 500ms so its cue is visible, but bookkeeping events
+step through in 60ms — a round with several hero actions plus trailing
+next-round setup no longer takes 10+ seconds just because every event
+in the batch waited the same fixed beat regardless of whether there
+was anything to actually look at.
+
 ## 6. Support cards: a third card per hero (heal / buff allies)
 
 Every hero originally had exactly two cards: an Attack (hits an enemy)

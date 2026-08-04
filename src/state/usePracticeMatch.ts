@@ -77,7 +77,9 @@ export function usePracticeMatch(): UsePracticeMatchApi {
     const withBotPlan = botPlanRound(withMyTeam);
     botPlannedRoundRef.current = withBotPlan.roundNumber;
     setState(withBotPlan);
-    setPendingEvents(withBotPlan.log);
+    // The bot's opening plan is silent bookkeeping, not a fight to watch —
+    // there's nothing to animate yet until the human readies up too.
+    setPendingEvents([]);
     setPhase("battle");
     setError(null);
   }, []);
@@ -134,14 +136,18 @@ export function usePracticeMatch(): UsePracticeMatchApi {
   // Whenever a new round starts, the bot plans its whole round in one
   // shot (blind to the human's plan, same as a real opponent would be)
   // and readies up immediately — resolution then waits only on the
-  // human readying up.
+  // human readying up. This is silent bookkeeping from the human's POV
+  // (they never see the bot's plan before resolving), so it deliberately
+  // does NOT touch pendingEvents — doing so would immediately clobber the
+  // real battle events from the round that just resolved, cutting off
+  // their animation before the "battle phase" gate even had a chance to
+  // let the player watch them play out.
   useEffect(() => {
     if (!state || state.isMatchOver) return;
     if (botPlannedRoundRef.current === state.roundNumber) return;
     botPlannedRoundRef.current = state.roundNumber;
     const withBotPlan = botPlanRound(state);
     setState(withBotPlan);
-    setPendingEvents(withBotPlan.log.slice(state.log.length));
   }, [state]);
 
   return {

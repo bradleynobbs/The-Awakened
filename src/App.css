@@ -230,6 +230,19 @@ button {
   color: #1a1400;
   background: #ffd24a;
 }
+.turn-pill.battling {
+  color: #ffd0d0;
+  background: #4a1f1f;
+  animation: battle-pulse 0.9s ease-in-out infinite;
+}
+@keyframes battle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
 
 .energy-pill {
   font-size: 13px;

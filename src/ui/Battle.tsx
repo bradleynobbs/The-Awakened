@@ -46,9 +46,12 @@ export function Battle({
   const [armedCardId, setArmedCardId] = useState<CardInstanceId | null>(null);
   const [pendingTargets, setPendingTargets] = useState<TargetSelection>({});
   const [logOpen, setLogOpen] = useState(false);
-  const activeEvent = useEventQueue(pendingEvents);
+  const { activeEvent, isPlaying: isBattlePhase } = useEventQueue(pendingEvents);
   const isReady = state.players[myRole].isReady;
-  const canAct = !isReady;
+  // A real "battle phase" gate: once a round resolves, the next round's
+  // controls stay locked until its attack animations have finished playing,
+  // instead of unlocking the instant the engine result is available.
+  const canAct = !isReady && !isBattlePhase;
 
   const armedCardDef = armedCardId
     ? getCardDefinition(state.players[myRole].cardsById[armedCardId].cardId)
@@ -111,7 +114,14 @@ export function Battle({
 
   return (
     <div className="battle-screen">
-      <TopBar state={state} myRole={myRole} isReady={isReady} onLeave={onLeave} onToggleLog={() => setLogOpen(true)} />
+      <TopBar
+        state={state}
+        myRole={myRole}
+        isReady={isReady}
+        isBattlePhase={isBattlePhase}
+        onLeave={onLeave}
+        onToggleLog={() => setLogOpen(true)}
+      />
 
       {error && (
         <div className="error-toast" onClick={onClearError}>

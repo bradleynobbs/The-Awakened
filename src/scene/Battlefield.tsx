@@ -5,6 +5,19 @@ import { ELEMENT_COLOR, ELEMENT_SYMBOL, ROLE_ICON } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
+/** Approximate torch positions in arena-plaza.jpg, as percentages of the
+ * image so they track reasonably well under `background-size: cover`
+ * regardless of container aspect (see App.css's battlefield atmosphere
+ * comment). Four torches: the two foreground braziers on the outer
+ * banners, and the two on the inner pillars. Slightly different
+ * animation-delay per torch so they don't flicker in lockstep. */
+const TORCH_POSITIONS: { left: string; top: string; delay: string }[] = [
+  { left: "4%", top: "34%", delay: "0s" },
+  { left: "34%", top: "34%", delay: "0.5s" },
+  { left: "66%", top: "34%", delay: "0.9s" },
+  { left: "96%", top: "34%", delay: "0.3s" },
+];
+
 /** Which health-bar color tier to show — a flat "always green" bar doesn't
  * communicate danger the way a game health bar should. */
 function hpTier(currentHp: number, maxHp: number): "hp-high" | "hp-mid" | "hp-low" {
@@ -145,6 +158,14 @@ export function Battlefield({
   return (
     <div className="battlefield-2d">
       <div className="battlefield-bg" style={{ backgroundImage: `url(${arenaBackground})` }} />
+      <div className="battlefield-rift-glow" />
+      {TORCH_POSITIONS.map((t, i) => (
+        <div
+          key={i}
+          className="battlefield-torch-glow"
+          style={{ left: t.left, top: t.top, animationDelay: t.delay }}
+        />
+      ))}
       <div className="battlefield-scrim" />
       <Formation
         state={state}

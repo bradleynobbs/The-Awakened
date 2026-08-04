@@ -1364,3 +1364,58 @@ existing flex layout already puts things in that corner for free,
 correctly, and without needing to hand-verify pixel budgets — absolute
 positioning here kept relitigating the same "does it fit against its
 neighbors" question that flexbox exists to answer automatically.
+
+### 9.18 Animating a flat painted background
+
+Asked to make the static `arena-plaza.jpg` background feel alive:
+clouds and floating islands drifting, torches flickering, the purple
+rift pulsing. The background is one flat painted JPG, not layered
+source art, so nothing in it can be truly isolated and animated
+independently without real image segmentation (cutting the islands out
+and repainting what's behind them, cutting each torch's flame out,
+etc.) — out of scope here. Three CSS-only approximations instead,
+layered on top of the same static image:
+
+- **"Clouds and islands move"** → the *whole painting* gets a very
+  slow, small-amplitude scale+pan loop (`bg-drift`, 22s ease-in-out
+  alternate, 1.06×→1.1× scale with a ~1% translate). Since it's the
+  entire image moving together, the floor/pillars drift by the same
+  tiny amount as the sky — imperceptible at that amplitude for static
+  scenery, but enough that the far background (islands, clouds) reads
+  as gently alive instead of a frozen photo. This is a real
+  compromise, not a full fix: true independent cloud/island motion
+  would need those elements as separate layered assets.
+- **"Fire moves"** → rather than trying to animate the tiny painted
+  flames themselves, a soft orange radial-gradient glow
+  (`battlefield-torch-glow`) sits on top of each torch position with
+  an irregular 4-keyframe opacity/scale flicker (1.6s loop, staggered
+  `animation-delay` per torch so all four don't flicker in lockstep).
+  `mix-blend-mode: screen` so it only ever brightens what's under it,
+  never muddies the art with a visible flat shape.
+- **"Purple hole gets an aura, glows in and out"** → a tall radial
+  gradient (`battlefield-rift-glow`) along the crack's centerline,
+  breathing opacity/blur on a 3.2s ease-in-out loop. Also
+  `screen`-blended for the same reason.
+
+**Positioning these accurately without exact source coordinates:**
+`.battlefield-bg` uses `background-size: cover; background-position:
+center 35%`, and the container's aspect ratio (tall portrait on
+phones) is very different from the source image's (landscape,
+1280×853) — cover crops most of the image's width to fill the
+container's height, so a torch's *pixel* position in the raw file
+doesn't map 1:1 to a percentage of the visible container. Worked out
+the actual crop math (scale = max(containerW/imgW, containerH/imgH);
+here containerH is the constraint, so there's zero vertical crop and
+vertical percentages map straight through, but horizontal is
+compressed hard) and cross-checked it two ways: overlaying markers on
+an actual Playwright screenshot at the computed coordinates, and
+independently scanning the screenshot's raw pixels for the
+flame-colored peak brightness near each expected torch position. Both
+confirmed the original percentage estimates (torches at 34%/66%
+horizontal, 34% vertical) were already correct — a first attempt at
+eyeballing a manually-cropped, nearest-neighbor-upscaled screenshot
+crop suggested they were off, which turned out to be an artifact of
+sloppy manual cropping, not a real positioning bug. Lesson: when a
+quick visual check disagrees with the math, verify with a precise
+method (pixel-color scan, marker overlay) before trusting the eyeball
+over the math, not the other way around.

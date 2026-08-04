@@ -636,21 +636,32 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Pulled out of the name row entirely and pinned as a corner badge — at a
+ * size where the illustrated role ring actually reads (§9.14 found it
+ * needs ~32px, far bigger than the name text next to it), these can't
+ * sit inline in the name row without dwarfing it. .hero-plate is already
+ * position: absolute, so this positions relative to the plate itself
+ * regardless of its DOM nesting inside .hero-plate-name. */
 .hero-plate-emblems {
-  flex-shrink: 0;
+  position: absolute;
+  top: -6px;
+  right: -8px;
   display: flex;
+  align-items: center;
   gap: 2px;
+  z-index: 4;
 }
 .hero-plate-emblem {
-  font-size: 7px;
+  font-size: 28px;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
 }
 .hero-plate-role-icon {
-  width: 16px;
-  height: 16px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
 }
 .hero-plate-hpbar {
   position: relative;

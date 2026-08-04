@@ -1261,3 +1261,44 @@ Same real-device caveat as the HP text (§9.12): a 16px badge in a flat
 screenshot reads smaller/blurrier than it will on an actual phone's
 higher pixel density, so the exact size chosen here is worth a
 real-device sanity check rather than being treated as final.
+
+### 9.15 The ring crop was wrong: show the whole emblem, badge-sized
+
+A live-device screenshot showed the Speedster emblem as a small gold
+squiggle instead of a running figure. The proportional "crop off 22%
+each side to remove the ring" from §9.14 wasn't ring-aware, it was
+just a blind inset — and for the running-figure emblem specifically,
+whose speed-lines and silhouette aren't centered the same way the
+other five roughly-symmetric icons are, that inset sliced straight
+through the figure's head and torso, keeping mostly legs and speed
+lines. The other five happened to survive because their content is
+close enough to centered that a uniform inset mostly ate ring, but it
+was luck, not a correct crop. Fix: show the *complete* emblem (ring
+included) rather than trying to algorithmically remove it.
+
+That reintroduced §9.14's original problem (the full ring reads as a
+smudge at ~16px) — solved this time by sizing up instead of cropping
+down. Rendering actual side-by-side previews at several sizes (not
+trusting a full-size mockup, same lesson as §9.14) showed the complete
+ring only becomes clearly legible around 32px, roughly double the
+previous attempt. Shipped role icon and element emoji both at that
+size (`.hero-plate-emblem` font-size 7px → 28px to match), which is
+far too big to sit inline in the name row next to 6px text — it would
+dwarf it — so the emblems moved from an inline flex child of
+`.hero-plate-name` to an absolutely-positioned corner badge instead,
+pinned to `.hero-plate`'s top-right corner and overlapping outward
+past its edge (`.hero-plate` was already `position: absolute` per
+§9.13, so this needed no DOM changes, just a position swap on the
+existing `.hero-plate-emblems` element). This is much closer to what
+was actually asked for back in §9.8 ("role emblem and type emblem in
+the top right of the health bar area") — a corner badge, not an
+inline row item.
+
+The badge now overlaps slightly onto whichever hero-slot sits above it
+in the same team's vertical stack, a new minor visual collision this
+change introduces (tuned the badge's upward offset to minimize it, not
+eliminate it — eliminating it entirely would mean shrinking the badge
+back down and reintroducing the legibility problem this section just
+fixed). Cosmetic only: hero-plates aren't interactive, so an overlap
+never blocks a click, just occasionally overlaps another plate's
+corner.

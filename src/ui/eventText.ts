@@ -1,5 +1,6 @@
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
 import { HERO_DEFINITIONS } from "../engine/heroes";
+import { getCardDefinition } from "../engine/cards";
 
 function heroName(state: MatchState, instanceId: HeroInstanceId | undefined): string {
   if (!instanceId) return "";
@@ -10,8 +11,10 @@ function heroName(state: MatchState, instanceId: HeroInstanceId | undefined): st
   return instanceId;
 }
 
-function possessive(myRole: PlayerId, playerId: unknown): string {
-  return playerId === myRole ? "Your" : "Your opponent's";
+function fizzledCardName(state: MatchState, playerId: PlayerId, cardInstanceId: string | undefined): string {
+  if (!cardInstanceId) return "A card";
+  const cardId = state.players[playerId].cardsById[cardInstanceId]?.cardId;
+  return cardId ? getCardDefinition(cardId).name : "A card";
 }
 
 /** Renders a single engine event as a short, readable combat-log line, from myRole's perspective. */
@@ -20,8 +23,10 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
   switch (event.type) {
     case "MATCH_STARTED":
       return "The match begins.";
-    case "TURN_STARTED":
-      return `${possessive(myRole, e.playerId)} turn begins.`;
+    case "ROUND_STARTED":
+      return `Round ${e.roundNumber} — plan your actions.`;
+    case "ROUND_RESOLVED":
+      return "Fight!";
     case "CARD_PLAYED":
       return `${heroName(state, e.sourceHeroInstanceId as string)} plays ${e.cardName}.`;
     case "DAMAGE_DEALT": {
@@ -47,8 +52,17 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
       return `${heroName(state, e.heroInstanceId as string)} has been defeated!`;
     case "TEAM_UP_TRIGGERED":
       return `Team-Up! ${e.teamUpName}.`;
-    case "TURN_ENDED":
-      return null;
+    case "ACTION_FIZZLED": {
+      const who = e.playerId === myRole ? "Your" : "Your opponent's";
+      const name = e.kind === "teamup" ? String(e.teamUpName ?? "Team-Up") : fizzledCardName(state, e.playerId as PlayerId, e.cardInstanceId as string | undefined);
+      const reason =
+        e.reason === "source-defeated"
+          ? "its hero was defeated first"
+          : e.reason === "secondary-target-defeated"
+            ? "its second target was already defeated"
+            : "its target was already defeated";
+      return `${who} ${name} fizzles — ${reason}.`;
+    }
     case "MATCH_ENDED":
       return e.winnerId === myRole ? "You win the match!" : "You lose the match.";
     default:

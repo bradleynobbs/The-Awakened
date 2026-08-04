@@ -5,11 +5,11 @@ import type { MatchState, PlayerId } from "../engine/types";
 interface TeamUpBarProps {
   state: MatchState;
   playerId: PlayerId;
-  isMyTurn: boolean;
-  onPlay: (teamUpId: string) => void;
+  canAct: boolean;
+  onQueue: (teamUpId: string) => void;
 }
 
-export function TeamUpBar({ state, playerId, isMyTurn, onPlay }: TeamUpBarProps) {
+export function TeamUpBar({ state, playerId, canAct, onQueue }: TeamUpBarProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const teamUps = rosterTeamUps(state, playerId);
   if (teamUps.length === 0) return null;
@@ -22,10 +22,12 @@ export function TeamUpBar({ state, playerId, isMyTurn, onPlay }: TeamUpBarProps)
         const used = player.usedTeamUps.includes(teamUp.id);
         const available = isTeamUpAvailable(state, playerId, teamUp);
         const affordable = player.energy >= teamUp.cost;
-        const playable = isMyTurn && available && affordable;
+        const alreadyQueued = player.queuedActions.some((a) => a.kind === "teamup" && a.teamUpId === teamUp.id);
+        const playable = canAct && available && affordable && !alreadyQueued;
         const expanded = expandedId === teamUp.id;
         let reason = "";
         if (used) reason = "Already used this match";
+        else if (alreadyQueued) reason = "Already planned this round";
         else if (!available) reason = "A required hero has been defeated";
         else if (!affordable) reason = `Needs ${teamUp.cost} energy`;
 
@@ -47,11 +49,11 @@ export function TeamUpBar({ state, playerId, isMyTurn, onPlay }: TeamUpBarProps)
                   disabled={!playable}
                   onClick={() => {
                     if (!playable) return;
-                    onPlay(teamUp.id);
+                    onQueue(teamUp.id);
                     setExpandedId(null);
                   }}
                 >
-                  Play
+                  Plan
                 </button>
               </div>
             )}

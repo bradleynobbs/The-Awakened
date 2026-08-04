@@ -1,36 +1,28 @@
-import type { GameEvent, MatchState, PlayerId } from "./types";
-import { drawCards, discardHand, STARTING_HAND_SIZE } from "./deck";
-import { tickStartOfTurnStatuses } from "./status";
+import type { GameEvent, MatchState } from "./types";
+import { drawCards, STARTING_HAND_SIZE } from "./deck";
+import { tickStartOfRoundStatuses } from "./status";
 import type { Rng } from "./rng";
 
 export const STARTING_ENERGY = 3;
 
 /**
- * Starts `playerId`'s turn: resets energy, ticks start-of-turn statuses
- * (Burn), then draws back up to a full hand. Isolated here so the
- * alternating-turn structure can later be swapped for simultaneous
- * planning without touching draw/status/energy logic (see DESIGN.md 3).
+ * Starts a new round for both players at once: ticks Burn for every
+ * Burning hero on either side, then resets both players to 3 energy and
+ * draws both back up to a full hand. See DESIGN.md section 5 — rounds
+ * replaced alternating turns, so there's no single "active player" to
+ * start a turn for anymore.
  */
-export function beginPlayerTurn(
-  state: MatchState,
-  playerId: PlayerId,
-  rng: Rng,
-  events: GameEvent[],
-): void {
-  state.activePlayerId = playerId;
-  state.turnNumber += 1;
-  const player = state.players[playerId];
-  player.energy = STARTING_ENERGY;
-  events.push({ type: "TURN_STARTED", playerId, turnNumber: state.turnNumber });
+export function beginRound(state: MatchState, rng: Rng, events: GameEvent[]): void {
+  state.roundNumber += 1;
+  events.push({ type: "ROUND_STARTED", roundNumber: state.roundNumber });
 
-  tickStartOfTurnStatuses(state, playerId, events);
+  tickStartOfRoundStatuses(state, events);
   if (state.isMatchOver) return;
 
-  drawCards(player, STARTING_HAND_SIZE, rng, events);
-}
-
-export function endPlayerTurn(state: MatchState, playerId: PlayerId, events: GameEvent[]): void {
-  const player = state.players[playerId];
-  discardHand(player, events);
-  events.push({ type: "TURN_ENDED", playerId, turnNumber: state.turnNumber });
+  for (const playerId of ["player1", "player2"] as const) {
+    const player = state.players[playerId];
+    player.energy = STARTING_ENERGY;
+    player.isReady = false;
+    drawCards(player, STARTING_HAND_SIZE, rng, events);
+  }
 }

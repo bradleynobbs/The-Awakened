@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createMatch, endTurn as engineEndTurn, playCard as enginePlayCard, playTeamUp as enginePlayTeamUp } from "../engine/match";
+import {
+  createMatch,
+  queueCard as engineQueueCard,
+  queueTeamUp as engineQueueTeamUp,
+  setReady as engineSetReady,
+  unqueueAction as engineUnqueueAction,
+} from "../engine/match";
 import type { HeroTrio } from "../engine/match";
-import type { CardInstanceId, GameEvent, HeroId, MatchState, PlayerId, TargetSelection } from "../engine/types";
+import type {
+  CardInstanceId,
+  GameEvent,
+  HeroId,
+  MatchState,
+  PlayerId,
+  QueuedAction,
+  QueuedActionId,
+  TargetSelection,
+} from "../engine/types";
 import { getLocalIdentity } from "../net/identity";
 import { isOnlineConfigured } from "../net/supabaseClient";
 import { findMatch, leaveQueue, waitForMatch } from "../net/matchmaking";
@@ -24,12 +39,15 @@ export interface UseOnlineMatchApi {
   error: string | null;
   /** True once my hero selection has been sent and I'm waiting on the opponent's. */
   waitingOnOpponentSelection: boolean;
+  /** True once I've readied up this round and I'm waiting on the opponent's. */
+  waitingOnOpponentReady: boolean;
   findOpponent: () => void;
   cancelQueueing: () => void;
   submitHeroSelection: (heroIds: HeroTrio) => void;
-  playCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
-  playTeamUp: (teamUpId: string) => void;
-  endTurn: () => void;
+  queueCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
+  queueTeamUp: (teamUpId: string) => void;
+  unqueueAction: (queuedActionId: QueuedActionId) => void;
+  setReady: () => void;
   leaveMatch: () => void;
   clearError: () => void;
 }
@@ -42,6 +60,7 @@ export function useOnlineMatch(): UseOnlineMatchApi {
   const [pendingEvents, setPendingEvents] = useState<GameEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [waitingOnOpponentSelection, setWaitingOnOpponentSelection] = useState(false);
+  const [waitingOnOpponentReady, setWaitingOnOpponentReady] = useState(false);
 
   const stateRef = useRef<MatchState | null>(null);
   stateRef.current = state;
@@ -51,11 +70,17 @@ export function useOnlineMatch(): UseOnlineMatchApi {
   const cancelWaitRef = useRef<(() => void) | null>(null);
   const myHeroesRef = useRef<HeroTrio | null>(null);
   const opponentHeroesRef = useRef<HeroTrio | null>(null);
+  /** Player1 only: the opponent's queued actions once they've readied, held
+   *  out of rendered state until resolution so nothing ever displays the
+   *  opponent's plan early — see DESIGN.md 5.1/5.4. */
+  const opponentReadyQueueRef = useRef<QueuedAction[] | null>(null);
 
   const adoptState = useCallback((next: MatchState) => {
     const prevLogLength = stateRef.current?.log.length ?? 0;
     setState(next);
     setPendingEvents(next.log.slice(prevLogLength));
+    setWaitingOnOpponentReady(false);
+    opponentReadyQueueRef.current = null;
     setPhase("battle");
   }, []);
 
@@ -73,18 +98,47 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     channelRef.current?.send({ type: "state_sync", state: initial });
   }, [adoptState]);
 
+  /**
+   * Player1 only. Given a base state where I (player1) have already
+   * readied, merges in the opponent's stored ready+queue (if it's arrived)
+   * and resolves. Takes the base state as a parameter rather than reading
+   * a ref so it works correctly whether called right after my own
+   * setState (same tick) or from an incoming network message (later tick).
+   */
+  const attemptHostResolve = useCallback(
+    (baseState: MatchState) => {
+      const opponentQueue = opponentReadyQueueRef.current;
+      if (!opponentQueue || !baseState.players.player1.isReady) return;
+
+      const merged = structuredClone(baseState);
+      merged.players.player2.queuedActions = opponentQueue;
+      merged.players.player2.isReady = true;
+
+      const resolved = engineSetReady(merged, "player1");
+      opponentReadyQueueRef.current = null;
+      adoptState(resolved);
+      channelRef.current?.send({ type: "state_sync", state: resolved });
+    },
+    [adoptState],
+  );
+
   const handleChannelMessage = useCallback(
     (message: MatchMessage) => {
       if (message.type === "hero_selection") {
         opponentHeroesRef.current = message.heroIds as HeroTrio;
         maybeStartMatch();
+      } else if (message.type === "ready") {
+        // Only the host (player1) ever resolves; player2 just waits for state_sync.
+        if (myRoleRef.current !== "player1" || message.role !== "player2") return;
+        opponentReadyQueueRef.current = message.queuedActions;
+        if (stateRef.current) attemptHostResolve(stateRef.current);
       } else if (message.type === "state_sync") {
         adoptState(message.state);
       } else if (message.type === "leave") {
         setPhase("opponent-left");
       }
     },
-    [adoptState, maybeStartMatch],
+    [adoptState, maybeStartMatch, attemptHostResolve],
   );
 
   const joinChannel = useCallback(
@@ -153,45 +207,68 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     [maybeStartMatch],
   );
 
-  const runAction = useCallback(
-    (fn: (s: MatchState) => MatchState) => {
-      const current = stateRef.current;
-      if (!current) return;
-      try {
-        const next = fn(current);
-        adoptState(next);
-        channelRef.current?.send({ type: "state_sync", state: next });
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
-      }
-    },
-    [adoptState],
-  );
+  /** Local-only planning actions: never broadcast (blind planning — DESIGN.md 5.1). */
+  const runLocalAction = useCallback((fn: (s: MatchState) => MatchState) => {
+    const current = stateRef.current;
+    if (!current) return;
+    try {
+      const prevLogLength = current.log.length;
+      const next = fn(current);
+      setState(next);
+      setPendingEvents(next.log.slice(prevLogLength));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
 
-  const playCard = useCallback(
+  const queueCard = useCallback(
     (cardInstanceId: CardInstanceId, targets: TargetSelection = {}) => {
       const role = myRoleRef.current;
       if (!role) return;
-      runAction((s) => enginePlayCard(s, role, cardInstanceId, targets));
+      runLocalAction((s) => engineQueueCard(s, role, cardInstanceId, targets));
     },
-    [runAction],
+    [runLocalAction],
   );
 
-  const playTeamUp = useCallback(
+  const queueTeamUp = useCallback(
     (teamUpId: string) => {
       const role = myRoleRef.current;
       if (!role) return;
-      runAction((s) => enginePlayTeamUp(s, role, teamUpId));
+      runLocalAction((s) => engineQueueTeamUp(s, role, teamUpId));
     },
-    [runAction],
+    [runLocalAction],
   );
 
-  const endTurn = useCallback(() => {
+  const unqueueAction = useCallback(
+    (queuedActionId: QueuedActionId) => {
+      const role = myRoleRef.current;
+      if (!role) return;
+      runLocalAction((s) => engineUnqueueAction(s, role, queuedActionId));
+    },
+    [runLocalAction],
+  );
+
+  const setReady = useCallback(() => {
     const role = myRoleRef.current;
-    if (!role) return;
-    runAction((s) => engineEndTurn(s, role, Math.random));
-  }, [runAction]);
+    const current = stateRef.current;
+    if (!role || !current) return;
+    try {
+      const next = engineSetReady(current, role);
+      setState(next);
+      setPendingEvents(next.log.slice(current.log.length));
+      setError(null);
+      setWaitingOnOpponentReady(true);
+
+      channelRef.current?.send({ type: "ready", role, queuedActions: current.players[role].queuedActions });
+
+      if (role === "player1") {
+        attemptHostResolve(next);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, [attemptHostResolve]);
 
   const leaveMatch = useCallback(() => {
     channelRef.current?.send({ type: "leave", role: myRoleRef.current ?? "player1" });
@@ -199,11 +276,13 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     channelRef.current = null;
     myHeroesRef.current = null;
     opponentHeroesRef.current = null;
+    opponentReadyQueueRef.current = null;
     setState(null);
     setPendingEvents([]);
     setMyRole(null);
     setOpponentPresent(false);
     setWaitingOnOpponentSelection(false);
+    setWaitingOnOpponentReady(false);
     setError(null);
     setPhase("idle");
   }, []);
@@ -225,12 +304,14 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     pendingEvents,
     error,
     waitingOnOpponentSelection,
+    waitingOnOpponentReady,
     findOpponent,
     cancelQueueing,
     submitHeroSelection,
-    playCard,
-    playTeamUp,
-    endTurn,
+    queueCard,
+    queueTeamUp,
+    unqueueAction,
+    setReady,
     leaveMatch,
     clearError,
   };

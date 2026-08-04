@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createMatch, playTeamUp } from "../match";
+import { createMatch, queueTeamUp } from "../match";
 import { createSeededRng } from "../rng";
 import { availableTeamUps, isTeamUpAvailable } from "../teamup";
 import { steamSurge, thunderTide } from "../teamups";
 import type { HeroId } from "../types";
-import { getHeroFrom } from "./helpers";
+import { getHeroFrom, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "shadow-assassin"];
 const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
@@ -32,9 +32,9 @@ describe("Team-Up availability", () => {
 
   it("is unavailable once already used", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
-    state = playTeamUp(state, "player1", "steam-surge");
+    state = readyBoth(queueTeamUp(state, "player1", "steam-surge"));
     expect(isTeamUpAvailable(state, "player1", steamSurge)).toBe(false);
-    expect(() => playTeamUp(state, "player1", "steam-surge")).toThrow(/not currently available/i);
+    expect(() => queueTeamUp(state, "player1", "steam-surge")).toThrow(/not currently available/i);
   });
 });
 
@@ -48,10 +48,13 @@ describe("Team-Up resolution", () => {
     getHeroFrom(state, "player2", "fire-mage").statuses.push({ type: "wet" });
 
     const before = state.players.player2.heroes.map((h) => h.currentHp);
-    state = playTeamUp(state, "player1", "steam-surge");
+    state = readyBoth(queueTeamUp(state, "player1", "steam-surge"));
 
+    // Resolving readies both players into the next round immediately, and
+    // Burn ticks once at the start of every round (DESIGN.md 5.3) — so the
+    // Burn Steam Surge just applied already ticked once here too.
     state.players.player2.heroes.forEach((hero, i) => {
-      expect(hero.currentHp).toBe(before[i] - 6);
+      expect(hero.currentHp).toBe(before[i] - 6 - 3);
       expect(hero.statuses.some((s) => s.type === "burn")).toBe(true);
     });
     expect(getHeroFrom(state, "player2", "fire-mage").statuses.some((s) => s.type === "wet")).toBe(
@@ -67,7 +70,7 @@ describe("Team-Up resolution", () => {
       createSeededRng(1),
     );
     const before = state.players.player2.heroes.map((h) => h.currentHp);
-    state = playTeamUp(state, "player1", "thunder-tide");
+    state = readyBoth(queueTeamUp(state, "player1", "thunder-tide"));
 
     state.players.player2.heroes.forEach((hero, i) => {
       expect(hero.currentHp).toBe(before[i] - 7); // 4 base + 3 Wet bonus

@@ -18,7 +18,7 @@ matchmaking/sync design in section 4).
 ```bash
 npm install
 npm run dev        # start the dev server
-npm run test       # run the Vitest suite (43 tests, engine-only)
+npm run test       # run the Vitest suite (56 tests, engine-only)
 npm run typecheck  # tsc project build, no emit
 npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
@@ -152,19 +152,34 @@ The main menu has:
    in. You see only your own picks; once both players have locked in,
    both teams' full rosters become visible on the battlefield. A locked
    team cannot change for the rest of the match.
-3. **Battle.** Turns alternate. On your turn you get 3 energy and a
-   fresh hand of 5 cards drawn from your personal deck (built from your
-   3 heroes' Attack + Ability cards, 3 copies of each).
+3. **Battle.** Every round, both players plan simultaneously — there's
+   no waiting for a turn. Each round you get 3 energy and a fresh hand
+   of 5 cards drawn from your personal deck (built from your 3 heroes'
+   Attack + Ability cards, 3 copies of each).
    - Tap a card in your hand to arm it, then tap a highlighted hero on
-     the battlefield to target it. Cards that hit all enemies (like
-     Flame Wave) resolve immediately with no target tap needed.
+     the battlefield to target it. This queues the action (shown in
+     your **Planned Actions** list) — nothing resolves yet, and your
+     opponent can't see what you've queued. Cards that hit all enemies
+     (like Flame Wave) queue immediately with no target tap needed.
+   - Queue as many actions as your energy allows, in any order. Change
+     your mind? Tap a queued action to unqueue it and get its energy
+     back.
    - Unused energy does not carry over — spend it or lose it.
-   - Tap **End Turn** to pass to your opponent.
+   - Tap **Fight** when you're done planning. Once both players are
+     ready, everyone's queued actions resolve together, interleaved
+     one-by-one starting with player 1 — so an early action can defeat a
+     hero (or a Team-Up's required hero) before a later queued action
+     against it gets to resolve, in which case that later action
+     fizzles instead of firing. This is what makes prediction matter:
+     guessing what your opponent is likely to queue is a real skill.
+   - The next round then begins automatically — no separate "end turn"
+     step.
 4. **Team-Ups.** Once both of a Team-Up's required heroes are alive and
-   on your roster, its pill appears above your hand — tap it to expand
-   and play it for 3 energy. Each Team-Up can only be used once per
-   match, and disappears permanently if either required hero is
-   defeated.
+   on your roster, its pill appears above your hand — tap it to queue it
+   for 3 energy, same as any other action (it resolves in Fight along
+   with everything else, and can fizzle the same way if a required hero
+   is defeated first). Each Team-Up can only be used once per match, and
+   disappears permanently if either required hero is defeated.
 5. **Victory.** Defeat all 3 of your opponent's heroes. The match stops
    accepting actions immediately once a winner is decided.
 
@@ -218,11 +233,13 @@ src/engine/       Pure rules engine (unchanged whether local or online)
   selection.ts     Hero-pick validation (exactly 3 of 5, lock-in)
   deck.ts          Deck building, draw/discard/reshuffle
   combat.ts        Damage, healing, shields, Burn/Wet primitives, victory check
-  status.ts        Start-of-turn Burn ticking
+  status.ts        Start-of-round Burn ticking
   targeting.ts     Target-selection validation per card's target type
   teamup.ts        Team-Up availability rules
-  turn.ts          Begin/end-of-turn sequencing (energy reset, draw, status ticks)
-  match.ts         Public API: createMatch / playCard / playTeamUp / endTurn
+  turn.ts          Start-of-round sequencing (energy reset, draw, status ticks)
+  match.ts         Public API: createMatch / queueCard / queueTeamUp /
+                     unqueueAction / setReady — planning + simultaneous
+                     "Fight" resolution, see DESIGN.md §5
   rng.ts           Injectable RNG (seeded for tests; Math.random in the app)
   bot.ts           chooseBotAction() for Practice mode — picks a random
                      affordable, legal card + target; never uses Team-Ups
@@ -236,9 +253,12 @@ src/net/          Supabase-backed networking (matchmaking + realtime sync)
 src/state/
   useOnlineMatch.ts   Drives the online flow: matchmaking → hero-selection
                         sync → state-broadcast sync, exposing a small API
-                        (state, phase, myRole, playCard/playTeamUp/endTurn)
+                        (state, phase, myRole, queueCard/queueTeamUp/
+                        unqueueAction/setReady). Player 1 is the sole
+                        authoritative resolver once both players are ready.
   usePracticeMatch.ts Local vs-bot flow with the same API shape, no network —
-                        drives the bot's turn via chooseBotAction on a timer
+                        the bot plans its whole round up front each round via
+                        chooseBotAction, then both players resolve together
   loadout.ts          Preferred 3-hero loadout (localStorage), set by Deck
                         Builder, read by both hero-selection screens
   objectives.ts       Daily/weekly matches-played/won counters (localStorage,
@@ -257,18 +277,22 @@ src/ui/             MainMenu (hero showcase, objectives), DeckBuilder,
                      VictoryScreen, DebugPanel
 ```
 
-Every player action produces an ordered list of `GameEvent`s (e.g.
-`CARD_PLAYED`, `DAMAGE_DEALT`, `SHIELD_ABSORBED`, `STATUS_APPLIED`,
-`HERO_DEFEATED`, `TEAM_UP_TRIGGERED`, `MATCH_ENDED`…). `useEventQueue`
-steps through a fresh batch one event at a time so the 3D scene can
-animate a hero lunging forward, a target flashing red on a hit, or a
-shield glow — in the exact order the engine produced them, on *both*
-players' screens (since the acting client's resulting state — including
-its full event log — is what gets broadcast).
+Every round's resolution produces an ordered list of `GameEvent`s (e.g.
+`ACTION_QUEUED`, `CARD_PLAYED`, `DAMAGE_DEALT`, `SHIELD_ABSORBED`,
+`STATUS_APPLIED`, `ACTION_FIZZLED`, `HERO_DEFEATED`, `TEAM_UP_TRIGGERED`,
+`ROUND_RESOLVED`, `MATCH_ENDED`…). `useEventQueue` steps through a fresh
+batch one event at a time so the 3D scene can animate a hero lunging
+forward, a target flashing red on a hit, or a shield glow — in the exact
+order the engine produced them, on *both* players' screens (since the
+resolving client's resulting state — including its full event log — is
+what gets broadcast).
 
-The turn system (`turn.ts`) is intentionally isolated from everything
-else so alternating turns could later be swapped for simultaneous
-planning without touching damage, targeting, or status-effect code.
+Card resolution logic (`combat.ts`, `targeting.ts`, `status.ts`, `teamup.ts`)
+is fully decoupled from *when* actions happen — `match.ts` just decides the
+order to feed queued actions through it. That's what made it possible to
+replace the original alternating-turn model with simultaneous blind
+planning (DESIGN.md §5) by rewriting `turn.ts` and `match.ts` alone,
+without touching damage, targeting, or status-effect code.
 
 ## What's deliberately out of scope (see DESIGN.md §3 and §4.3)
 

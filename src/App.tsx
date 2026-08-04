@@ -127,9 +127,10 @@ export default function App() {
               pendingEvents={online.pendingEvents}
               error={online.error}
               onClearError={online.clearError}
-              onPlayCard={online.playCard}
-              onPlayTeamUp={online.playTeamUp}
-              onEndTurn={online.endTurn}
+              onQueueCard={online.queueCard}
+              onQueueTeamUp={online.queueTeamUp}
+              onUnqueueAction={online.unqueueAction}
+              onReady={online.setReady}
               onLeave={handleOnlineLeave}
             />
           )}
@@ -160,9 +161,10 @@ export default function App() {
               pendingEvents={practice.pendingEvents}
               error={practice.error}
               onClearError={practice.clearError}
-              onPlayCard={practice.playCard}
-              onPlayTeamUp={practice.playTeamUp}
-              onEndTurn={practice.endTurn}
+              onQueueCard={practice.queueCard}
+              onQueueTeamUp={practice.queueTeamUp}
+              onUnqueueAction={practice.unqueueAction}
+              onReady={practice.setReady}
               onLeave={handlePracticeLeave}
             />
           )}

@@ -253,3 +253,109 @@ itself, sidestepping any RNG-seed-agreement problem entirely.
   disconnected" with a button to leave the match. There is no
   reconnect/resume — leaving forfeits. Full reconnection support is
   out of scope for this pass.
+
+## 5. Simultaneous turn planning (replaces alternating turns)
+
+The original brief flagged this as the intended eventual model
+("simultaneous planning... without rewriting the entire project") and
+the engine was built to make this swap cheap: card resolution
+(`heroes.ts`, `teamups.ts`, `combat.ts`) never knew or cared whose
+"turn" it was, so none of it needed to change. What changed is only
+*when* those resolve functions get called and in what order.
+
+### 5.1 The round structure
+
+Each round now has two phases, both players participating every round
+(no more "player1 acts, then player2 acts"):
+
+1. **Planning.** Both players privately queue any number of Attack /
+   Ability / Team-Up plays against their 3-energy budget and current
+   hand — same costs and target rules as before, just not resolved
+   immediately. Queuing a card removes it from hand and deducts energy
+   right away (so the energy/hand counters stay honest), but nothing
+   about the board changes yet — no damage, no healing, no status
+   changes — until resolution. A queued action can be unqueued any
+   time before the player readies up, refunding its energy and
+   returning the card to hand.
+2. **Resolution ("Fight").** Once both players have readied up, the
+   round resolves as one deterministic pass — see 5.2 — producing the
+   usual ordered `GameEvent[]` list, which the UI animates through
+   exactly like before. Then the next round's planning phase begins
+   automatically: both players draw back up to 5, both reset to 3
+   energy, and Burn ticks once for every hero on either side that has
+   it (see 5.3).
+
+### 5.2 Resolution order
+
+**Decision:** queued actions resolve **interleaved by queue position,
+alternating starting with player1** — player1's 1st queued action,
+player2's 1st, player1's 2nd, player2's 2nd, and so on; once one
+player's queue is exhausted, the other player's remaining actions
+resolve in order. Player1-first is the same fixed tie-break already
+used for "who acts first" (DESIGN.md 1.5), not a coin flip.
+
+**Decision — target validity at resolution time:** both players plan
+blind, so a queued target can die (or its hero-alive precondition
+change) before its turn in the resolution order comes up — e.g. you
+queue a finishing blow on a hero your opponent's earlier action
+already defeated. When that happens the action **fizzles**: no
+energy/card refund (the risk is the whole point — this is where
+*prediction*, one of the game's core pillars, actually matters), a
+`ACTION_FIZZLED` event is emitted so the log is honest about it, and
+resolution continues with the next queued action. Specifically:
+- **Source hero defeated before its action resolves:** the whole
+  action fizzles (a defeated hero can't act, even posthumously).
+- **`singleEnemy` / `singleAlly` target defeated:** the action
+  fizzles.
+- **`twoEnemies` (Chain Spark):** if the *primary* target is defeated,
+  the whole action fizzles (no valid card to retarget from). If only
+  the *secondary* target is defeated, the primary hit still resolves
+  and the secondary hit is skipped — a partial fizzle.
+- **`allEnemies` (Flame Wave, Team-Ups):** the damage/effect itself
+  never fizzles — it already only ever hits whichever enemies are
+  alive *at the moment it resolves*, same as it always did. A
+  **Team-Up** is the one exception with its own fizzle case: if either
+  of its two required heroes was defeated by an earlier action this
+  same round (queued before either side knew the other's plan), the
+  Team-Up fizzles entirely rather than firing one-handed — same
+  `isTeamUpAvailable` alive-check used everywhere else, just
+  re-checked at resolution time instead of queue time.
+- If resolving an action ends the match (last enemy hero defeated),
+  resolution stops immediately — no further queued actions from
+  either player execute, matching "the match must immediately stop
+  accepting actions once a winner is determined."
+
+### 5.3 Status timing simplifies
+
+With no more "whose turn is it," DESIGN.md 1.1's per-player Burn
+timing collapses to one rule: **Burn ticks once at the start of each
+round, for every hero on either side that has it**, in fixed roster
+order (player1's heroes, then player2's). Simpler than before, and it
+was only ever complicated *because* turns alternated.
+
+### 5.4 Online sync
+
+Fits the existing full-state-broadcast model (DESIGN.md 4.2) with one
+addition: both clients need to know when the *other* has readied up
+before either can resolve. Player1's client stays the sole authority
+that actually calls the resolve function and broadcasts the resulting
+state (unchanged from 4.2) — it just now waits until it has both
+"I'm ready, here's my queue" from itself *and* from player2 (sent as a
+Realtime broadcast message alongside its ready flag) before resolving.
+Player2's client only ever adopts broadcast state; it never resolves
+locally. This avoids any risk of the two clients disagreeing about
+resolution order — there is exactly one place resolution ever runs.
+
+### 5.5 What this changes for the player
+
+- The **End Turn** button becomes **Ready** (or **Fight!** once both
+  players are ready) — it locks in your queued actions rather than
+  ending an alternating turn.
+- The hand/battlefield UI needs a visible "planned actions" list so a
+  queued play can be reviewed and unqueued before committing —
+  previously every play was instant, so nothing needed to be shown
+  after the fact.
+- Both players' hands, energy, and boards are always visible and
+  interactive during planning (no more "waiting for your turn" — the
+  waiting now happens only after readying up, until the opponent also
+  readies).

@@ -15,6 +15,8 @@ function makePlayer(overrides: Partial<PlayerState>): PlayerState {
     energy: 3,
     usedTeamUps: [],
     hasUsedFirstHeal: false,
+    queuedActions: [],
+    isReady: false,
     ...overrides,
   };
 }

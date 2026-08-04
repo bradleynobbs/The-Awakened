@@ -448,6 +448,47 @@ button {
   color: #7a7a7a;
 }
 
+/* ---------- Planned actions (this round's private queue) ---------- */
+
+.planned-actions {
+  padding: 6px 10px 0;
+  flex-shrink: 0;
+}
+.planned-actions-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7c84a8;
+  margin-bottom: 4px;
+}
+.planned-actions-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+.planned-action-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a1f33;
+  border: 1px solid #ffd24a;
+  color: #e8eaf0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.planned-action-remove {
+  background: transparent;
+  border: none;
+  color: #ff9d9d;
+  font-size: 11px;
+  padding: 0;
+  line-height: 1;
+}
+
 /* ---------- Hand tray ---------- */
 
 .hand-tray {

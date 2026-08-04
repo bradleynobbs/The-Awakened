@@ -115,6 +115,27 @@ export interface CardInstance {
   heroId: HeroId;
 }
 
+/** A unique id for one queued-but-not-yet-resolved action within a round. */
+export type QueuedActionId = string;
+
+/**
+ * A card or Team-Up a player has committed to for this round's Fight phase
+ * but which hasn't resolved yet. See DESIGN.md section 5. Energy is already
+ * deducted and (for cards) the card is already out of hand by the time one
+ * of these exists — unqueueing reverses both.
+ */
+export interface QueuedAction {
+  id: QueuedActionId;
+  playerId: PlayerId;
+  kind: "card" | "teamup";
+  /** Set for kind "card". */
+  cardInstanceId?: CardInstanceId;
+  sourceHeroInstanceId?: HeroInstanceId;
+  /** Set for kind "teamup". */
+  teamUpId?: string;
+  targets: TargetSelection;
+}
+
 export interface PlayerState {
   id: PlayerId;
   heroIds: [HeroId, HeroId, HeroId];
@@ -126,14 +147,21 @@ export interface PlayerState {
   energy: number;
   usedTeamUps: string[];
   hasUsedFirstHeal: boolean;
+  queuedActions: QueuedAction[];
+  isReady: boolean;
 }
 
 export type GameEventType =
   | "MATCH_STARTED"
-  | "TURN_STARTED"
+  | "ROUND_STARTED"
   | "CARDS_DRAWN"
   | "HAND_DISCARDED"
   | "ENERGY_SPENT"
+  | "ENERGY_REFUNDED"
+  | "ACTION_QUEUED"
+  | "ACTION_UNQUEUED"
+  | "ACTION_FIZZLED"
+  | "PLAYER_READY"
   | "CARD_PLAYED"
   | "DAMAGE_DEALT"
   | "SHIELD_ABSORBED"
@@ -145,7 +173,7 @@ export type GameEventType =
   | "HERO_DEFEATED"
   | "TEAM_UP_AVAILABLE"
   | "TEAM_UP_TRIGGERED"
-  | "TURN_ENDED"
+  | "ROUND_RESOLVED"
   | "MATCH_ENDED";
 
 export interface GameEvent {
@@ -155,8 +183,8 @@ export interface GameEvent {
 
 export interface MatchState {
   players: Record<PlayerId, PlayerState>;
-  activePlayerId: PlayerId;
-  turnNumber: number;
+  /** Round number, starting at 1. Both players plan and resolve together each round — see DESIGN.md 5. */
+  roundNumber: number;
   winnerId: PlayerId | null;
   isMatchOver: boolean;
   /** Full ordered history of every event since match start. */

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createMatch, playCard } from "../match";
+import { createMatch, queueCard } from "../match";
 import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
-import { getHeroFrom, heroInstanceId, putInHand } from "./helpers";
+import { getHeroFrom, heroInstanceId, putInHand, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
 const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
@@ -12,7 +12,7 @@ describe("damage and healing", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
     const target = heroInstanceId("player2", "lightning-duelist");
-    const next = playCard(state, "player1", cardId, { primaryTargetId: target });
+    const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target }));
 
     const hero = getHeroFrom(next, "player2", "lightning-duelist");
     expect(hero.currentHp).toBe(hero.maxHp - 5);
@@ -24,7 +24,7 @@ describe("damage and healing", () => {
     ally.currentHp = ally.maxHp - 10;
 
     const cardId = putInHand(state, "player1", "restoring-current");
-    const next = playCard(state, "player1", cardId, { primaryTargetId: ally.instanceId });
+    const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: ally.instanceId }));
 
     const healedAlly = getHeroFrom(next, "player1", "earth-guardian");
     expect(healedAlly.currentHp).toBe(ally.maxHp - 10 + 7); // first heal this match: +1 bonus
@@ -37,7 +37,7 @@ describe("damage and healing", () => {
     ally.currentHp = ally.maxHp - 2;
 
     const cardId = putInHand(state, "player1", "restoring-current");
-    const next = playCard(state, "player1", cardId, { primaryTargetId: ally.instanceId });
+    const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: ally.instanceId }));
 
     expect(getHeroFrom(next, "player1", "earth-guardian").currentHp).toBe(ally.maxHp);
   });
@@ -50,7 +50,7 @@ describe("shield absorption", () => {
     target.shield = 3;
 
     const cardId = putInHand(state, "player1", "stone-strike"); // 5 damage
-    const next = playCard(state, "player1", cardId, { primaryTargetId: target.instanceId });
+    const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target.instanceId }));
 
     const hit = getHeroFrom(next, "player2", "lightning-duelist");
     expect(hit.shield).toBe(0);
@@ -64,7 +64,7 @@ describe("shield absorption", () => {
     target.shield = 10;
 
     const cardId = putInHand(state, "player1", "stone-strike"); // 5 damage
-    const next = playCard(state, "player1", cardId, { primaryTargetId: target.instanceId });
+    const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target.instanceId }));
 
     const hit = getHeroFrom(next, "player2", "lightning-duelist");
     expect(hit.shield).toBe(5);

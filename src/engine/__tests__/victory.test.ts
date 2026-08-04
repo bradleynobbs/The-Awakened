@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createMatch, endTurn, playCard } from "../match";
+import { createMatch, queueCard, setReady } from "../match";
 import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
-import { getHeroFrom, heroInstanceId, putInHand } from "./helpers";
+import { getHeroFrom, heroInstanceId, putCopyInHand, putInHand, readyBoth } from "./helpers";
 
 const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
 const P2: [HeroId, HeroId, HeroId] = ["lightning-duelist", "shadow-assassin", "fire-mage"];
@@ -17,7 +17,7 @@ describe("defeated heroes", () => {
     const cardId = putInHand(state, "player1", "fire-bolt");
     const target = heroInstanceId("player2", "fire-mage");
 
-    expect(() => playCard(state, "player1", cardId, { primaryTargetId: target })).toThrow(
+    expect(() => queueCard(state, "player1", cardId, { primaryTargetId: target })).toThrow(
       /defeated/i,
     );
   });
@@ -26,28 +26,19 @@ describe("defeated heroes", () => {
 describe("victory detection", () => {
   it("declares a winner once all 3 enemy heroes are defeated, and stops the match", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
-
     for (const heroId of P2) {
-      const hero = getHeroFrom(state, "player2", heroId);
-      hero.currentHp = 1;
+      getHeroFrom(state, "player2", heroId).currentHp = 1;
     }
 
-    let hero = P2[0];
-    let cardId = putInHand(state, "player1", "stone-strike");
-    state.players.player1.energy = 3;
-    state = playCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", hero) });
+    // Queue a lethal Stone Strike (3 distinct copies) against each enemy —
+    // nothing resolves yet, we're still just planning.
+    P2.forEach((heroId, i) => {
+      const cardId = putCopyInHand(state, "player1", "stone-strike", i);
+      state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", heroId) });
+    });
     expect(state.isMatchOver).toBe(false);
 
-    hero = P2[1];
-    cardId = putInHand(state, "player1", "stone-strike");
-    state.players.player1.energy = 3;
-    state = playCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", hero) });
-    expect(state.isMatchOver).toBe(false);
-
-    hero = P2[2];
-    cardId = putInHand(state, "player1", "stone-strike");
-    state.players.player1.energy = 3;
-    state = playCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", hero) });
+    state = readyBoth(state);
 
     expect(state.isMatchOver).toBe(true);
     expect(state.winnerId).toBe("player1");
@@ -59,18 +50,18 @@ describe("victory detection", () => {
     for (const heroId of P2) {
       getHeroFrom(state, "player2", heroId).currentHp = 1;
     }
-    for (const heroId of P2) {
-      const cardId = putInHand(state, "player1", "stone-strike");
-      state.players.player1.energy = 3;
-      state = playCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", heroId) });
-    }
+    P2.forEach((heroId, i) => {
+      const cardId = putCopyInHand(state, "player1", "stone-strike", i);
+      state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", heroId) });
+    });
+    state = readyBoth(state);
     expect(state.isMatchOver).toBe(true);
 
-    expect(() => endTurn(state, "player2", createSeededRng(2))).toThrow(/already ended/i);
+    expect(() => setReady(state, "player2", createSeededRng(2))).toThrow(/already ended/i);
 
     const cardId = putInHand(state, "player1", "stone-strike");
     expect(() =>
-      playCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player1", "earth-guardian") }),
+      queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player1", "earth-guardian") }),
     ).toThrow(/already ended/i);
   });
 });

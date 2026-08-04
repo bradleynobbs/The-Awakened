@@ -1,9 +1,14 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { getSupabaseClient } from "./supabaseClient";
-import type { HeroId, MatchState, PlayerId } from "../engine/types";
+import type { HeroId, MatchState, PlayerId, QueuedAction } from "../engine/types";
 
 export type MatchMessage =
   | { type: "hero_selection"; role: PlayerId; heroIds: HeroId[] }
+  /** Sent once when a player readies up, carrying their full queued-actions
+   *  list for that round so player1's client (the sole resolver — see
+   *  DESIGN.md 5.4) can merge it in without either client rendering the
+   *  opponent's plan before it resolves. */
+  | { type: "ready"; role: PlayerId; queuedActions: QueuedAction[] }
   | { type: "state_sync"; state: MatchState }
   | { type: "leave"; role: PlayerId };
 

@@ -1,12 +1,20 @@
 import { useMemo, useState } from "react";
 import { getCardDefinition } from "../engine/cards";
 import { livingHeroes, otherPlayer } from "../engine/combat";
-import type { CardInstanceId, HeroInstanceId, MatchState, PlayerId, TargetSelection } from "../engine/types";
+import type {
+  CardInstanceId,
+  HeroInstanceId,
+  MatchState,
+  PlayerId,
+  QueuedActionId,
+  TargetSelection,
+} from "../engine/types";
 import { Battlefield } from "../scene/Battlefield";
 import { useEventQueue } from "../scene/useEventQueue";
 import { CardHand } from "./CardHand";
 import { CombatLog } from "./CombatLog";
 import { LatestEventToast } from "./LatestEventToast";
+import { PlannedActions } from "./PlannedActions";
 import { TeamUpBar } from "./TeamUpBar";
 import { TopBar } from "./TopBar";
 
@@ -16,9 +24,10 @@ interface BattleProps {
   pendingEvents: MatchState["log"];
   error: string | null;
   onClearError: () => void;
-  onPlayCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
-  onPlayTeamUp: (teamUpId: string) => void;
-  onEndTurn: () => void;
+  onQueueCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
+  onQueueTeamUp: (teamUpId: string) => void;
+  onUnqueueAction: (queuedActionId: QueuedActionId) => void;
+  onReady: () => void;
   onLeave: () => void;
 }
 
@@ -28,30 +37,32 @@ export function Battle({
   pendingEvents,
   error,
   onClearError,
-  onPlayCard,
-  onPlayTeamUp,
-  onEndTurn,
+  onQueueCard,
+  onQueueTeamUp,
+  onUnqueueAction,
+  onReady,
   onLeave,
 }: BattleProps) {
   const [armedCardId, setArmedCardId] = useState<CardInstanceId | null>(null);
   const [pendingTargets, setPendingTargets] = useState<TargetSelection>({});
   const [logOpen, setLogOpen] = useState(false);
   const activeEvent = useEventQueue(pendingEvents);
-  const isMyTurn = state.activePlayerId === myRole;
+  const isReady = state.players[myRole].isReady;
+  const canAct = !isReady;
 
   const armedCardDef = armedCardId
     ? getCardDefinition(state.players[myRole].cardsById[armedCardId].cardId)
     : null;
 
   const targeting = useMemo(() => {
-    if (!armedCardDef || !isMyTurn) return { playerId: null as PlayerId | null, heroIds: [] as HeroInstanceId[] };
+    if (!armedCardDef || !canAct) return { playerId: null as PlayerId | null, heroIds: [] as HeroInstanceId[] };
     const targetPlayerId = armedCardDef.targetType === "singleAlly" ? myRole : otherPlayer(myRole);
     let heroIds = livingHeroes(state, targetPlayerId).map((h) => h.instanceId);
     if (armedCardDef.targetType === "twoEnemies" && pendingTargets.primaryTargetId) {
       heroIds = heroIds.filter((id) => id !== pendingTargets.primaryTargetId);
     }
     return { playerId: targetPlayerId, heroIds };
-  }, [armedCardDef, isMyTurn, myRole, state, pendingTargets]);
+  }, [armedCardDef, canAct, myRole, state, pendingTargets]);
 
   const resetTargeting = () => {
     setArmedCardId(null);
@@ -59,11 +70,11 @@ export function Battle({
   };
 
   const handleCardClick = (cardInstanceId: CardInstanceId) => {
-    if (!isMyTurn) return;
+    if (!canAct) return;
     const instance = state.players[myRole].cardsById[cardInstanceId];
     const cardDef = getCardDefinition(instance.cardId);
     if (cardDef.targetType === "allEnemies") {
-      onPlayCard(cardInstanceId, {});
+      onQueueCard(cardInstanceId, {});
       return;
     }
     setArmedCardId(cardInstanceId);
@@ -77,13 +88,13 @@ export function Battle({
       if (!pendingTargets.primaryTargetId) {
         const remaining = targeting.heroIds.filter((id) => id !== heroInstanceId);
         if (remaining.length === 0) {
-          onPlayCard(armedCardId, { primaryTargetId: heroInstanceId });
+          onQueueCard(armedCardId, { primaryTargetId: heroInstanceId });
           resetTargeting();
         } else {
           setPendingTargets({ primaryTargetId: heroInstanceId });
         }
       } else {
-        onPlayCard(armedCardId, {
+        onQueueCard(armedCardId, {
           primaryTargetId: pendingTargets.primaryTargetId,
           secondaryTargetId: heroInstanceId,
         });
@@ -92,7 +103,7 @@ export function Battle({
       return;
     }
 
-    onPlayCard(armedCardId, { primaryTargetId: heroInstanceId });
+    onQueueCard(armedCardId, { primaryTargetId: heroInstanceId });
     resetTargeting();
   };
 
@@ -100,13 +111,7 @@ export function Battle({
 
   return (
     <div className="battle-screen">
-      <TopBar
-        state={state}
-        myRole={myRole}
-        isMyTurn={isMyTurn}
-        onLeave={onLeave}
-        onToggleLog={() => setLogOpen(true)}
-      />
+      <TopBar state={state} myRole={myRole} isReady={isReady} onLeave={onLeave} onToggleLog={() => setLogOpen(true)} />
 
       {error && (
         <div className="error-toast" onClick={onClearError}>
@@ -129,28 +134,24 @@ export function Battle({
 
       <CombatLog state={state} myRole={myRole} open={logOpen} onClose={() => setLogOpen(false)} />
 
-      <TeamUpBar state={state} playerId={myRole} isMyTurn={isMyTurn} onPlay={onPlayTeamUp} />
+      <PlannedActions state={state} myRole={myRole} canEdit={canAct} onUnqueue={onUnqueueAction} />
+
+      <TeamUpBar state={state} playerId={myRole} canAct={canAct} onQueue={onQueueTeamUp} />
 
       <div className="hand-tray">
-        <CardHand
-          state={state}
-          playerId={myRole}
-          isMyTurn={isMyTurn}
-          armedCardId={armedCardId}
-          onCardClick={handleCardClick}
-        />
-        {isMyTurn && (
+        <CardHand state={state} playerId={myRole} canAct={canAct} armedCardId={armedCardId} onCardClick={handleCardClick} />
+        {canAct && (
           <button
             className={`end-turn-fab${armedCardId ? " cancel" : ""}`}
             onClick={() => {
               if (armedCardId) {
                 resetTargeting();
               } else {
-                onEndTurn();
+                onReady();
               }
             }}
           >
-            {armedCardId ? "Cancel" : "End Turn"}
+            {armedCardId ? "Cancel" : "Fight!"}
           </button>
         )}
       </div>

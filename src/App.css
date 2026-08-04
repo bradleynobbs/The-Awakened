@@ -383,7 +383,7 @@ button {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
+  gap: 2px;
   min-width: 0;
   /* No fixed height — sized to its own content so the parent's
    * align-items: flex-end clusters the whole team down onto the floor
@@ -403,7 +403,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 /* Scatter each team loosely across their half of the floor instead of
  * stacking all 3 heroes in one rigid vertical line — still grouped on
@@ -411,30 +411,30 @@ button {
  * the way a real formation would. Mirrored between the two sides so both
  * scatter toward their own outer edge rather than toward the center. */
 .formation-left .hero-slot:nth-child(1) {
-  transform: translateX(14px) translateY(22px);
+  transform: translateX(14px) translateY(16px);
 }
 .formation-left .hero-slot:nth-child(2) {
   transform: translateX(-15px);
-  margin: -6px 0;
+  margin: -4px 0;
 }
 .formation-left .hero-slot:nth-child(3) {
-  transform: translateX(22px) translateY(-12px);
+  transform: translateX(22px) translateY(-8px);
 }
 .formation-right .hero-slot:nth-child(1) {
-  transform: translateX(-14px) translateY(22px);
+  transform: translateX(-14px) translateY(16px);
 }
 .formation-right .hero-slot:nth-child(2) {
   transform: translateX(15px);
-  margin: -6px 0;
+  margin: -4px 0;
 }
 .formation-right .hero-slot:nth-child(3) {
-  transform: translateX(-22px) translateY(-12px);
+  transform: translateX(-22px) translateY(-8px);
 }
 
 .hero-sprite-wrap {
   position: relative;
-  width: 74px;
-  height: 92px;
+  width: 58px;
+  height: 66px;
   background: none;
   border: none;
   padding: 0;
@@ -507,8 +507,8 @@ button {
  * to the SVG heroes' footprint so it doesn't crowd the rest of the
  * formation on a real phone screen. */
 .hero-sprite-wrap.real-art {
-  width: 76px;
-  height: 132px;
+  width: 58px;
+  height: 82px;
 }
 
 .hero-sprite-ground {
@@ -599,7 +599,7 @@ button {
   border: 1px solid #3a4260;
   border-top: 3px solid var(--element-color, #3a4260);
   border-radius: 8px;
-  padding: 5px 7px 6px;
+  padding: 3px 6px 3px;
   font-size: 10px;
   color: #e8eaf0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
@@ -612,7 +612,7 @@ button {
   align-items: center;
   gap: 4px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 1px;
 }
 .hero-plate-name-text {
   flex: 1;
@@ -632,12 +632,12 @@ button {
 }
 .hero-plate-hpbar {
   position: relative;
-  height: 8px;
+  height: 5px;
   background: #1a1520;
   border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .hero-plate-hpbar::after {
   content: "";

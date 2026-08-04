@@ -935,13 +935,36 @@ same area) — fixed by giving `.battlefield-2d` more bottom padding
 sprite + gaps, repeated 3x) was still taller than the plaza image's
 visible floor band, so the first slot's feet remained above the floor
 line. Rather than fight the geometry further, gave the per-slot
-transforms an explicit vertical component: the first slot nudges down
-(`translateY(22px)`), the third nudges up (`translateY(-12px)`),
-compressing the effective vertical footprint of the 3-hero cluster so
-all of them land within the floor band instead of relying on the
+transforms an explicit vertical component so the cluster's effective
+footprint compresses onto the floor band instead of relying on the
 natural stack height to fit. The middle slot's outward horizontal
-offset was also increased (8px -> 15px each direction) so it reads as
-more clearly spread toward the screen edges — first tried 30px, which
-pushed the (148px-wide) plate far enough out to clip against the
-actual screen edge on a narrow phone viewport; 15px was the safe
-middle ground, verified against several random team compositions.
+offset was also increased so it reads as more clearly spread toward
+the screen edges — first tried 30px, which pushed the 148px-wide plate
+far enough out to clip against the actual screen edge on a narrow
+phone viewport; a smaller value was the safe middle ground.
+
+**Third follow-up — a real clipping bug, not just an aesthetic one:**
+a phone screenshot showed the top hero's plate cut off entirely (only
+the HP bar visible, the name row hidden above the visible screen) —
+worse than "floating," actually invisible. The root issue: the fixed
+sizes above were tuned against this session's own test viewport
+(420×900), which turned out to be noticeably taller than the
+requester's real device. `.battlefield-2d` has `overflow: hidden`, so
+once the 3-hero stack's total height exceeded the *actual* available
+space, the top slot didn't just look wrong, it got clipped by the
+container's own bounds.
+
+Fixed by shrinking the whole stack's footprint with real headroom
+instead of chasing one specific device's numbers: `.formation` gap
+(10px → 2px), `.hero-slot` gap (6px → 2px), the SVG hero box
+(74×92 → 58×66), Inferna's `real-art` box (76×132 → 58×82), and the
+hero-plate's padding/HP-bar/name-row spacing all trimmed a couple of
+pixels each. The per-slot vertical nudges from the second follow-up
+were bumped up alongside this (top slot `translateY(16px)`, bottom
+slot `translateY(-8px)`) for extra margin. Verified with a
+`getBoundingClientRect()`-based check (not just eyeballing
+screenshots) across three viewport heights (900px/700px/640px) — the
+900px and 700px cases now clear with real margin; only the most
+extreme 640px case still clips slightly, which is shorter than
+essentially any real phone's logical viewport height, so not chased
+further at the cost of making everyone uncomfortably tiny.

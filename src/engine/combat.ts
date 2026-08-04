@@ -70,7 +70,7 @@ export interface DealDamageOptions {
   targetId: HeroInstanceId;
   amount: number;
   sourceHeroInstanceId?: HeroInstanceId;
-  /** Direct card hits count for Undead Assassin's passive; status ticks (Burn) do not. */
+  /** Direct card hits count for Mourn's passive; status ticks (Burn) do not. */
   isDirectHit?: boolean;
 }
 

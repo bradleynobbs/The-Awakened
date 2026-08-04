@@ -11,7 +11,7 @@ describe("Charm (damage-reduction debuff)", () => {
   it("reduces the charmed hero's next hit, then clears", () => {
     // Charm Gunslinger (speed 11) needs to out-pace whoever it charms so
     // the debuff lands *before* that hero's own attack, under the new
-    // speed-sorted order (DESIGN.md §8.5) — Undead Assassin (speed 13)
+    // speed-sorted order (DESIGN.md §8.5) — Mourn (speed 13)
     // would now be too fast for that, so Spark Duelist (speed 10) is the
     // target here instead.
     let state = createMatch(P1, P2, createSeededRng(1));

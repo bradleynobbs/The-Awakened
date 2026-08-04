@@ -113,7 +113,7 @@ describe("Inferna passive", () => {
   });
 });
 
-describe("Undead Assassin passive", () => {
+describe("Mourn passive", () => {
   it("reduces the first attack taken each match by 3, minimum 1", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike"); // 5 damage

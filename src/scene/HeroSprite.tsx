@@ -4,11 +4,13 @@ import type { Element, HeroId, HeroInstance, Role } from "../engine/types";
 import { ELEMENT_COLOR } from "../ui/heroVisuals";
 import { HERO_COSMETICS } from "./heroCosmetics";
 import infernaSprite from "../assets/heroes/inferna-sprite.png";
+import mournSprite from "../assets/heroes/mourn-sprite.png";
 
 /** Heroes with a real illustrated sprite instead of the hand-coded SVG rig.
  * Everyone else keeps the shared vector chassis below. */
 const REAL_ART: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaSprite,
+  "undead-assassin": mournSprite,
 };
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;

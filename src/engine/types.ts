@@ -148,7 +148,7 @@ export interface HeroInstance {
   shield: number;
   statuses: StatusEffect[];
   isDefeated: boolean;
-  /** Undead Assassin passive: has this hero already taken its first reduced hit? */
+  /** Mourn passive: has this hero already taken its first reduced hit? */
   hasTakenFirstHit: boolean;
   /** Spirit Mage passive: has this hero already survived a lethal hit at 1 HP this match? */
   hasCheatedDeath: boolean;

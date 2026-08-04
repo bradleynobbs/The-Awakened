@@ -38,7 +38,7 @@ describe("Team-Up availability", () => {
   });
 });
 
-// A roster with no Undead Assassin, so its "reduced first hit" passive
+// A roster with no Mourn, so its "reduced first hit" passive
 // doesn't skew the uniform per-hero damage assertions below.
 const P2_NO_PASSIVE: [HeroId, HeroId, HeroId] = ["spark-duelist", "fire-mage", "water-healer"];
 

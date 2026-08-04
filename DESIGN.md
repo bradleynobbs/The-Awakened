@@ -132,7 +132,7 @@ later without touching the engine.
 | Earth Guardian | Tank | Earth | 24 | starts with 4 Shield |
 | Water Healer | Support | Water | 20 | |
 | Spark Duelist | Brawler | Spark | 20 | |
-| Undead Assassin | Assassin | Undead | 16 | first hit taken reduced by 3 |
+| Mourn | Speedster | Undead | 16 | first hit taken reduced by 3 |
 | Charm Gunslinger | Gunslinger | Charm | 17 | +1 dmg vs. Charmed targets |
 | Spirit Mage | Mage | Spirit | 16 | survives one lethal hit at 1 HP per match |
 
@@ -150,9 +150,9 @@ later without touching the engine.
 | Charged Slash (attack) | Spark Duelist | 1 | 5 dmg; if target Wet, +3 bonus dmg and remove Wet |
 | Chain Spark (ability) | Spark Duelist | 2 | 4 dmg to primary target, 2 dmg to secondary target; each gets +3/removes Wet independently if Wet |
 | Static Charge (support) | Spark Duelist | 2 | Empower one ally: +4 dmg (+7 total and cleanses Wet, if that ally is currently Wet) |
-| Quick Strike (attack) | Undead Assassin | 1 | 5 dmg to one enemy |
-| Execute (ability) | Undead Assassin | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
-| Marked Opening (support) | Undead Assassin | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
+| Quick Strike (attack) | Mourn | 1 | 5 dmg to one enemy |
+| Execute (ability) | Mourn | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
+| Marked Opening (support) | Mourn | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
 | Quickdraw (attack) | Charm Gunslinger | 1 | 5 dmg to one enemy (+1 if they're Charmed, via passive) |
 | Called Shot (ability) | Charm Gunslinger | 2 | 4 dmg + Charm one enemy: their next damage-dealing action deals 3 less (min 1) |
 | Cover Fire (support) | Charm Gunslinger | 2 | Empower one ally: +5 dmg on their next damage-dealing action |
@@ -165,7 +165,7 @@ Passives:
 - **Earth Guardian**: begins the match with 4 Shield.
 - **Water Healer**: the first healing card *this player* uses each match heals +1 additional.
 - **Spark Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
-- **Undead Assassin**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
+- **Mourn**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
 - **Charm Gunslinger**: +1 damage dealt by this hero to any target that currently has Charm.
 - **Spirit Mage**: the first hit that would defeat this hero each match instead leaves them at 1 HP.
 
@@ -496,10 +496,10 @@ role at least one hero.
 ### 7.1 Renames: Lightning → Spark, Shadow → Undead
 
 Lightning Duelist → **Spark Duelist** (element `lightning`→`spark`, role
-`Fighter`→`Brawler`) and Shadow Assassin → **Undead Assassin** (element
+`Fighter`→`Brawler`) and Shadow Assassin → **Mourn** (element
 `shadow`→`undead`). These are pure renames — the mechanics don't change
 at all (Spark still consumes Wet for bonus damage and grants Shield on
-the interaction; Undead Assassin's first-hit reduction is untouched).
+the interaction; Mourn's first-hit reduction is untouched).
 `HeroId` values (`lightning-duelist`→`spark-duelist`,
 `shadow-assassin`→`undead-assassin`) were renamed too, since leaving the
 internal id stale while the display name changed would've been the kind
@@ -549,7 +549,7 @@ Water Healer's "dedicated healer."
 
 The passive, Lingering Spirit, is new: the first hit that would defeat
 this hero each match instead leaves them at 1 HP. Implemented as a
-`hasCheatedDeath` flag on `HeroInstance` (mirroring Undead Assassin's
+`hasCheatedDeath` flag on `HeroInstance` (mirroring Mourn's
 existing `hasTakenFirstHit` flag) checked in `dealDamage` right before
 HP would hit 0 — if the hit is lethal, `hasCheatedDeath` is unset, and
 the target is `spirit-mage`, HP clamps to 1 and the flag is set instead
@@ -596,7 +596,7 @@ skill instead of "hope the percentages go your way."
 - **Attack** — added to a card's base power before Defense is applied.
 - **Defense** — subtracted from incoming damage before Shield absorbs
   the rest (floor 1, same "never quite zero" floor already used for
-  Undead Assassin's first-hit reduction and Charm's debuff).
+  Mourn's first-hit reduction and Charm's debuff).
 - **Speed** — decides resolution order within the Fight phase (see
   8.5) — replaces the old "always interleave starting with player1"
   rule from section 5.2.
@@ -993,3 +993,40 @@ further reduced the 3-hero stack's total height, which cleared even
 the unrealistically-short 640px case that §9.7's fixes left slightly
 clipped — verified again with the same `getBoundingClientRect()` check
 across all three viewport heights.
+
+### 9.9 Second real-art hero: Mourn, and a background-color lesson
+
+The Undead Assassin got the same real-art treatment as Inferna
+(§9.3) — only the flavor name changed, to **Mourn** (`heroId` stayed
+`"undead-assassin"`, since this is a proper-noun/flavor change, not a
+mechanics rename like Assassin→Speedster was; a stale doc row from
+that earlier rename still said "Assassin" in the §2 balance table and
+got fixed to "Speedster" while touching this row).
+
+**The background-removal pipeline broke on the first supplied image,
+for a new reason:** that image had a pure-black background, and Mourn's
+own costume (hood, sleeves, skirt) is also predominantly black. The
+same color-distance threshold that correctly keyed out the background
+also ate transparency into large parts of her own dark clothing —
+confirmed by compositing the cutout onto a light checkerboard and
+seeing visible holes through the robe. §9.3's keying approach isn't
+just sensitive to a *flat* background, it's sensitive to a background
+whose color is *distinct from the subject's own palette* — a technique
+that worked fine for Inferna (bright warm colors against a plain
+background) silently fails for a subject sharing the background's hue.
+The fix here was supplied by the source material itself: a second,
+white-background version of the same artwork was provided, which keyed
+out clean with no holes (verified the same way, composited onto a dark
+checkerboard this time so any transparency in the dark costume would
+show up clearly against it).
+
+**Facing:** unlike Inferna, Mourn's face is fully obscured inside her
+hood, so there's no gaze/head-turn cue to judge orientation from the
+static source image the way §9.3 could. Rather than guess, she was
+dropped into `REAL_ART` unflipped and checked live in-game on both
+sides of the battlefield (ally column unmirrored, enemy column
+mirrored via `scaleX(-1)`) — the pose is frontal enough, and the
+hood hides enough, that neither direction reads as "wrong," so no
+`sharp().flop()` pre-flip was needed for this one. Future faceless/
+hooded real-art heroes should get the same live check rather than
+assuming Inferna's flip-if-gaze-is-wrong rule always applies.

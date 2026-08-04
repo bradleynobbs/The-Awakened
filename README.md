@@ -211,7 +211,7 @@ purpose) opens a raw state inspector for debugging.
 | Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
-| Undead Assassin | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
+| Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
 | Charm Gunslinger | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
 | Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
 

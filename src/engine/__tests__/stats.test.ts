@@ -85,7 +85,7 @@ describe("Accuracy vs. Evasion and Critical Chance thresholds", () => {
   });
 
   it("halves damage into a graze when Accuracy is below the target's Evasion", () => {
-    HERO_DEFINITIONS["fire-mage"].stats.accuracy = 0; // below Undead Assassin's 25 Evasion
+    HERO_DEFINITIONS["fire-mage"].stats.accuracy = 0; // below Mourn's 25 Evasion
 
     const state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "fire-bolt");

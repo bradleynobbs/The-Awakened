@@ -129,7 +129,7 @@ crackling with small arcs, smirking straight at the camera.
 
 ---
 
-## Undead Assassin — Undead · Speedster
+## Mourn — Undead · Speedster
 
 **Personality:** Quiet, calculating, rarely wastes a word or a
 movement. Not evil — just efficient.

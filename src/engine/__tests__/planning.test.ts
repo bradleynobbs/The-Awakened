@@ -11,12 +11,12 @@ describe("resolution order", () => {
   it("resolves fastest hero first (Speed stat), not player1-first (DESIGN.md §8.5)", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
 
-    // Speeds: Undead Assassin 13 > Spark Duelist 10 > Inferna 9 > Earth
+    // Speeds: Mourn 13 > Spark Duelist 10 > Inferna 9 > Earth
     // Guardian 4 — a fully-determined order with no ties, regardless of
     // which player queued first.
     const p1a = putInHand(state, "player1", "stone-strike"); // Earth Guardian, speed 4
     const p1b = putInHand(state, "player1", "fire-bolt"); // Inferna, speed 9
-    const p2a = putInHand(state, "player2", "quick-strike"); // Undead Assassin, speed 13
+    const p2a = putInHand(state, "player2", "quick-strike"); // Mourn, speed 13
     const p2b = putInHand(state, "player2", "charged-slash"); // Spark Duelist, speed 10
 
     state = queueCard(state, "player1", p1a, { primaryTargetId: heroInstanceId("player2", "spark-duelist") });
@@ -89,7 +89,7 @@ describe("fizzling", () => {
 
     // player1 queues two actions: a harmless strike first, then a Fire
     // Bolt from fire-mage second. player2 queues one killing blow from
-    // Undead Assassin (speed 13) on fire-mage (speed 9) — being faster,
+    // Mourn (speed 13) on fire-mage (speed 9) — being faster,
     // the kill resolves before Fire Bolt regardless of queue order.
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {
@@ -135,7 +135,7 @@ describe("fizzling", () => {
   });
 
   it("partially fizzles Chain Spark when only the secondary target dies first, resolving the primary hit anyway", () => {
-    // Undead Assassin (speed 13) needs to out-pace Spark Duelist (speed
+    // Mourn (speed 13) needs to out-pace Spark Duelist (speed
     // 10, Chain Spark's caster) so its kill resolves first under the new
     // speed-sorted order (DESIGN.md §8.5) — swapped in for Inferna,
     // which at speed 9 would now resolve *after* Chain Spark instead.
@@ -180,7 +180,7 @@ describe("fizzling", () => {
 
     // Team-Ups always resolve last (they use a fixed baseline Speed lower
     // than any hero's — DESIGN.md §8.5), so player2's kill on water-healer
-    // (from Undead Assassin) always lands before Steam Surge does here,
+    // (from Mourn) always lands before Steam Surge does here,
     // regardless of what else player1 queues alongside it.
     const strikeId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", strikeId, {

@@ -1131,3 +1131,46 @@ down to a narrower box after `trim()` (225×700 vs. Inferna/Mourn's
 ~500×700). No code changes needed for this: `object-fit: contain`
 on `.hero-sprite-img` already centers and scales whatever aspect
 ratio a given hero's art has within the shared `real-art` box.
+
+### 9.12 Hitting the real ceiling on "bigger," and a better fit-test
+
+Explicit ask: heroes twice as big, health bars a quarter their size.
+The health-bar half was easy — see the numbers below. Literal 2×
+sprites was not: built and measured, and it clipped badly on the
+700px and 640px test heights (not just the unrealistically-short
+640px case this time — 700px is a real budget-phone height). The
+`.hero-plate` sitting above each sprite in the same column means
+there's a hard vertical budget per hero-slot, and doubling blows
+through it no matter how far the plate shrinks.
+
+Backed off by testing intermediate scales against the
+`getBoundingClientRect()` cross-viewport check (§9.7/§9.10) and
+picking the largest that survived — landed on SVG chassis 72×77 →
+75×80, `real-art` box 72×91 → 75×94, roughly a 4% bump. Far short of
+"twice," but it's the true ceiling for a 3-hero-per-side vertical
+stack at these screen heights without changing the formation layout
+itself (fewer heroes visible at once, horizontal scroll, etc. — out of
+scope here).
+
+**The fit-check itself needed a fix first.** Repeated runs of the
+existing check at an *identical* CSS size gave wildly different
+margins (as low as a few px, occasionally negative) — looked like
+animation jitter at first, but the real cause was hero composition:
+the check only fixes the human player's 3 heroes, and the bot's 3 are
+picked from whoever's left, so some runs land 2 of the 3 real-art
+heroes (taller boxes) on the bot's side and some don't. A single run
+at a given size was measuring "how did the bot's random draw go
+today," not "does this size fit." Fixed by adding a second script
+(`qa-worst-case.mjs`) that force-picks all 3 real-art heroes onto one
+side to test the actual tallest possible stack directly, plus running
+the original random check 10+ times before trusting a size — a couple
+of runs is not enough when composition is part of what's being
+measured.
+
+For the record, the health-bar shrink (roughly the requested 0.25×
+reduction on top of §9.10's already-smaller plate): width 112px →
+84px, hpbar height 9px → 7px, font-size 8px → 6px, hptext 7px → 5px,
+emblem 9px → 7px, padding/border-radius trimmed to match. Legibility
+is getting close to a real floor: the HP number at 5px is readable on
+a real screen's higher pixel density but genuinely tiny in a plain
+screenshot crop — worth a real-device check before going any smaller.

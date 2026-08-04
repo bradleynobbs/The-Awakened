@@ -433,8 +433,8 @@ button {
 
 .hero-sprite-wrap {
   position: relative;
-  width: 64px;
-  height: 72px;
+  width: 72px;
+  height: 77px;
   background: none;
   border: none;
   padding: 0;
@@ -507,8 +507,8 @@ button {
  * to the SVG heroes' footprint so it doesn't crowd the rest of the
  * formation on a real phone screen. */
 .hero-sprite-wrap.real-art {
-  width: 64px;
-  height: 88px;
+  width: 72px;
+  height: 91px;
 }
 
 .hero-sprite-ground {
@@ -600,13 +600,13 @@ button {
 /* ---------- Hero plates (name/HP overlay above each sprite) ---------- */
 
 .hero-plate {
-  width: 136px;
+  width: 112px;
   background: linear-gradient(180deg, rgba(22, 25, 40, 0.94), rgba(10, 12, 20, 0.94));
   border: 1px solid #3a4260;
-  border-top: 3px solid var(--element-color, #3a4260);
-  border-radius: 8px;
-  padding: 3px 6px;
-  font-size: 10px;
+  border-top: 2px solid var(--element-color, #3a4260);
+  border-radius: 6px;
+  padding: 2px 5px;
+  font-size: 8px;
   color: #e8eaf0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
@@ -616,9 +616,9 @@ button {
 .hero-plate-name {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .hero-plate-name-text {
   flex: 1;
@@ -633,12 +633,12 @@ button {
   gap: 2px;
 }
 .hero-plate-emblem {
-  font-size: 11px;
+  font-size: 9px;
   line-height: 1;
 }
 .hero-plate-hpbar {
   position: relative;
-  height: 12px;
+  height: 9px;
   background: #1a1520;
   border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
@@ -678,7 +678,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #fff;

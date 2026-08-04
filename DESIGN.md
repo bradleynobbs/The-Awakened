@@ -1083,3 +1083,23 @@ the same `getBoundingClientRect()` cross-viewport check from §9.7
 bump (66×76 / 66×94) reintroduced clipping at the shortest case, so
 the final sizes are the largest that still clear all three with margin
 to spare.
+
+### 9.10 Bigger heroes, smaller health bars
+
+A follow-up ask: heroes still read too small, and now that the plate
+carries less information (§9.8) it didn't need to be as physically
+big either. Since the hero-plate sits directly above the sprite in the
+same `.hero-slot` column, shrinking one directly frees vertical
+headroom for the other — the two requests solve each other instead of
+trading off. Plate width 136px → 112px, padding/font-size/emblem-size
+all trimmed a notch, HP bar height 12px → 9px; that headroom went
+straight into another size bump for the sprites (SVG chassis
+64×72 → 72×77, `real-art` box 64×88 → 72×91).
+
+Same iterative process as §9.9's sizing: try a size, run the
+`getBoundingClientRect()` cross-viewport check (900/700/640px), back
+off if the shortest case clips, repeat. An initial attempt at a bigger
+jump (78×88 chassis, 78×108 real-art) clipped badly at 640px even
+with the smaller plates; the final numbers above are the largest that
+clear all three heights, with a few pixels of margin at the shortest
+one this time instead of none.

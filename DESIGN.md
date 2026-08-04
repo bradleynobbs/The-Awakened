@@ -1302,3 +1302,32 @@ back down and reintroducing the legibility problem this section just
 fixed). Cosmetic only: hero-plates aren't interactive, so an overlap
 never blocks a click, just occasionally overlaps another plate's
 corner.
+
+### 9.16 §9.15 was wrong too: a real-device screenshot overruled it
+
+A real phone screenshot showed the ~32px badges from §9.15 dwarfing
+the entire plate — bigger than the health bar itself, overlapping
+neighboring plates and hand-tray cards. §9.15's own preview-at-several-
+sizes methodology was sound for judging *legibility in isolation*, but
+never checked the badge against the plate it has to share space with,
+so "32px is where the ring becomes readable" quietly became "32px on
+an 84px-wide plate," which is a different and much worse question.
+
+Reverted to a small, fully-contained corner badge: role icon and
+element emoji both back down to ~14-15px, `.hero-plate-emblems`
+repositioned from overflowing outside the plate's edges (`top: -6px;
+right: -8px`) to sitting inside them (`top: 3px; right: 4px`), with
+`.hero-plate-name-text` given `padding-right` to reserve room so the
+name truncates before running under the badge instead of behind it.
+Still the same full (uncropped) emblem image from §9.15's fix, just
+small again — the ring-legibility tradeoff from §9.14/§9.15 is
+unresolved in the abstract, but a direct "no, that's silly, make it
+fit" from an actual device is stronger evidence than a synthetic
+side-by-side size preview, so small-but-part-of-the-ring wins over
+big-but-legible-in-isolation here.
+
+The takeaway for next time: when sizing something that has to coexist
+with a fixed-size container (the plate), preview it *in that
+container*, not just on its own — an isolated preview can validate
+"is this legible" while completely missing "does this fit," and those
+are independent questions.

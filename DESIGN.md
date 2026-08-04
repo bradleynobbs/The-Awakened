@@ -930,3 +930,18 @@ to the bottom edge to clip under the "Round N — ..." toast
 (`.latest-event-toast`, absolutely positioned near the bottom of the
 same area) — fixed by giving `.battlefield-2d` more bottom padding
 (16px -> 52px) as clearance.
+
+**Second follow-up:** even content-sized, the 3-slot stack (plate +
+sprite + gaps, repeated 3x) was still taller than the plaza image's
+visible floor band, so the first slot's feet remained above the floor
+line. Rather than fight the geometry further, gave the per-slot
+transforms an explicit vertical component: the first slot nudges down
+(`translateY(22px)`), the third nudges up (`translateY(-12px)`),
+compressing the effective vertical footprint of the 3-hero cluster so
+all of them land within the floor band instead of relying on the
+natural stack height to fit. The middle slot's outward horizontal
+offset was also increased (8px -> 15px each direction) so it reads as
+more clearly spread toward the screen edges — first tried 30px, which
+pushed the (148px-wide) plate far enough out to clip against the
+actual screen edge on a narrow phone viewport; 15px was the safe
+middle ground, verified against several random team compositions.

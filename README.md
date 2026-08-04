@@ -337,8 +337,11 @@ src/state/
 src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
                      rendering library at all: HeroSprite (hand-coded
                      SVG hero rig — shared chassis + per-hero hair/gear/
-                     color, no image assets), heroCosmetics.ts (per-hero
-                     skin/eye/hair color), Battlefield (two facing DOM
+                     color — for most heroes; a hero listed in its
+                     REAL_ART map instead renders an actual illustrated
+                     image asset, same animation cues either way, see
+                     DESIGN.md §9.3), heroCosmetics.ts (per-hero skin/
+                     eye/hair color), Battlefield (two facing DOM
                      "formations," your team always on the left
                      regardless of engine player id), useEventQueue
                      (steps engine events into per-event animation cues

@@ -3,6 +3,13 @@ import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { Element, HeroId, HeroInstance, Role } from "../engine/types";
 import { ELEMENT_COLOR } from "../ui/heroVisuals";
 import { HERO_COSMETICS } from "./heroCosmetics";
+import infernaSprite from "../assets/heroes/inferna-sprite.png";
+
+/** Heroes with a real illustrated sprite instead of the hand-coded SVG rig.
+ * Everyone else keeps the shared vector chassis below. */
+const REAL_ART: Partial<Record<HeroId, string>> = {
+  "fire-mage": infernaSprite,
+};
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
 
@@ -195,8 +202,6 @@ function Hair({ heroId, c }: { heroId: HeroId; c: Chassis }) {
 function RoleGear({ role, heroId, c, clothColor }: { role: Role; heroId: HeroId; c: Chassis; clothColor: string }) {
   switch (role) {
     case "Mage":
-      // Inferna channels fire bare-handed instead (see the Inferna overlay below).
-      if (heroId === "fire-mage") return null;
       return (
         <>
           <line x1={c.frontHandX} y1={c.frontHandY} x2={c.frontHandX + 10} y2={c.frontHandY - 70} stroke="#4a3524" strokeWidth={6} strokeLinecap="round" />
@@ -269,48 +274,6 @@ function RoleGear({ role, heroId, c, clothColor }: { role: Role; heroId: HeroId;
   }
 }
 
-/** Inferna's bespoke look — a cropped black jacket with glowing lava-crack
- * seams over a fitted tank top, plus a bare-handed flame instead of gear. */
-function InfernaOverlay({ c }: { c: Chassis }) {
-  const jacketBottom = c.torsoTop + (c.torsoBottom - c.torsoTop) * 0.62;
-  const cracks = [
-    { x1: c.torsoLeft + 6, y1: c.torsoTop + 10, x2: c.torsoLeft + 16, y2: c.torsoTop + 26 },
-    { x1: c.torsoLeft + 16, y1: c.torsoTop + 26, x2: c.torsoLeft + 8, y2: c.torsoTop + 42 },
-    { x1: c.torsoRight - 10, y1: c.torsoTop + 14, x2: c.torsoRight - 20, y2: c.torsoTop + 32 },
-    { x1: c.torsoRight - 20, y1: c.torsoTop + 32, x2: c.torsoRight - 8, y2: c.torsoTop + 48 },
-    { x1: TORSO_CENTER_X, y1: c.torsoTop + 4, x2: TORSO_CENTER_X - 6, y2: jacketBottom - 8 },
-  ];
-  return (
-    <>
-      {/* cropped jacket over the base tank top */}
-      <rect
-        x={c.torsoLeft - 3}
-        y={c.torsoTop}
-        width={c.torsoRight - c.torsoLeft + 6}
-        height={jacketBottom - c.torsoTop}
-        rx={10}
-        fill="#171514"
-        stroke={OUTLINE}
-        strokeWidth={OUTLINE_W}
-      />
-      {/* collar */}
-      <path
-        d={`M ${TORSO_CENTER_X - 10} ${c.torsoTop} L ${TORSO_CENTER_X - 2} ${c.torsoTop - 12} L ${TORSO_CENTER_X + 8} ${c.torsoTop} Z`}
-        fill="#171514"
-        stroke={OUTLINE}
-        strokeWidth={3}
-      />
-      {/* glowing lava-crack seams */}
-      {cracks.map((cr, i) => (
-        <line key={i} x1={cr.x1} y1={cr.y1} x2={cr.x2} y2={cr.y2} stroke="#ff7a2a" strokeWidth={3.4} strokeLinecap="round" className="glow-line" />
-      ))}
-      {/* flame cupped in the front hand */}
-      <circle cx={c.frontHandX + 4} cy={c.frontHandY + 2} r={11} fill="#ff8a3d" className="glow-line" />
-      <circle cx={c.frontHandX + 4} cy={c.frontHandY + 2} r={5} fill="#ffd9a0" />
-    </>
-  );
-}
-
 /** A handful of small floating accent shapes per element — cheap ambient
  * "magic," not a real particle system. Animated purely via CSS. */
 function ElementAura({ element }: { element: Element }) {
@@ -355,7 +318,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
   const skinColor = isDefeated ? "#8a8288" : cosmetics.skin;
   const clothColor = isDefeated ? "#3a3a3a" : ELEMENT_COLOR[def.element];
   const c = buildChassis(def.role);
-  const isInferna = def.id === "fire-mage" && !isDefeated;
+  const realArtSrc = REAL_ART[def.id];
 
   const burn = hero.statuses.find((s) => s.type === "burn");
   const wet = hero.statuses.some((s) => s.type === "wet");
@@ -364,6 +327,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
 
   const wrapClasses = [
     "hero-sprite-wrap",
+    realArtSrc ? "real-art" : "",
     isDefeated ? "defeated" : "",
     isTargetable ? "targetable" : "",
     isSelectedTarget ? "selected-target" : "",
@@ -373,6 +337,26 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
   ]
     .filter(Boolean)
     .join(" ");
+
+  if (realArtSrc) {
+    return (
+      <button
+        type="button"
+        className={wrapClasses}
+        style={{ "--facing": facing } as CSSProperties}
+        onClick={onClick}
+        disabled={!isTargetable}
+        aria-label={def.name}
+      >
+        <div className="hero-sprite-ground" />
+        <img className="hero-sprite-img hero-sprite-visual" src={realArtSrc} alt={def.name} draggable={false} />
+        {burn && <span className="sprite-badge burn">🔥{burn.remainingTriggers}</span>}
+        {wet && <span className="sprite-badge wet">💧</span>}
+        {empower && empower.type === "empower" && <span className="sprite-badge empower">💪+{empower.bonusDamage}</span>}
+        {charm && charm.type === "charm" && <span className="sprite-badge charm">💫-{charm.damageReduction}</span>}
+      </button>
+    );
+  }
 
   return (
     <button
@@ -384,7 +368,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
       aria-label={def.name}
     >
       <div className="hero-sprite-ground" />
-      <svg className="hero-sprite-svg" viewBox="0 0 160 200" width="100%" height="100%">
+      <svg className="hero-sprite-svg hero-sprite-visual" viewBox="0 0 160 200" width="100%" height="100%">
         {!isDefeated && <ElementAura element={def.element} />}
 
         {/* back leg + back arm (drawn first, mostly hidden behind torso) */}
@@ -392,14 +376,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
         <rect x={c.backHandX - 6} y={c.backHandY - 4} width={12} height={40} rx={6} fill={skinColor} stroke={OUTLINE} strokeWidth={OUTLINE_W} />
 
         {/* torso */}
-        {isInferna ? (
-          <>
-            <rect x={c.torsoLeft} y={c.torsoTop} width={c.torsoRight - c.torsoLeft} height={c.torsoBottom - c.torsoTop} rx={12} fill="#2b2b34" stroke={OUTLINE} strokeWidth={OUTLINE_W} />
-            <InfernaOverlay c={c} />
-          </>
-        ) : (
-          <rect x={c.torsoLeft} y={c.torsoTop} width={c.torsoRight - c.torsoLeft} height={c.torsoBottom - c.torsoTop} rx={12} fill={clothColor} stroke={OUTLINE} strokeWidth={OUTLINE_W} />
-        )}
+        <rect x={c.torsoLeft} y={c.torsoTop} width={c.torsoRight - c.torsoLeft} height={c.torsoBottom - c.torsoTop} rx={12} fill={clothColor} stroke={OUTLINE} strokeWidth={OUTLINE_W} />
 
         {/* front leg */}
         <rect x={TORSO_CENTER_X + 4} y={LEG_TOP_Y} width={18} height={LEG_HEIGHT} rx={7} fill="#2b2b34" stroke={OUTLINE} strokeWidth={OUTLINE_W} />
@@ -418,12 +395,6 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
           transform={`rotate(-18 ${c.torsoRight} ${c.torsoTop + 8})`}
         />
         <circle cx={c.frontHandX} cy={c.frontHandY} r={9} fill={skinColor} stroke={OUTLINE} strokeWidth={OUTLINE_W} />
-
-        {isInferna && (
-          <>
-            <circle cx={c.frontHandX + 4} cy={c.frontHandY + 2} r={13} fill="#ff8a3d" className="glow-line" opacity={0.5} />
-          </>
-        )}
 
         {/* head */}
         <circle cx={c.headCx} cy={c.headCy} r={HEAD_RADIUS} fill={skinColor} stroke={OUTLINE} strokeWidth={OUTLINE_W} />

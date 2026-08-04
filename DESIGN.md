@@ -735,23 +735,49 @@ flat SVG shapes instead of 3D meshes:
   `useEventQueue`/`cuesForEvent()` — the animation *logic* didn't
   change, only the rendering technology underneath it.
 
-### 9.3 Inferna: the one hero-specific redesign
+### 9.3 Real illustrated art: `REAL_ART` in `HeroSprite.tsx`
 
-Inferna keeps her bespoke look from the 3D era, ported to SVG: a
-cropped black jacket (a rounded `<rect>` over her base tank top) with
-glowing orange `<line>` "lava-crack" seams (a `glow-line` CSS class
-adds the drop-shadow glow), a hair bun instead of the shared Mage
-hairstyle, and no staff — she channels fire bare-handed, drawn as a
-glowing circle cupped at her front hand. `InfernaOverlay()` in
-`HeroSprite.tsx` is the direct 2D equivalent of the old
-`isInferna`-gated blocks in `HeroModel.tsx`.
+Hand-coded SVG shapes were never going to close the gap to real
+character art — no amount of path-tweaking stops it reading as
+"shapes." Once the player supplied an actual illustrated turnaround
+(front/back/profile views on a plain background) for Inferna, the
+right move was to stop drawing and use it: `HeroSprite.tsx` now checks
+a small `REAL_ART: Partial<Record<HeroId, string>>` map before
+building the vector chassis at all, and if a hero has an entry it
+renders that image directly (`<img>`, `object-fit: contain`, bottom-
+aligned on the same ground line) instead of any SVG. Every animation
+cue (lunge, hit/heal/shield flash, defeat collapse) still applies —
+they're CSS classes on the wrapper/visual element, agnostic to whether
+the thing underneath is a raster image or a vector shape. Status
+badges, targeting glow, and facing-mirror all work unchanged for the
+same reason. Heroes without a `REAL_ART` entry keep using the shared
+vector chassis (§9.2) exactly as before — this is additive, not a
+replacement of the whole rig.
+
+**Getting a photo/illustration into a game-ready sprite:** the supplied
+image was a flat-background illustration (turnaround sheet with
+front/back/profile panels). The relevant panel was cropped out with
+`sharp`, then its solid background was keyed to transparency with a
+small hand-rolled script — sample the background color from a few
+points along the top edge (never the bottom, which often has a floor
+shadow that isn't background), then walk every pixel and set alpha
+based on color distance from that sample, with a soft threshold band
+so anti-aliased edges fade instead of leaving a hard cutout ring. This
+works well for a flat/uniform background; it is not real subject
+segmentation and will do a mediocre job on a busy/photographic
+background — get the source image on as plain a background as possible
+(ideally by asking the image generator for one directly) for this to
+work well.
 
 ### 9.4 What's still explicitly not attempted
 
-Hand-painted or photo-real illustration, per-hero unique poses/rigs
-(every hero still shares one chassis), and a real animation/particle
-pipeline — none of these have a tool in this project to produce them.
-[`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md) remains the written
-creative reference for what real 2D concept art would look like per
-hero, should an actual illustrator or image-generation tool ever enter
-the picture.
+Hand-rigged skeletal animation (the kind Slay the Spire actually uses —
+separate arm/weapon layers moved frame-by-frame by an animator via
+something like Spine), per-hero unique poses for the vector heroes
+(they still share one chassis), and true background segmentation for
+photos with busy backgrounds — none of these have a tool in this
+project to produce them. A hero using `REAL_ART` is still a single
+static image animated only as a rigid whole (translate/flash/rotate),
+not a rigged character. [`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md)
+remains the written creative reference for heroes that don't have real
+art yet.

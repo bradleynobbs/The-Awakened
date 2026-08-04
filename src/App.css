@@ -413,14 +413,22 @@ button {
 .hero-sprite-wrap.lunging {
   transform: scaleX(var(--facing, 1)) translateX(calc(var(--facing, 1) * 16px));
 }
-.hero-sprite-wrap.flash-hit .hero-sprite-svg {
+.hero-sprite-wrap.flash-hit .hero-sprite-visual {
   filter: brightness(1.7) drop-shadow(0 0 10px #ff4444);
 }
-.hero-sprite-wrap.flash-heal .hero-sprite-svg {
+.hero-sprite-wrap.flash-heal .hero-sprite-visual {
   filter: brightness(1.6) drop-shadow(0 0 8px #43d17a);
 }
-.hero-sprite-wrap.flash-shield .hero-sprite-svg {
+.hero-sprite-wrap.flash-shield .hero-sprite-visual {
   filter: brightness(1.6) drop-shadow(0 0 8px #4aa8ff);
+}
+
+/* Real illustrated art (see REAL_ART in HeroSprite.tsx) needs a taller box
+ * than the flat SVG chassis to avoid shrinking a full-body portrait down
+ * to nothing — it still bottom-aligns on the same ground line. */
+.hero-sprite-wrap.real-art {
+  width: 96px;
+  height: 178px;
 }
 
 .hero-sprite-ground {
@@ -436,6 +444,15 @@ button {
 .hero-sprite-svg {
   display: block;
   overflow: visible;
+}
+
+.hero-sprite-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  -webkit-user-drag: none;
 }
 
 .glow-line {

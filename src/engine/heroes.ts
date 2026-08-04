@@ -521,7 +521,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "charm-gunslinger": {
     id: "charm-gunslinger",
     name: "Kairo",
-    role: "Gunslinger",
+    role: "Ranger",
     element: "charm",
     maxHp: 17,
     startingShield: 0,

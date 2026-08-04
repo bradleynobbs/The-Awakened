@@ -212,7 +212,7 @@ purpose) opens a raw state inspector for debugging.
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
 | Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
-| Kairo | Gunslinger | Charm | 17 | +1 damage to targets already Charmed |
+| Kairo | Ranger | Charm | 17 | +1 damage to targets already Charmed |
 | Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
 
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
@@ -276,7 +276,7 @@ predictable" rule from the top of this README applies to stats too:
   Shield that hero grants.
 
 Roles lean into different stats — Tanks run high Health/Defense,
-Supports run high Healing Power, Gunslingers run high Accuracy/Critical
+Supports run high Healing Power, Rangers run high Accuracy/Critical
 Chance, and so on — but nothing is enforced; a hero's actual numbers
 are what matter, the same way Spirit Mage already bends "Mage" away
 from Inferna's burst-damage template.

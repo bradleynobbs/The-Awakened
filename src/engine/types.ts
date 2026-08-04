@@ -21,7 +21,7 @@ export type Role =
   | "Brawler"
   | "Tank"
   | "Speedster"
-  | "Gunslinger"
+  | "Ranger"
   | "Support";
 
 export type TargetType =

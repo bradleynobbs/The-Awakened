@@ -12,7 +12,7 @@ describe("hero roster composition", () => {
   it("only uses the 6 currently-supported roles", () => {
     const roles = new Set(HERO_LIST.map((h) => h.role));
     for (const role of roles) {
-      expect(["Mage", "Brawler", "Tank", "Speedster", "Gunslinger", "Support"]).toContain(role);
+      expect(["Mage", "Brawler", "Tank", "Speedster", "Ranger", "Support"]).toContain(role);
     }
     // Every role has at least one hero (Mage is used twice, by design).
     expect(roles.size).toBe(6);

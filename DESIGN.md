@@ -133,7 +133,7 @@ later without touching the engine.
 | Water Healer | Support | Water | 20 | |
 | Spark Duelist | Brawler | Spark | 20 | |
 | Mourn | Speedster | Undead | 16 | first hit taken reduced by 3 |
-| Kairo | Gunslinger | Charm | 17 | +1 dmg vs. Charmed targets |
+| Kairo | Ranger | Charm | 17 | +1 dmg vs. Charmed targets |
 | Spirit Mage | Mage | Spirit | 16 | survives one lethal hit at 1 HP per match |
 
 | Card | Hero | Cost | Effect |
@@ -489,7 +489,7 @@ The original 5 elements (Fire, Water, Lightning, Earth, Shadow) and the
 Controller, Mage — `Controller` was never actually used by a hero) are
 replaced with a fixed, deliberately chosen set: **7 elements** (Fire,
 Water, Spark, Earth, Undead, Charm, Spirit) and **6 roles** (Mage,
-Brawler, Tank, Assassin, Gunslinger, Support). Two existing heroes were
+Brawler, Tank, Assassin, Ranger, Support). Two existing heroes were
 renamed to fit, and two new heroes were added to give every element and
 role at least one hero.
 
@@ -511,10 +511,10 @@ history.
 ### 7.2 Two new heroes, and why these two
 
 Filling every role and element with the existing 5 heroes left exactly
-one role gap (**Gunslinger**) and two element gaps (**Charm**,
+one role gap (**Ranger**) and two element gaps (**Charm**,
 **Spirit**). Two new heroes cover all three:
 
-- **Kairo** (Charm element, Gunslinger role, 17 HP)
+- **Kairo** (Charm element, Ranger role, 17 HP)
 - **Spirit Mage** (Spirit element, Mage role, 16 HP — Mage is reused,
   since roles aren't required to be unique across the roster any more
   than "Support" was unique to Water Healer before section 6)
@@ -615,8 +615,8 @@ skill instead of "hope the percentages go your way."
   hero crits — deterministically, every time, not "50% of the time."
   Base hero kits sit well under 50 (0–20), so crit is something you
   build toward (via Empower-style buffs from future cards) rather than
-  something that happens on its own — Gunslinger-role heroes start
-  closer to the threshold, matching "Gunslingers excel at... Critical
+  something that happens on its own — Ranger-role heroes start
+  closer to the threshold, matching "Rangers excel at... Critical
   Hits."
 - **Critical Damage**: a percentage multiplier applied only when a crit
   triggers (base 100 = the crit still happens but adds nothing; higher
@@ -694,7 +694,7 @@ pure Inferna-style burst. Rough shape per role:
 - **Brawler**: balanced Attack/Health, moderate Defense, moderate Speed.
 - **Mage**: high Attack, high Energy, low Defense/Health.
 - **Speedster**: high Speed/Evasion, low Health/Defense.
-- **Gunslinger**: high Accuracy/Critical Chance, moderate Attack, low
+- **Ranger**: high Accuracy/Critical Chance, moderate Attack, low
   Health.
 
 Concrete numbers are in section 2's updated hero table.
@@ -769,7 +769,7 @@ flat SVG shapes instead of 3D meshes:
 - **Role gear** (`RoleGear()`): a staff for Mages, shoulder plates +
   gauntlet for Tank, a halo for Support, a bat for Brawler, a hood
   silhouette for Speedster, a pistol (+ visor for Charm) for
-  Gunslinger — anchored at the shared front-hand/head points.
+  Ranger — anchored at the shared front-hand/head points.
   Mirrors the old per-role `RoleGear` switch one-for-one.
 - **Element aura** (`ElementAura()`): a few small floating colored
   dots per element, animated with a CSS `@keyframes` bob instead of a
@@ -981,7 +981,7 @@ are they," not a full stat readout.
 
 `ROLE_SYMBOL: Record<Role, string>` in `heroVisuals.ts` is the new
 counterpart to `ELEMENT_SYMBOL` — 🪄 Mage, 👊 Brawler, 🛡️ Tank, 💨
-Speedster, 🔫 Gunslinger, 💚 Support — deliberately no overlap with any
+Speedster, 🔫 Ranger, 💚 Support — deliberately no overlap with any
 element emoji. The shield indicator that used to live on the plate
 moved to a `sprite-badge` on the hero's own sprite instead (matching
 where burn/wet/empower/charm already lived), so removing it from the
@@ -1106,7 +1106,7 @@ one this time instead of none.
 
 ### 9.11 Third real-art hero: Kairo, and the keying pipeline paying off
 
-The Charm Gunslinger got the same treatment as Inferna and Mourn —
+The Charm Ranger got the same treatment as Inferna and Mourn —
 flavor rename to **Kairo** (`heroId` stays `"charm-gunslinger"`), real
 art wired into `REAL_ART`. Unlike the previous two, this one was
 uneventful: the supplied source image was already on a plain white
@@ -1208,3 +1208,56 @@ handful) confirmed across *many* repeated runs of both the random
 check and the forced-worst-case check before trusting a size — one
 clean run is not evidence, given how much these numbers move between
 otherwise-identical runs.
+
+### 9.14 Illustrated role emblems, and Gunslinger → Ranger
+
+The emoji-based `ROLE_SYMBOL` map (§9.8) is replaced with real
+illustrated emblems — six matching metallic "target-ring" badges, one
+motif per role (bow for Ranger, shield for Tank, praying hands for
+Support, fist for Brawler, crescents for Mage, running figure for
+Speedster). Along with the new art, the Gunslinger role itself was
+renamed to **Ranger**. Unlike the Inferna/Mourn/Kairo renames, this
+one *is* a mechanics-vocabulary change, not a flavor name — `Role` is
+a type union, not a per-hero string — so it needed the fuller sweep
+that a hero flavor rename doesn't: the `Role` type itself
+(`types.ts`), the hero definition using it (`heroes.ts`), the SVG
+chassis's per-role torso dimensions and held-gear switch
+(`HeroSprite.tsx`), the role-symbol map, tests, and docs. Kairo's
+`heroId` stays `"charm-gunslinger"` regardless (an internal id, never
+shown to players).
+
+**Keying these was mostly a repeat of the pipeline built for Mourn and
+reused for Kairo** — pure black background, no subject/background
+color conflict since the art is all cool-metal grays — but two new
+problems showed up once the icons were actually sized down to a
+health-bar badge:
+
+1. **The ring frame doesn't survive downscaling.** Each emblem is a
+   thin decorative circular ring around a small central icon. At
+   anything close to the badge's ~14-16px display size, the ring's
+   fine strokes disappear into noise and the whole thing reads as a
+   gray smudge — confirmed by rendering actual side-by-side previews
+   at 14/18/22/28px rather than trusting a full-size preview (a
+   full-size composite looked great and was misleading about how it'd
+   actually read at 1/8th the size). Fixed by cropping in on just the
+   inner ~55% of each emblem (proportionally, not a fixed pixel
+   offset, since the six source images aren't identically
+   proportioned) before the final resize, so the pixel budget goes to
+   the actual symbol instead of the ring.
+
+2. **Metallic gray has poor contrast against the plate's dark navy
+   background**, even after the ring crop — silver-on-near-black
+   reads as a dim blur rather than a crisp icon. Fixed with
+   `sharp().tint()` recoloring each icon to the game's existing
+   `#ffd24a` gold accent (already used for the Fight button, targeting
+   glow, etc.) — `tint()` recolors by chroma while keeping the
+   original shading/highlights, so the metallic relief is preserved,
+   it's just gold instead of gray. The contrast jump against the dark
+   plate was dramatic and immediate once tried; this is likely the
+   right default treatment for any future small icon-on-dark-UI asset
+   in this game, not a one-off fix.
+
+Same real-device caveat as the HP text (§9.12): a 16px badge in a flat
+screenshot reads smaller/blurrier than it will on an actual phone's
+higher pixel density, so the exact size chosen here is worth a
+real-device sanity check rather than being treated as final.

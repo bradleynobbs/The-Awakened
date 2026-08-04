@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL, ROLE_SYMBOL } from "../ui/heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_SYMBOL, ROLE_ICON } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
@@ -97,9 +97,7 @@ function Formation({
               <div className="hero-plate-name">
                 <span className="hero-plate-name-text">{def.name}</span>
                 <span className="hero-plate-emblems">
-                  <span className="hero-plate-emblem" title={def.role}>
-                    {ROLE_SYMBOL[def.role]}
-                  </span>
+                  <img className="hero-plate-role-icon" src={ROLE_ICON[def.role]} alt={def.role} title={def.role} />
                   <span className="hero-plate-emblem" title={def.element}>
                     {ELEMENT_SYMBOL[def.element]}
                   </span>

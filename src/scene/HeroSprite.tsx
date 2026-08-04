@@ -52,7 +52,7 @@ const TORSO_WIDTH: Record<Role, number> = {
   Tank: 56,
   Brawler: 46,
   Speedster: 36,
-  Gunslinger: 42,
+  Ranger: 42,
 };
 const TORSO_HEIGHT: Record<Role, number> = {
   Mage: 74,
@@ -60,7 +60,7 @@ const TORSO_HEIGHT: Record<Role, number> = {
   Tank: 78,
   Brawler: 74,
   Speedster: 66,
-  Gunslinger: 72,
+  Ranger: 72,
 };
 
 const OUTLINE = "#14121c";
@@ -256,7 +256,7 @@ function RoleGear({ role, heroId, c, clothColor }: { role: Role; heroId: HeroId;
           strokeLinejoin="round"
         />
       );
-    case "Gunslinger": {
+    case "Ranger": {
       const pistol = (
         <>
           <rect x={c.frontHandX} y={c.frontHandY - 5} width={22} height={10} rx={2} fill="#c6c8d2" stroke={OUTLINE} strokeWidth={3} />

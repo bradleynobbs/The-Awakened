@@ -1,12 +1,20 @@
 import type { Element, Role } from "../engine/types";
+import mageIcon from "../assets/roles/mage.png";
+import brawlerIcon from "../assets/roles/brawler.png";
+import tankIcon from "../assets/roles/tank.png";
+import speedsterIcon from "../assets/roles/speedster.png";
+import rangerIcon from "../assets/roles/ranger.png";
+import supportIcon from "../assets/roles/support.png";
 
-export const ROLE_SYMBOL: Record<Role, string> = {
-  Mage: "\u{1FA84}",
-  Brawler: "\u{1F44A}",
-  Tank: "\u{1F6E1}\u{FE0F}",
-  Speedster: "\u{1F4A8}",
-  Gunslinger: "\u{1F52B}",
-  Support: "\u{1F49A}",
+/** Illustrated role emblems (replacing the earlier emoji placeholders) —
+ * matching metallic target-ring frames, one motif per role. */
+export const ROLE_ICON: Record<Role, string> = {
+  Mage: mageIcon,
+  Brawler: brawlerIcon,
+  Tank: tankIcon,
+  Speedster: speedsterIcon,
+  Ranger: rangerIcon,
+  Support: supportIcon,
 };
 
 export const ELEMENT_COLOR: Record<Element, string> = {

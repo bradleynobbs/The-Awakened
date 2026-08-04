@@ -501,6 +501,20 @@ button {
   image-rendering: pixelated;
 }
 
+.hero-sprite-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  background: transparent;
+}
+/* A real attack clip is already a complete self-contained animation —
+ * don't also idle-bob it or fight it with a lunge translate. */
+.hero-sprite-wrap.playing-video .hero-sprite-visual {
+  animation: none;
+}
+
 .glow-line {
   filter: drop-shadow(0 0 3px #ff6a1f);
 }

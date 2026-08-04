@@ -1419,3 +1419,65 @@ sloppy manual cropping, not a real positioning bug. Lesson: when a
 quick visual check disagrees with the math, verify with a precise
 method (pixel-color scan, marker overlay) before trusting the eyeball
 over the math, not the other way around.
+
+### 9.19 A persistent team roster, replacing the per-sprite plate
+
+Shown a reference mockup (circular character-portrait avatar connected
+to an angled name/HP banner) and asked to adopt that style, with each
+team's roster pinned to its own outer edge of the screen (ally far
+left, enemy far right) instead of floating above each moving sprite,
+and with real character headshots on the avatars instead of a generic
+icon.
+
+This is a bigger structural change than any single-property tweak in
+§9.7-§9.18: the name/HP/role/element block moves out of `.hero-slot`
+entirely into a new sibling `<TeamRoster>` component, rendered twice
+(once per side) directly under `Battlefield`'s two `<Formation>`s.
+`.hero-slot` now contains only the `HeroSprite` — no more per-fighter
+plate — and status effects (shield/burn/wet/etc.) still live where
+they always did, as `sprite-badge`s on the sprite itself, since those
+are genuinely tied to a specific fighter's position, unlike name/HP/
+role/element which are really about *team membership*, not location.
+
+**Portraits:** headshots cropped directly from each real-art hero's
+existing full-body sprite (Inferna/Mourn/Kairo) — no new source art
+needed, no new keying pass, just `sharp().extract()` on a square region
+around the head/shoulders of an asset already in the repo, since those
+sprites are already alpha-keyed. Heroes still on the shared vector
+chassis (no real art yet) fall back to their gold role icon on a
+plain element-colored disc rather than an empty circle.
+
+**Layout, mirrored per side:** `.roster-entry` is a flex row — avatar
+then banner for the ally roster, `row-reverse`'d for the enemy roster
+so the avatar stays on the *outer* edge on both sides (right for
+enemy) and the banner extends inward toward the middle of the
+battlefield, matching how a HUD naturally reads outward-in from each
+screen edge.
+
+**A new failure mode this surfaced:** because the roster is no longer
+tied to a specific sprite's position, it's now a completely separate
+occupant of the same battlefield space as the scattered formation
+(§9.7) — and the two can overlap. First attempt vertically centered
+the roster, which collided badly with sprites on shorter screens where
+there's less vertical room to share; moved it to anchor near the top
+instead (sprites are floor-anchored at the bottom, so the sky/pillar
+band is naturally clearer). That mostly fixed it, but a residual
+overlap remained on the shortest test heights — traced to
+`.formation-*'s` `nth-child(3)` scatter transform (§9.7), which pushes
+that slot both *outward* and *upward* at once, landing it directly in
+the roster's corner. Pulled that specific transform back
+(`translateX(22px) translateY(-8px)` → `translateX(10px)
+translateY(-2px)`) since the roster now occupies territory that
+transform was tuned before it existed. A faint touch remains at the
+640px edge-case height established elsewhere in this document as
+beyond real device dimensions; solidly clear at 700px+.
+
+The fit-check script itself needed updating for this change too — it
+was asserting against `.hero-plate`, which no longer exists, and
+silently produced a vacuous "ok" (`Math.min` of an empty array) instead
+of a real signal. Replaced with a check against `.roster-entry` for
+clipping, plus a genuine 2D rectangle-intersection test against
+`.hero-sprite-wrap` for the new overlap failure mode — an earlier
+attempt at this check compared only Y-ranges and produced false
+positives whenever a centrally-scattered sprite shared a Y-range with
+the edge-pinned roster without ever sharing an X-range.

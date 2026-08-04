@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL, ROLE_ICON } from "../ui/heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_SYMBOL, HERO_PORTRAIT, ROLE_ICON } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
@@ -99,42 +99,75 @@ function Formation({
 }) {
   return (
     <div className={`formation ${facing === 1 ? "formation-left" : "formation-right"}`}>
+      {state.players[playerId].heroes.map((hero) => (
+        <div key={hero.instanceId} className="hero-slot">
+          <HeroSprite
+            hero={hero}
+            facing={facing}
+            cue={cues[hero.instanceId] ?? null}
+            isTargetable={targetablePlayerId === playerId && targetableHeroIds.includes(hero.instanceId)}
+            isSelectedTarget={selectedTargetIds.includes(hero.instanceId)}
+            isFocused={focusIds.has(hero.instanceId)}
+            onClick={() => onSelectTarget(hero.instanceId)}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The name/HP/role/element status panel, now a persistent roster pinned
+ * to the battlefield's outer edge (§9.19) instead of floating above each
+ * moving sprite — "your" team's roster reads top-to-bottom on the far
+ * left, the opponent's mirrored on the far right, both independent of
+ * wherever the scattered formation actually put each fighter. */
+function TeamRoster({
+  state,
+  playerId,
+  side,
+}: {
+  state: MatchState;
+  playerId: PlayerId;
+  side: "ally" | "enemy";
+}) {
+  return (
+    <div className={`team-roster team-roster-${side}`}>
       {state.players[playerId].heroes.map((hero) => {
         const def = HERO_DEFINITIONS[hero.heroId];
+        const portrait = HERO_PORTRAIT[hero.heroId];
         return (
-          <div key={hero.instanceId} className="hero-slot">
-            <div
-              className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}
-              style={{ "--element-color": ELEMENT_COLOR[def.element] } as CSSProperties}
-            >
-              <div className="hero-plate-name">
-                <span className="hero-plate-name-text">{def.name}</span>
-                <span className="hero-plate-emblems">
-                  <img className="hero-plate-role-icon" src={ROLE_ICON[def.role]} alt={def.role} title={def.role} />
-                  <span className="hero-plate-emblem" title={def.element}>
+          <div
+            key={hero.instanceId}
+            className={`roster-entry${hero.isDefeated ? " defeated" : ""}`}
+            style={{ "--element-color": ELEMENT_COLOR[def.element] } as CSSProperties}
+          >
+            <div className="roster-avatar">
+              {portrait ? (
+                <img src={portrait} alt={def.name} className="roster-avatar-img" />
+              ) : (
+                <img src={ROLE_ICON[def.role]} alt={def.role} className="roster-avatar-fallback-icon" />
+              )}
+            </div>
+            <div className="roster-banner">
+              <div className="roster-name-row">
+                <span className="roster-name-text">{def.name}</span>
+                <span className="roster-emblems">
+                  <img className="roster-role-icon" src={ROLE_ICON[def.role]} alt={def.role} />
+                  <span className="roster-element-icon" title={def.element}>
                     {ELEMENT_SYMBOL[def.element]}
                   </span>
                 </span>
               </div>
-              <div className="hero-plate-hpbar">
+              <div className="roster-hpbar">
                 <div
-                  className={`hero-plate-hpfill ${hpTier(hero.currentHp, hero.maxHp)}`}
+                  className={`roster-hpfill ${hpTier(hero.currentHp, hero.maxHp)}`}
                   style={{ width: `${Math.max(0, (hero.currentHp / hero.maxHp) * 100)}%` }}
                 />
-                <span className="hero-plate-hptext">
+                <span className="roster-hptext">
                   {hero.currentHp}/{hero.maxHp}
                 </span>
               </div>
             </div>
-            <HeroSprite
-              hero={hero}
-              facing={facing}
-              cue={cues[hero.instanceId] ?? null}
-              isTargetable={targetablePlayerId === playerId && targetableHeroIds.includes(hero.instanceId)}
-              isSelectedTarget={selectedTargetIds.includes(hero.instanceId)}
-              isFocused={focusIds.has(hero.instanceId)}
-              onClick={() => onSelectTarget(hero.instanceId)}
-            />
           </div>
         );
       })}
@@ -189,6 +222,8 @@ export function Battlefield({
         selectedTargetIds={selectedTargetIds}
         onSelectTarget={onSelectTarget}
       />
+      <TeamRoster state={state} playerId={myRole} side="ally" />
+      <TeamRoster state={state} playerId={opponentRole} side="enemy" />
     </div>
   );
 }

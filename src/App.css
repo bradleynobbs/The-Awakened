@@ -503,7 +503,10 @@ button {
   margin: -4px 0;
 }
 .formation-left .hero-slot:nth-child(3) {
-  transform: translateX(22px) translateY(-8px);
+  /* Pulled in from its old translateX(22px)/-8px — that pushed this
+   * slot both outward and upward at once, landing it right in the
+   * team-roster's corner (§9.19) on shorter screens. */
+  transform: translateX(10px) translateY(-2px);
 }
 .formation-right .hero-slot:nth-child(1) {
   transform: translateX(-14px) translateY(16px);
@@ -513,7 +516,7 @@ button {
   margin: -4px 0;
 }
 .formation-right .hero-slot:nth-child(3) {
-  transform: translateX(-22px) translateY(-8px);
+  transform: translateX(-10px) translateY(-2px);
 }
 
 .hero-sprite-wrap {
@@ -682,95 +685,148 @@ button {
   color: #4aa8ff;
 }
 
-/* ---------- Hero plates (name/HP overlay above each sprite) ----------
- * Absolutely positioned, floating above the sprite instead of stacked
- * in-flow above it — the plate no longer costs any of the hero-slot's
- * vertical budget, so all of that height goes to the sprite itself. */
-
-.hero-plate {
+/* ---------- Team roster (§9.19): persistent name/HP/role/element panel
+ * pinned to the battlefield's outer edges — replacing the old per-sprite
+ * floating plate entirely. Independent of wherever the scattered
+ * formation put each fighter: "your" team reads top-to-bottom on the
+ * far left, the opponent's mirrored on the far right. Purely
+ * informational, never intercepts taps (targeting still happens by
+ * tapping the sprite itself on the field). */
+.team-roster {
+  /* Anchored near the top rather than vertically centered — the
+   * fighters themselves are floor-anchored at the bottom of the
+   * battlefield (see .formation), so keeping the roster up in the
+   * clearer sky/pillar band avoids the two overlapping on shorter
+   * screens where there's less vertical room to share. */
   position: absolute;
-  left: 50%;
-  bottom: 100%;
-  transform: translateX(-50%);
-  margin-bottom: 2px;
-  z-index: 3;
-  width: 84px;
+  top: 1%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
+  pointer-events: none;
+  max-width: 48%;
+}
+.team-roster-ally {
+  left: 4px;
+  align-items: flex-start;
+}
+.team-roster-enemy {
+  right: 4px;
+  align-items: flex-end;
+}
+
+.roster-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.team-roster-enemy .roster-entry {
+  flex-direction: row-reverse;
+}
+.roster-entry.defeated {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.roster-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle, #2a2f42 0%, #14151f 100%);
+  border: 2px solid var(--element-color, #3a4260);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.roster-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.roster-avatar-fallback-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 7px;
+  box-sizing: border-box;
+  display: block;
+}
+
+.roster-banner {
+  min-width: 0;
+  width: 98px;
   background: linear-gradient(180deg, rgba(22, 25, 40, 0.94), rgba(10, 12, 20, 0.94));
   border: 1px solid #3a4260;
   border-top: 2px solid var(--element-color, #3a4260);
   border-radius: 5px;
-  padding: 1px 4px;
-  font-size: 6px;
+  padding: 2px 5px;
   color: #e8eaf0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
-.hero-plate.defeated {
-  opacity: 0.5;
-}
-.hero-plate-name {
+.roster-name-row {
   display: flex;
   align-items: center;
   gap: 3px;
   font-weight: 700;
+  font-size: 9px;
   margin-bottom: 1px;
 }
-.hero-plate-name-text {
+.team-roster-enemy .roster-name-row {
+  flex-direction: row-reverse;
+}
+.roster-name-text {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Back to a plain inline flex child of .hero-plate-name (not absolutely
- * positioned) — that was the source of the last two bugs: positioning
- * relative to the whole plate meant the badge's own size had to be
- * hand-tuned against the plate's padding/name-row/hp-bar math to avoid
- * spilling onto the bar below. As a normal flex item, the name row's
- * height simply grows to fit it and the hp bar always sits cleanly
- * below, however big or small this ends up being. */
-.hero-plate-emblems {
+.roster-emblems {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 3px;
 }
-.hero-plate-emblem {
-  font-size: 12px;
-  line-height: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
-}
-.hero-plate-role-icon {
-  width: 12px;
-  height: 12px;
+.roster-role-icon {
+  width: 13px;
+  height: 13px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
 }
-.hero-plate-hpbar {
+.roster-element-icon {
+  font-size: 13px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+.roster-hpbar {
   position: relative;
-  height: 7px;
+  height: 9px;
   background: #1a1520;
   border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
   overflow: hidden;
 }
-.hero-plate-hpbar::after {
+.roster-hpbar::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 55%);
   pointer-events: none;
 }
-.hero-plate-hpfill {
+.roster-hpfill {
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(180deg, #86eb90 0%, #38a838 100%);
   transition: width 0.3s ease, background 0.3s ease;
 }
-.hero-plate-hpfill.hp-mid {
+.roster-hpfill.hp-mid {
   background: linear-gradient(180deg, #ffdf85 0%, #e8a23a 100%);
 }
-.hero-plate-hpfill.hp-low {
+.roster-hpfill.hp-low {
   background: linear-gradient(180deg, #ff9585 0%, #d43a3a 100%);
   animation: hp-low-pulse 1.1s ease-in-out infinite;
 }
@@ -782,13 +838,13 @@ button {
     filter: brightness(1.35);
   }
 }
-.hero-plate-hptext {
+.roster-hptext {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5px;
+  font-size: 7px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #fff;

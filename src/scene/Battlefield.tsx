@@ -3,6 +3,7 @@ import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
 import { ELEMENT_SYMBOL } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
+import arenaBackground from "../assets/backgrounds/arena-rift.jpg";
 
 interface BattlefieldProps {
   state: MatchState;
@@ -131,8 +132,8 @@ export function Battlefield({
 
   return (
     <div className="battlefield-2d">
-      <div className="battlefield-sky" />
-      <div className="battlefield-ground" />
+      <div className="battlefield-bg" style={{ backgroundImage: `url(${arenaBackground})` }} />
+      <div className="battlefield-scrim" />
       <Formation
         state={state}
         playerId={myRole}

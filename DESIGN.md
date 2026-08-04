@@ -847,44 +847,30 @@ separate arm/weapon layers moved frame-by-frame by an animator via
 something like Spine), per-hero unique poses for the vector heroes
 (they still share one chassis), and true background segmentation for
 photos with busy backgrounds — none of these have a tool in this
-project to produce them. A `REAL_ART` hero without an attack clip
-(§9.5) is still a single static image animated only as a rigid whole
-(translate/flash/rotate), not a rigged character.
-[`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md) remains the written
-creative reference for heroes that don't have real art yet.
+project to produce them. A `REAL_ART` hero is a single static image
+animated only as a rigid whole (translate/flash/rotate), not a rigged
+character. [`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md) remains
+the written creative reference for heroes that don't have real art yet.
 
-### 9.5 A real video clip for Inferna's attack
+A real video clip for Inferna's attack was briefly wired in (a
+`REAL_ART_ATTACK` map swapping her lunge for an actual `<video>` on the
+`"attacking"` cue) and then deliberately reverted at the requester's
+call — back to the plain CSS lunge for every hero, video included.
+Worth remembering if this comes up again: the mechanism worked (mounted
+cleanly, zero console errors), the only open questions were pacing
+(the clip's own length vs. the ~500ms engine event step) and file size
+(shipped as supplied, no compression tool exists here to shrink it).
 
-`REAL_ART_ATTACK: Partial<Record<HeroId, string>>` in `HeroSprite.tsx`
-maps a hero to an actual video clip that replaces the usual CSS lunge
-entirely when their `AnimCue` is `"attacking"` — a real animated attack
-instead of a static image translating a few pixels. The `<video>` is
-`autoPlay muted playsInline` (required for it to autoplay at all on
-mobile/WebView without a direct user tap) and mounted with a
-`key`-bump per trigger so it reliably replays from the start on repeat
-attacks in the same match, reverting to the static `REAL_ART` image via
-`onEnded`. It plays out on its own timeline regardless of how long that
-actually takes — the ~500ms-per-event engine pacing (§5.6) isn't
-stretched to match a clip's real duration, so the "battle phase" gate
-can end (and the player can start planning the next round) while a
-longer clip is still finishing in the background. This wasn't
-synchronized on purpose: doing it properly needs knowing the clip's
-duration up front and coordinating it with event-queue pacing, which
-is more machinery than one hero's attack clip currently justifies.
+### 9.5 A real battlefield background
 
-**Tooling gap worth knowing about:** there's no video-processing tool
-in this project (no ffmpeg build capable of decoding an arbitrary
-input, no OpenCV, no way to install one — package installs are blocked
-by the environment's network policy) — a supplied clip gets used
-completely as-is, whatever its resolution/length/file size happen to
-be. It's also not possible to strip a video's background the way a
-photo's flat background gets keyed out (§9.3); a supplied clip needs
-to already read fine as a full rectangular frame. One more wrinkle hit
-while integrating this: this project's own dev/test tooling runs on a
-stripped Chromium build without H.264 license support, so a standard
-H.264 `.mp4` (confirmed here by checking for the `avc1`/`avcC` codec
-boxes directly in the file, since there's no ffprobe either) fails to
-decode *in that specific browser* — real Chrome, Safari, Firefox, and
-Android's WebView all support H.264 natively and don't share this
-limitation, but it means a clip's actual visual content can't be
-verified from inside this environment the way a static image can.
+`Battlefield.tsx` renders a `.battlefield-bg` layer using a real
+painted arena image (`src/assets/backgrounds/arena-rift.jpg`, resized
+to 1280px wide and JPEG-compressed to ~160KB) behind both formations,
+with a `.battlefield-scrim` gradient over it — darker at the top and
+bottom (where the hero-plates and hand tray need to stay legible),
+clearer through the middle where the two formations actually stand.
+This replaced the old flat two-tone gradient (`battlefield-sky`/
+`battlefield-ground`). Unlike hero art, a background doesn't need
+transparency or facing/mirroring — it's a single `background-image`
+sized with `cover`, so any similarly-composed wide image drops in the
+same way.

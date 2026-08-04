@@ -4,18 +4,11 @@ import type { Element, HeroId, HeroInstance, Role } from "../engine/types";
 import { ELEMENT_COLOR } from "../ui/heroVisuals";
 import { HERO_COSMETICS } from "./heroCosmetics";
 import infernaSprite from "../assets/heroes/inferna-sprite.png";
-import infernaAttackVideo from "../assets/heroes/inferna-attack.mp4";
 
 /** Heroes with a real illustrated sprite instead of the hand-coded SVG rig.
  * Everyone else keeps the shared vector chassis below. */
 const REAL_ART: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaSprite,
-};
-
-/** Heroes with a real video clip that plays instead of the usual lunge when
- * they attack — falls back to the static REAL_ART image once it ends. */
-const REAL_ART_ATTACK: Partial<Record<HeroId, string>> = {
-  "fire-mage": infernaAttackVideo,
 };
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
@@ -303,23 +296,12 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
   const def = HERO_DEFINITIONS[hero.heroId];
   const [flashClass, setFlashClass] = useState<string | null>(null);
   const [lunging, setLunging] = useState(false);
-  const [videoPlayId, setVideoPlayId] = useState(0);
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const lastCue = useRef<AnimCue>(null);
-  const attackVideoSrc = REAL_ART_ATTACK[def.id];
 
   useEffect(() => {
     if (cue === lastCue.current) return;
     lastCue.current = cue;
     if (cue === "attacking") {
-      if (attackVideoSrc) {
-        // A real attack clip replaces the usual lunge entirely — it plays
-        // to completion on its own timeline (see onEnded below), however
-        // long that takes, independent of the ~500ms engine event step.
-        setVideoPlayId((n) => n + 1);
-        setVideoPlaying(true);
-        return;
-      }
       setLunging(true);
       const t = setTimeout(() => setLunging(false), 380);
       return () => clearTimeout(t);
@@ -329,7 +311,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
       const t = setTimeout(() => setFlashClass(null), 420);
       return () => clearTimeout(t);
     }
-  }, [cue, attackVideoSrc]);
+  }, [cue]);
 
   const cosmetics = HERO_COSMETICS[def.id];
   const isDefeated = hero.isDefeated;
@@ -360,26 +342,14 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
     return (
       <button
         type="button"
-        className={`${wrapClasses}${videoPlaying ? " playing-video" : ""}`}
+        className={wrapClasses}
         style={{ "--facing": facing } as CSSProperties}
         onClick={onClick}
         disabled={!isTargetable}
         aria-label={def.name}
       >
         <div className="hero-sprite-ground" />
-        {videoPlaying && attackVideoSrc ? (
-          <video
-            key={videoPlayId}
-            className="hero-sprite-video hero-sprite-visual"
-            src={attackVideoSrc}
-            autoPlay
-            muted
-            playsInline
-            onEnded={() => setVideoPlaying(false)}
-          />
-        ) : (
-          <img className="hero-sprite-img hero-sprite-visual" src={realArtSrc} alt={def.name} draggable={false} />
-        )}
+        <img className="hero-sprite-img hero-sprite-visual" src={realArtSrc} alt={def.name} draggable={false} />
         {burn && <span className="sprite-badge burn">🔥{burn.remainingTriggers}</span>}
         {wet && <span className="sprite-badge wet">💧</span>}
         {empower && empower.type === "empower" && <span className="sprite-badge empower">💪+{empower.bonusDamage}</span>}

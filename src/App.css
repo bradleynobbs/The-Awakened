@@ -350,20 +350,26 @@ button {
   min-width: 0;
 }
 
-.battlefield-sky {
+.battlefield-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #131728 0%, #0d1020 70%);
+  background-size: cover;
+  background-position: center 35%;
 }
 
-.battlefield-ground {
+.battlefield-scrim {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 38%;
-  background: linear-gradient(180deg, #1a2030 0%, #11141f 100%);
-  border-top: 1px solid #2a3350;
+  inset: 0;
+  /* Darkens top/bottom so the hero-plate text and hand tray stay readable
+   * over a busy painted background, while leaving the middle (where the
+   * two formations actually stand) clearest. */
+  background: linear-gradient(
+    180deg,
+    rgba(10, 12, 20, 0.55) 0%,
+    rgba(10, 12, 20, 0.15) 30%,
+    rgba(10, 12, 20, 0.15) 70%,
+    rgba(10, 12, 20, 0.65) 100%
+  );
 }
 
 .formation {
@@ -499,20 +505,6 @@ button {
    * first, "pixelated" last so it wins wherever it's supported. */
   image-rendering: crisp-edges;
   image-rendering: pixelated;
-}
-
-.hero-sprite-video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: bottom center;
-  background: transparent;
-}
-/* A real attack clip is already a complete self-contained animation —
- * don't also idle-bob it or fight it with a lunge translate. */
-.hero-sprite-wrap.playing-video .hero-sprite-visual {
-  animation: none;
 }
 
 .glow-line {

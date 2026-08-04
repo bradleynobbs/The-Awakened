@@ -1022,11 +1022,15 @@ show up clearly against it).
 
 **Facing:** unlike Inferna, Mourn's face is fully obscured inside her
 hood, so there's no gaze/head-turn cue to judge orientation from the
-static source image the way §9.3 could. Rather than guess, she was
-dropped into `REAL_ART` unflipped and checked live in-game on both
-sides of the battlefield (ally column unmirrored, enemy column
-mirrored via `scaleX(-1)`) — the pose is frontal enough, and the
-hood hides enough, that neither direction reads as "wrong," so no
-`sharp().flop()` pre-flip was needed for this one. Future faceless/
-hooded real-art heroes should get the same live check rather than
-assuming Inferna's flip-if-gaze-is-wrong rule always applies.
+static source image the way §9.3 could — she was first dropped into
+`REAL_ART` unflipped on the assumption that a frontal, hooded pose
+would read fine either way. It didn't: checked live in-game, she read
+as facing the wrong way (the body's subtle 3/4 turn and trailing torn
+cloth are enough of a directional tell even without a visible face).
+Fixed the same way as Inferna — one `sharp().flop()` on the stored
+asset, no code changes — and reconfirmed on both sides of the
+battlefield. Lesson for future faceless/hooded real-art heroes:
+"no visible gaze" doesn't mean "no facing to get wrong," it just means
+the tell is subtler (posture/cloth-flow instead of eyes) — still
+needs the live in-game check both ways, not just an assumption from
+the static source image.

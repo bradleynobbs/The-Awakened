@@ -329,12 +329,16 @@ src/state/
   objectives.ts       Daily/weekly matches-played/won counters (localStorage,
                         date-keyed reset), recorded on every match end
 
-src/scene/         React Three Fiber battlefield: HeroModel (capsule +
-                     HTML health plate), Battlefield (camera + single-
-                     perspective layout — your team always renders
-                     nearest the camera regardless of engine player id),
-                     useEventQueue (steps engine events into per-event
-                     animation cues one at a time)
+src/scene/         React Three Fiber battlefield: HeroModel (procedural
+                     low-poly humanoid rig + HTML health plate — no mesh
+                     assets, every hero is built from primitives),
+                     HeroFace + heroCosmetics.ts (per-hero skin/eye/hair/
+                     small feature, DESIGN.md §9.1), ElementAura (small
+                     animated per-element glow effects), Battlefield
+                     (camera + single-perspective layout — your team
+                     always renders nearest the camera regardless of
+                     engine player id), useEventQueue (steps engine
+                     events into per-event animation cues one at a time)
 src/ui/             MainMenu (hero showcase, objectives), DeckBuilder,
                      Store, Matchmaking, OnlineHeroSelection (shared by
                      online + practice), Battle (TopBar, CardHand,

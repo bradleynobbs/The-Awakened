@@ -5,6 +5,9 @@ import { DoubleSide, type Group } from "three";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { HeroId, HeroInstance, Role } from "../engine/types";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
+import { ElementAura } from "./ElementAura";
+import { HeroFace } from "./HeroFace";
+import { HERO_COSMETICS } from "./heroCosmetics";
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
 
@@ -24,7 +27,7 @@ const FLASH_COLOR: Record<Exclude<AnimCue, null | "attacking">, string> = {
   shielded: "#4aa8ff",
 };
 
-const SKIN_COLOR = "#d9a874";
+const DEFEATED_SKIN = "#8a8288";
 const PANTS_COLOR = "#2b2b34";
 const METAL_COLOR = "#c6c8d2";
 const WOOD_COLOR = "#4a3524";
@@ -73,7 +76,7 @@ function RoleGear({
         <group position={[0.4, 0, 0]} rotation={[0, 0, -0.12]}>
           <mesh position={[0, 0.75, 0]}>
             <cylinderGeometry args={[0.03, 0.03, 1.5, 6]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+            <meshStandardMaterial color={WOOD_COLOR} roughness={0.6} metalness={0} {...mat} />
           </mesh>
           <mesh position={[0, 1.52, 0]}>
             <sphereGeometry args={[0.09, 12, 12]} />
@@ -91,15 +94,15 @@ function RoleGear({
         <>
           <mesh position={[-0.46, 0.95, 0.05]}>
             <boxGeometry args={[0.07, 0.5, 0.36]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
           <mesh position={[-0.33, 1.15, 0]}>
             <boxGeometry args={[0.16, 0.12, 0.24]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
           <mesh position={[0.33, 1.15, 0]}>
             <boxGeometry args={[0.16, 0.12, 0.24]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
         </>
       );
@@ -120,11 +123,11 @@ function RoleGear({
         <group position={[0.42, 0.85, 0]} rotation={[0, 0, -0.18]}>
           <mesh position={[0, 0.35, 0]}>
             <boxGeometry args={[0.08, 0.62, 0.03]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
           <mesh position={[0, 0, 0]}>
             <boxGeometry args={[0.12, 0.1, 0.06]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+            <meshStandardMaterial color={WOOD_COLOR} roughness={0.6} metalness={0} {...mat} />
           </mesh>
         </group>
       );
@@ -150,35 +153,24 @@ function RoleGear({
         <>
           <mesh position={[0.4, 0.78, 0]} rotation={[0, 0, -0.1]}>
             <boxGeometry args={[0.05, 0.16, 0.08]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
           <mesh position={[0.4, 0.7, 0.09]} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.018, 0.018, 0.16, 8]} />
-            <meshStandardMaterial color={METAL_COLOR} {...mat} />
+            <meshStandardMaterial color={METAL_COLOR} roughness={0.3} metalness={0.75} {...mat} />
           </mesh>
         </>
       );
 
       if (heroId === "charm-gunslinger") {
         // Original look (not a copy of any existing character): sharp,
-        // cartoony idol-meets-gunslinger — a swept pink ponytail, two
-        // angular hair spikes, and a dark visor instead of a plain hat.
+        // cartoony idol-meets-gunslinger — a dark visor instead of a plain
+        // hat. The ponytail/hair spikes live in HeroFace alongside every
+        // other hero's hairstyle.
         const eyeZ = -facing * headRadius * 0.95;
         return (
           <>
             {pistol}
-            <mesh position={[0, headTopY - 0.02, -0.06 * facing]} rotation={[-facing * 0.5, 0, 0]}>
-              <coneGeometry args={[0.09, 0.42, 8]} />
-              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
-            </mesh>
-            <mesh position={[-0.14, headTopY - 0.02, 0]} rotation={[0, 0, 0.5]}>
-              <coneGeometry args={[0.05, 0.2, 6]} />
-              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
-            </mesh>
-            <mesh position={[0.14, headTopY - 0.02, 0]} rotation={[0, 0, -0.5]}>
-              <coneGeometry args={[0.05, 0.2, 6]} />
-              <meshStandardMaterial color={CHARM_HAIR_COLOR} {...mat} />
-            </mesh>
             <mesh position={[0, headTopY - 0.1, eyeZ]}>
               <boxGeometry args={[0.24, 0.05, 0.02]} />
               <meshStandardMaterial color={VISOR_COLOR} {...mat} emissive={CHARM_HAIR_COLOR} emissiveIntensity={0.3} />
@@ -192,11 +184,11 @@ function RoleGear({
           {pistol}
           <mesh position={[0, headTopY + 0.02, 0]}>
             <cylinderGeometry args={[0.27, 0.27, 0.03, 12]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+            <meshStandardMaterial color={WOOD_COLOR} roughness={0.6} metalness={0} {...mat} />
           </mesh>
           <mesh position={[0, headTopY + 0.09, 0]}>
             <cylinderGeometry args={[0.13, 0.16, 0.12, 10]} />
-            <meshStandardMaterial color={WOOD_COLOR} {...mat} />
+            <meshStandardMaterial color={WOOD_COLOR} roughness={0.6} metalness={0} {...mat} />
           </mesh>
         </>
       );
@@ -238,6 +230,8 @@ export function HeroModel({
   });
 
   const clothColor = hero.isDefeated ? "#3a3a3a" : ELEMENT_COLOR[def.element];
+  const skinColor = hero.isDefeated ? DEFEATED_SKIN : HERO_COSMETICS[def.id].skin;
+  const eyeColor = HERO_COSMETICS[def.id].eye;
   const opacity = hero.isDefeated ? 0.35 : 1;
   const burn = hero.statuses.find((s) => s.type === "burn");
   const wet = hero.statuses.some((s) => s.type === "wet");
@@ -252,7 +246,9 @@ export function HeroModel({
   };
 
   const torso = TORSO_SHAPE[def.role];
-  const legTop = 0.62;
+  // Longer legs than the original chibi-proportioned rig, for a more
+  // "semi-realistic but still cartoony" silhouette (DESIGN.md §9).
+  const legTop = 0.7;
   const torsoTop = legTop + torso.height;
   const headRadius = def.role === "Tank" ? 0.21 : 0.19;
   const headY = torsoTop + 0.07 + headRadius;
@@ -273,44 +269,46 @@ export function HeroModel({
       >
         {/* legs */}
         <mesh position={[-0.14, legTop / 2, 0]}>
-          <cylinderGeometry args={[0.1, 0.11, legTop, 8]} />
-          <meshStandardMaterial color={PANTS_COLOR} {...mat} />
+          <cylinderGeometry args={[0.1, 0.11, legTop, 10]} />
+          <meshStandardMaterial color={PANTS_COLOR} roughness={0.85} metalness={0.05} {...mat} />
         </mesh>
         <mesh position={[0.14, legTop / 2, 0]}>
-          <cylinderGeometry args={[0.1, 0.11, legTop, 8]} />
-          <meshStandardMaterial color={PANTS_COLOR} {...mat} />
+          <cylinderGeometry args={[0.1, 0.11, legTop, 10]} />
+          <meshStandardMaterial color={PANTS_COLOR} roughness={0.85} metalness={0.05} {...mat} />
         </mesh>
 
         {/* torso */}
         <mesh position={[0, legTop + torso.height / 2, 0]}>
-          <cylinderGeometry args={[torso.top, torso.bottom, torso.height, 10]} />
-          <meshStandardMaterial color={clothColor} {...mat} />
+          <cylinderGeometry args={[torso.top, torso.bottom, torso.height, 12]} />
+          <meshStandardMaterial color={clothColor} roughness={0.75} metalness={0.05} {...mat} />
         </mesh>
 
         {/* arms */}
         <mesh position={[-(torso.top + 0.14), legTop + torso.height - 0.2, 0]} rotation={[0, 0, 0.14]}>
-          <cylinderGeometry args={[0.07, 0.075, 0.5, 8]} />
-          <meshStandardMaterial color={SKIN_COLOR} {...mat} />
+          <cylinderGeometry args={[0.07, 0.075, 0.5, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0} {...mat} />
         </mesh>
         <mesh position={[torso.top + 0.14, legTop + torso.height - 0.2, 0]} rotation={[0, 0, -0.14]}>
-          <cylinderGeometry args={[0.07, 0.075, 0.5, 8]} />
-          <meshStandardMaterial color={SKIN_COLOR} {...mat} />
+          <cylinderGeometry args={[0.07, 0.075, 0.5, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0} {...mat} />
         </mesh>
 
         {/* head */}
         <mesh position={[0, headY, 0]}>
-          <sphereGeometry args={[headRadius, 14, 14]} />
-          <meshStandardMaterial color={SKIN_COLOR} {...mat} />
+          <sphereGeometry args={[headRadius, 18, 16]} />
+          <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0} {...mat} />
         </mesh>
         {/* eyes, on the side facing the opponent */}
         <mesh position={[-0.06, headY, -facing * headRadius * 0.85]}>
-          <sphereGeometry args={[0.02, 6, 6]} />
-          <meshStandardMaterial color="#1a1a1a" />
+          <sphereGeometry args={[0.022, 8, 8]} />
+          <meshStandardMaterial color={eyeColor} emissive={eyeColor} emissiveIntensity={0.25} />
         </mesh>
         <mesh position={[0.06, headY, -facing * headRadius * 0.85]}>
-          <sphereGeometry args={[0.02, 6, 6]} />
-          <meshStandardMaterial color="#1a1a1a" />
+          <sphereGeometry args={[0.022, 8, 8]} />
+          <meshStandardMaterial color={eyeColor} emissive={eyeColor} emissiveIntensity={0.25} />
         </mesh>
+
+        <HeroFace heroId={def.id} mat={mat} headY={headY} headTopY={headTopY} headRadius={headRadius} facing={facing} />
 
         <RoleGear
           role={def.role}
@@ -321,6 +319,8 @@ export function HeroModel({
           facing={facing}
           headRadius={headRadius}
         />
+
+        <ElementAura element={def.element} opacity={opacity} />
       </group>
 
       {isTargetable && (

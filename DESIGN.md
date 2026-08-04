@@ -674,3 +674,71 @@ This is also why Speed stays out of the Critical Chance formula in
 decides turn order on its own, and letting one stat govern two
 different axes of power would make it the only stat worth investing
 in, which directly contradicts "no role should dominate the meta."
+
+## 9. Art direction: a unified character style (within a real tooling gap)
+
+A full art-direction brief was given for the roster: semi-realistic
+~7-heads-tall proportions, modern clothing with supernatural
+influences, elemental powers as glowing energy rather than armor,
+unique faces (skin tone, hairstyle, eye color, a small identifying
+feature per hero), role-driven body language, a fixed per-element
+color, and production requirements (shared rig/skeleton, consistent
+polygon budget, PBR materials, mobile-optimized) at a "Brawl Stars /
+Wild Rift / Marvel Rivals" quality bar.
+
+**The honest ceiling:** this project has no 3D modeling, sculpting,
+rigging, texturing, or image-generation tooling — heroes are built
+procedurally out of Three.js primitives (spheres, cylinders, cones,
+boxes) directly in `src/scene/HeroModel.tsx`, the same approach used
+since the first "human instead of a capsule" pass. Actual mesh-based
+character art at that quality bar isn't achievable this way. What
+follows is what the brief translates to *within that constraint* —
+confirmed with the requester as "cartoony but semi-realistic,
+clean," not literal AAA parity.
+
+### 9.1 What was carried over faithfully
+
+- **Every hero got a distinct face**: a per-hero skin tone, eye color,
+  hairstyle (a small hand-built shape per hero — a tousled cap, a
+  buzzcut, flowing side-locks, a mohawk, a hood-sliver, a ponytail, or
+  long trailing hair), and one small identifying feature (an ember
+  freckle, a stone chip, a teardrop mark, a lightning-bolt scar, a
+  brow scar, a visor, or a glowing forehead rune) — see
+  `src/scene/heroCosmetics.ts` for the data and `src/scene/HeroFace.tsx`
+  for the geometry. "No two characters should feel similar" is checked
+  at the face level now, not just the element-color level.
+- **Elements read as glowing energy, not armor**: a new
+  `src/scene/ElementAura.tsx` renders a handful of small emissive
+  shapes per element — rising embers (Fire), a ripple ring + drifting
+  mist (Water), floating rock chunks (Earth), flickering arcs (Spark),
+  drifting wisps (Spirit), a dark mist ring + a rune-glow spot
+  (Undead), floating "petals" (Charm) — animated with a shared
+  `useFrame` bob/rotate, not a real particle system, and capped at 2-3
+  shapes per hero so it reads as an accent instead of visual noise
+  competing with the gameplay-critical status badges.
+- **Role-driven body language**: already-existing per-role torso
+  shapes (Tank broad, Speedster slim, Mage robed, etc. — section 7's
+  `TORSO_SHAPE` table) are the "large and broad" / "slim and
+  lightweight" rule already implemented; this pass didn't need to
+  touch it.
+- **A closer-to-semi-realistic silhouette**: legs lengthened (0.62 ->
+  0.7 relative units) so the rig reads less "chibi," and skin/cloth
+  materials picked up explicit `roughness`/`metalness` values (matte
+  skin and cloth, shinier metal accessories) — a lightweight stand-in
+  for real PBR texture work, using only material *parameters* since
+  there's no texture-authoring pipeline to produce actual maps.
+- **One shared rig for every hero**: there was never a per-hero mesh
+  to begin with, so "same skeleton, same proportions" was true by
+  construction before this pass and stays true after it — every hero
+  still shares the exact same body-part layout, just with different
+  colors, hair, and gear layered on top.
+
+### 9.2 What's explicitly not attempted
+
+Hand-sculpted or hand-painted textures, a real bone/skinning rig,
+authored animation clips (idle/movement/attack/ultimate as distinct
+hand-made animations), and a real GPU particle system for ultimates —
+none of these have a tool in this project to produce them. The
+existing procedural cues (lunge-on-attack, flash-on-hit/heal/shield,
+the defeat collapse) are the full extent of "animation" here, and stay
+that way until an actual art/animation pipeline exists.

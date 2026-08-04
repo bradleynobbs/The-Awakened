@@ -67,7 +67,7 @@ describe("Cooldown Reduction end-to-end", () => {
     const next = queueCard(state, "player1", cardId, {
       primaryTargetId: heroInstanceId("player1", "fire-mage"),
     });
-    // Round budget is 3 base + 1 (Fire Mage's Energy stat) = 4.
+    // Round budget is 3 base + 1 (Inferna's Energy stat) = 4.
     expect(next.players.player1.energy).toBe(4 - 1);
   });
 });

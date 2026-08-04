@@ -177,6 +177,14 @@ button {
 .hero-symbol {
   font-size: 28px;
 }
+.hero-select-portrait {
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
 .hero-select-name {
   font-weight: 700;
   font-size: 14px;
@@ -349,9 +357,19 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.hero-plate-portrait {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 .hero-plate-speed {
-  float: right;
+  margin-left: auto;
   font-weight: 400;
   font-size: 9px;
   color: #a8b0c8;
@@ -549,6 +567,14 @@ button {
 .hand-card-cost {
   font-weight: 800;
   color: #ffd24a;
+}
+.hand-card-portrait {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 6px;
+  margin-bottom: 2px;
 }
 .hand-card-name {
   font-weight: 700;

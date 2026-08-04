@@ -11,11 +11,11 @@ describe("resolution order", () => {
   it("resolves fastest hero first (Speed stat), not player1-first (DESIGN.md §8.5)", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
 
-    // Speeds: Undead Assassin 13 > Spark Duelist 10 > Fire Mage 9 > Earth
+    // Speeds: Undead Assassin 13 > Spark Duelist 10 > Inferna 9 > Earth
     // Guardian 4 — a fully-determined order with no ties, regardless of
     // which player queued first.
     const p1a = putInHand(state, "player1", "stone-strike"); // Earth Guardian, speed 4
-    const p1b = putInHand(state, "player1", "fire-bolt"); // Fire Mage, speed 9
+    const p1b = putInHand(state, "player1", "fire-bolt"); // Inferna, speed 9
     const p2a = putInHand(state, "player2", "quick-strike"); // Undead Assassin, speed 13
     const p2b = putInHand(state, "player2", "charged-slash"); // Spark Duelist, speed 10
 
@@ -57,7 +57,7 @@ describe("unqueueing", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "stone-strike");
     state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "undead-assassin") });
-    expect(state.players.player1.energy).toBe(3); // 4 (3 base + Fire Mage's Energy stat) - 1
+    expect(state.players.player1.energy).toBe(3); // 4 (3 base + Inferna's Energy stat) - 1
     expect(state.players.player1.hand).not.toContain(cardId);
 
     const queuedId = state.players.player1.queuedActions[0].id;
@@ -137,7 +137,7 @@ describe("fizzling", () => {
   it("partially fizzles Chain Spark when only the secondary target dies first, resolving the primary hit anyway", () => {
     // Undead Assassin (speed 13) needs to out-pace Spark Duelist (speed
     // 10, Chain Spark's caster) so its kill resolves first under the new
-    // speed-sorted order (DESIGN.md §8.5) — swapped in for Fire Mage,
+    // speed-sorted order (DESIGN.md §8.5) — swapped in for Inferna,
     // which at speed 9 would now resolve *after* Chain Spark instead.
     let state = createMatch(
       ["water-healer", "undead-assassin", "spark-duelist"] as [HeroId, HeroId, HeroId],

@@ -20,7 +20,7 @@ concept art and the in-game version read as the same character.
 
 ---
 
-## Fire Mage — Fire · Mage
+## Inferna — Fire · Mage
 
 **Personality:** Quick-tempered but controlled; treats her power like
 a craft, not a tantrum. Confident, a little smug when she lands a hit.

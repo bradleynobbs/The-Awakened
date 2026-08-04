@@ -8,7 +8,7 @@ const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-heal
 const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
 
 describe("energy management", () => {
-  // P1's Fire Mage has the Energy stat (+1), so the round budget is 3 base
+  // P1's Inferna has the Energy stat (+1), so the round budget is 3 base
   // + 1 = 4, not the flat 3 every hero used to grant (DESIGN.md §8.2).
   it("starts each round with 3 base energy plus each living hero's Energy stat, and spends it when a card is queued", () => {
     const state = createMatch(P1, P2, createSeededRng(1));

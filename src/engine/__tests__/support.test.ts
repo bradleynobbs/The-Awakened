@@ -8,7 +8,7 @@ const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "water
 
 describe("Empower (damage-boost support buff)", () => {
   it("adds bonus damage to the empowered hero's next hit, then is consumed", () => {
-    // Undead Assassin (speed 13) needs to out-pace Fire Mage (speed 9) so
+    // Undead Assassin (speed 13) needs to out-pace Inferna (speed 9) so
     // its buff resolves *before* Fire Bolt tries to consume it, under the
     // new speed-sorted order (DESIGN.md §8.5) — Water Healer (speed 7)
     // would now be too slow for this same-round setup.
@@ -89,7 +89,7 @@ describe("Empower (damage-boost support buff)", () => {
     const healer = getHeroFrom(state, "player1", "water-healer");
     const empower = healer.statuses.find((s) => s.type === "empower");
     expect(empower).toBeDefined();
-    // Undead Assassin (speed 13) is faster than Fire Mage (speed 9), so
+    // Undead Assassin (speed 13) is faster than Inferna (speed 9), so
     // Marked Opening (+6) resolves *first* under the new speed-sorted
     // order (DESIGN.md §8.5) and Kindle Spirit (+4) resolves second,
     // overwriting it — not 10, and not the first value.

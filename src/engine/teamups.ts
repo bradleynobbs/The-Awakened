@@ -3,7 +3,7 @@ import { applyBurn, applyWet, dealDamage, dealSparkDamage, getHero, livingHeroes
 import { otherPlayer } from "./combat";
 
 /**
- * Fire Mage + Water Healer.
+ * Inferna + Water Healer.
  * Resolution order (see DESIGN.md 1.12): damage all enemies, then remove Wet
  * from anyone hit, then apply Burn to all enemies.
  */
@@ -16,7 +16,7 @@ export const steamSurge: TeamUpDefinition = {
   targetType: "allEnemies",
   element: "combined",
   description:
-    "Fire Mage + Water Healer: deal 6 damage to all enemies, remove Wet from anyone hit, then apply Burn to all enemies.",
+    "Inferna + Water Healer: deal 6 damage to all enemies, remove Wet from anyone hit, then apply Burn to all enemies.",
   requiredHeroes: ["fire-mage", "water-healer"],
   resolve: (ctx) => {
     const enemyId = otherPlayer(ctx.playerId);

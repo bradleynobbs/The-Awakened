@@ -101,7 +101,7 @@ Both Team-Up cards list multiple effects; the interface must show the
 order explicitly. Decided orders (also enforced by the engine as an
 ordered event list):
 
-- **Steam Surge** (Fire Mage + Water Healer): 1) deal fixed damage to all
+- **Steam Surge** (Inferna + Water Healer): 1) deal fixed damage to all
   enemies → 2) remove Wet from any enemy that had it → 3) apply Burn to all
   enemies.
 - **Thunder Tide** (Water Healer + Lightning Duelist): 1) apply Wet to all
@@ -128,7 +128,7 @@ later without touching the engine.
 
 | Hero | Role | Element | Max HP | Notes |
 |---|---|---|---|---|
-| Fire Mage | Mage | Fire | 18 | |
+| Inferna | Mage | Fire | 18 | |
 | Earth Guardian | Tank | Earth | 24 | starts with 4 Shield |
 | Water Healer | Support | Water | 20 | |
 | Spark Duelist | Brawler | Spark | 20 | |
@@ -138,9 +138,9 @@ later without touching the engine.
 
 | Card | Hero | Cost | Effect |
 |---|---|---|---|
-| Fire Bolt (attack) | Fire Mage | 1 | 5 dmg to one enemy + apply Burn (2 triggers, 3 dmg each) |
-| Flame Wave (ability) | Fire Mage | 2 | 3 dmg to all enemies |
-| Kindle Spirit (support) | Fire Mage | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
+| Fire Bolt (attack) | Inferna | 1 | 5 dmg to one enemy + apply Burn (2 triggers, 3 dmg each) |
+| Flame Wave (ability) | Inferna | 2 | 3 dmg to all enemies |
+| Kindle Spirit (support) | Inferna | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
 | Stone Strike (attack) | Earth Guardian | 1 | 5 dmg to one enemy |
 | Fortify (ability) | Earth Guardian | 2 | +6 Shield to one ally |
 | Guardian's Watch (support) | Earth Guardian | 2 | +3 Shield to every allied hero |
@@ -161,7 +161,7 @@ later without touching the engine.
 | Spirit Ward (support) | Spirit Mage | 2 | Heal one ally for 5 |
 
 Passives:
-- **Fire Mage**: +1 damage dealt by this hero to any target that currently has Burn.
+- **Inferna**: +1 damage dealt by this hero to any target that currently has Burn.
 - **Earth Guardian**: begins the match with 4 Shield.
 - **Water Healer**: the first healing card *this player* uses each match heals +1 additional.
 - **Spark Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
@@ -170,7 +170,7 @@ Passives:
 - **Spirit Mage**: the first hit that would defeat this hero each match instead leaves them at 1 HP.
 
 Team-Up cards:
-- **Steam Surge** (Fire Mage + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
+- **Steam Surge** (Inferna + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
 - **Thunder Tide** (Water Healer + Spark Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
 - Charm Gunslinger and Spirit Mage don't have a Team-Up yet — more Team-Ups are intentionally out of scope for this pass (see section 3), not an oversight.
 
@@ -408,7 +408,7 @@ rather than stacking, mirroring how re-applying Burn refreshes its
 duration instead of adding a second stack.
 
 This is intentionally a *shared* mechanic (four of the five heroes'
-support cards grant it, at different costs: 4 from Fire Mage/Water
+support cards grant it, at different costs: 4 from Inferna/Water
 Healer, 6 from Shadow Assassin, 4-or-7 from Lightning Duelist depending
 on whether the target's Wet — reusing the existing Wet interaction
 flavor). That mirrors how Shield, Burn, and Wet are already
@@ -489,7 +489,7 @@ building a second, parallel buff/debuff system) is why Called Shot's
 Charm application was cheap to add and easy to verify: it's the same
 `dealDamage` branch Empower already exercises, just subtracting instead
 of adding. Charm Gunslinger's passive, Steady Aim (+1 damage to
-currently-Charmed targets), mirrors Fire Mage's own Burn-synergy passive
+currently-Charmed targets), mirrors Inferna's own Burn-synergy passive
 for the same reason — a player who's already learned one of these
 patterns has effectively learned both.
 
@@ -641,7 +641,7 @@ making support numbers element-dependent.
 Each role favors a different 2–3 stats, expressed as each hero's actual
 stat block rather than an enforced rule — a future hero can still bend
 its role's archetype the way Spirit Mage already bends "Mage" away from
-pure Fire Mage-style burst. Rough shape per role:
+pure Inferna-style burst. Rough shape per role:
 
 - **Tank**: high Health/Defense, high Shield Strength, low Speed.
 - **Support**: high Healing Power, moderate Energy/CDR, low Attack.

@@ -207,7 +207,7 @@ purpose) opens a raw state inspector for debugging.
 
 | Hero | Role | Element | HP | Passive |
 |---|---|---|---|---|
-| Fire Mage | Mage | Fire | 18 | +1 damage to targets already Burning |
+| Inferna | Mage | Fire | 18 | +1 damage to targets already Burning |
 | Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
 | Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
@@ -225,7 +225,7 @@ Support card (2 energy — heals, shields, or Empowers an ally, see
 `DESIGN.md` §6), and one passive. Full card text and numbers are in
 `DESIGN.md` §2.
 
-**Team-Ups:** *Steam Surge* (Fire Mage + Water Healer) and *Thunder Tide*
+**Team-Ups:** *Steam Surge* (Inferna + Water Healer) and *Thunder Tide*
 (Water Healer + Spark Duelist) — 3 energy, once per match, with a
 fixed resolution order shown in the card's description. Charm Gunslinger
 and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
@@ -279,7 +279,7 @@ Roles lean into different stats — Tanks run high Health/Defense,
 Supports run high Healing Power, Gunslingers run high Accuracy/Critical
 Chance, and so on — but nothing is enforced; a hero's actual numbers
 are what matter, the same way Spirit Mage already bends "Mage" away
-from Fire Mage's burst-damage template.
+from Inferna's burst-damage template.
 
 ## Architecture
 

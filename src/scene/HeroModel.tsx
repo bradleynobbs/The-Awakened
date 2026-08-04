@@ -8,6 +8,7 @@ import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
 import { ElementAura } from "./ElementAura";
 import { HeroFace } from "./HeroFace";
 import { HERO_COSMETICS } from "./heroCosmetics";
+import { HERO_PORTRAITS } from "../ui/heroPortraits";
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
 
@@ -332,7 +333,16 @@ export function HeroModel({
       <Html position={[0, 2.05, 0]} center distanceFactor={8} occlude={false}>
         <div className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}>
           <div className="hero-plate-name">
-            {ELEMENT_SYMBOL[def.element]} {def.name}
+            {HERO_PORTRAITS[def.id] ? (
+              <img
+                className="hero-plate-portrait"
+                src={HERO_PORTRAITS[def.id]!.portrait}
+                alt={def.name}
+              />
+            ) : (
+              <span>{ELEMENT_SYMBOL[def.element]} </span>
+            )}
+            {def.name}
             <span className="hero-plate-speed" title="Speed — decides resolution order">
               🏃{def.stats.speed}
             </span>

@@ -380,7 +380,7 @@ const spiritWard: CardDefinition = {
 export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "fire-mage": {
     id: "fire-mage",
-    name: "Fire Mage",
+    name: "Inferna",
     role: "Mage",
     element: "fire",
     maxHp: 18,

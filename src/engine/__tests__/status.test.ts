@@ -16,7 +16,7 @@ describe("Burn timing", () => {
 
     state = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: target }));
 
-    // Fire Bolt: 5 base + 2 Attack (Fire Mage) = 7, neutral Fire-vs-Fire
+    // Fire Bolt: 5 base + 2 Attack (Inferna) = 7, neutral Fire-vs-Fire
     // matchup (×1), 0 Defense. Resolving then rolls straight into the next
     // round, and Burn ticks once at the start of every round (DESIGN.md
     // 5.3, unaffected by stats — see §8.2) — so the Burn Fire Bolt just
@@ -91,7 +91,7 @@ describe("Wet and Spark interaction", () => {
   });
 });
 
-describe("Fire Mage passive", () => {
+describe("Inferna passive", () => {
   it("adds +1 damage against a target that is already burning", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
     const boltA = putCopyInHand(state, "player1", "fire-bolt", 0);

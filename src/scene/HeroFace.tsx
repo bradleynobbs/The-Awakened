@@ -31,13 +31,24 @@ export function HeroFace({ heroId, mat, headY, headTopY, headRadius, facing }: H
       case "fire-mage":
         return (
           <>
-            <mesh position={[0, headTopY - 0.06, 0]} scale={[1, 0.6, 1]}>
-              <sphereGeometry args={[headRadius * 0.95, 10, 8]} />
+            {/* hair swept back off the face */}
+            <mesh position={[0, headTopY - 0.07, 0.01 * facing]} scale={[1, 0.55, 1]}>
+              <sphereGeometry args={[headRadius * 0.97, 10, 8]} />
               <meshStandardMaterial color={hair} {...mat} />
             </mesh>
-            {[-0.08, 0.08].map((x, i) => (
-              <mesh key={i} position={[x, headTopY, -0.05]} rotation={[0.5, 0, 0]}>
-                <coneGeometry args={[0.03, 0.14, 6]} />
+            {/* bun at the back of the head */}
+            <mesh position={[0, headTopY - 0.03, facing * headRadius * 0.75]}>
+              <sphereGeometry args={[headRadius * 0.4, 10, 8]} />
+              <meshStandardMaterial color={hair} {...mat} />
+            </mesh>
+            {/* a couple of loose strands framing the face */}
+            {[-1, 1].map((side) => (
+              <mesh
+                key={side}
+                position={[side * headRadius * 0.82, headY - 0.08, -facing * headRadius * 0.35]}
+                rotation={[0, 0, side * 0.35]}
+              >
+                <coneGeometry args={[0.018, 0.2, 6]} />
                 <meshStandardMaterial color={hair} {...mat} />
               </mesh>
             ))}

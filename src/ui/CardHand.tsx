@@ -2,7 +2,6 @@ import { getCardDefinition } from "../engine/cards";
 import { effectiveCardCost, HERO_DEFINITIONS } from "../engine/heroes";
 import type { CardInstanceId, MatchState, PlayerId } from "../engine/types";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
-import { HERO_PORTRAITS } from "./heroPortraits";
 
 const TARGET_LABEL: Record<string, string> = {
   singleEnemy: "1 Enemy",
@@ -34,7 +33,6 @@ export function CardHand({ state, playerId, canAct, armedCardId, onCardClick }: 
         const affordable = player.energy >= cost;
         const playable = canAct && Boolean(heroAlive) && affordable;
         const armed = armedCardId === cardInstanceId;
-        const portrait = HERO_PORTRAITS[instance.heroId];
 
         return (
           <button
@@ -44,9 +42,6 @@ export function CardHand({ state, playerId, canAct, armedCardId, onCardClick }: 
             onClick={() => playable && onCardClick(cardInstanceId)}
             disabled={!playable}
           >
-            {portrait && (
-              <img className="hand-card-portrait" src={portrait.portrait} alt={heroDef?.name} />
-            )}
             <div className="hand-card-top">
               <span className="hand-card-cost">{cost}⚡</span>
               <span className="hand-card-element">

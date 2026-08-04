@@ -4,7 +4,6 @@ import type { HeroId } from "../engine/types";
 import type { HeroTrio } from "../engine/match";
 import { getPreferredLoadout, savePreferredLoadout } from "../state/loadout";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
-import { HERO_PORTRAITS } from "./heroPortraits";
 
 interface DeckBuilderProps {
   onBack: () => void;
@@ -50,7 +49,6 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
           {HERO_LIST.map((hero) => {
             const isSelected = selected.includes(hero.id);
             const index = selected.indexOf(hero.id);
-            const portrait = HERO_PORTRAITS[hero.id];
             return (
               <button
                 key={hero.id}
@@ -59,13 +57,9 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
                 onClick={() => toggle(hero.id)}
               >
                 {isSelected && <span className="pick-badge">{index + 1}</span>}
-                {portrait ? (
-                  <img className="hero-select-portrait" src={portrait.splash} alt={hero.name} />
-                ) : (
-                  <span className="hero-symbol" style={{ color: ELEMENT_COLOR[hero.element] }}>
-                    {ELEMENT_SYMBOL[hero.element]}
-                  </span>
-                )}
+                <span className="hero-symbol" style={{ color: ELEMENT_COLOR[hero.element] }}>
+                  {ELEMENT_SYMBOL[hero.element]}
+                </span>
                 <span className="hero-select-name">{hero.name}</span>
                 <span className="hero-select-role">
                   {hero.role} · {hero.element}

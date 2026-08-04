@@ -8,7 +8,6 @@ import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
 import { ElementAura } from "./ElementAura";
 import { HeroFace } from "./HeroFace";
 import { HERO_COSMETICS } from "./heroCosmetics";
-import { HERO_PORTRAITS } from "../ui/heroPortraits";
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;
 
@@ -73,6 +72,10 @@ function RoleGear({
 }) {
   switch (role) {
     case "Mage":
+      // Inferna channels fire bare-handed (CHARACTER_CONCEPTS.md) — her
+      // glove cuffs + palm flame are rendered directly in HeroModel instead,
+      // since they need arm-position math the shared RoleGear doesn't have.
+      if (heroId === "fire-mage") return null;
       return (
         <group position={[0.4, 0, 0]} rotation={[0, 0, -0.12]}>
           <mesh position={[0, 0.75, 0]}>
@@ -255,6 +258,29 @@ export function HeroModel({
   const headY = torsoTop + 0.07 + headRadius;
   const headTopY = headY + headRadius;
 
+  // Inferna gets a bespoke silhouette instead of the shared Mage robe shape
+  // (CHARACTER_CONCEPTS.md): a cropped black bomber jacket with glowing
+  // lava-crack seams over a fitted tank top, bare-handed flame casting
+  // instead of a staff. Every other hero still uses the generic role rig.
+  const isInferna = def.id === "fire-mage" && !hero.isDefeated;
+  const jacketHeight = torso.height * 0.66;
+  const jacketTopY = legTop + torso.height;
+  const crackZ = -facing * 0.24;
+  const cracks = [
+    { x: -0.07, y: jacketTopY - jacketHeight * 0.18, rot: 0.5, len: 0.17 },
+    { x: 0.08, y: jacketTopY - jacketHeight * 0.42, rot: -0.4, len: 0.22 },
+    { x: -0.04, y: jacketTopY - jacketHeight * 0.66, rot: 0.3, len: 0.16 },
+    { x: 0.05, y: jacketTopY - jacketHeight * 0.88, rot: -0.2, len: 0.14 },
+  ];
+  // Hand tip: the arm cylinder's center is at (armCenterX, armCenterY),
+  // half-length 0.25 with a slight outward lean — this approximates where
+  // the hand actually ends up so the glove + flame sit on it, not floating.
+  const armCenterY = legTop + torso.height - 0.2;
+  const armCenterX = torso.top + 0.14;
+  const handY = armCenterY - 0.24;
+  const handX = armCenterX + 0.045;
+  const handFrontZ = -facing * 0.16;
+
   return (
     <group
       ref={groupRef}
@@ -279,10 +305,49 @@ export function HeroModel({
         </mesh>
 
         {/* torso */}
-        <mesh position={[0, legTop + torso.height / 2, 0]}>
-          <cylinderGeometry args={[torso.top, torso.bottom, torso.height, 12]} />
-          <meshStandardMaterial color={clothColor} roughness={0.75} metalness={0.05} {...mat} />
-        </mesh>
+        {def.id === "fire-mage" ? (
+          <>
+            {/* fitted charcoal tank top, full torso height */}
+            <mesh position={[0, legTop + torso.height / 2, 0]}>
+              <cylinderGeometry args={[0.15, 0.14, torso.height, 12]} />
+              <meshStandardMaterial color="#2b2b34" roughness={0.7} metalness={0.05} {...mat} />
+            </mesh>
+            {/* cropped black bomber jacket, worn open over the top ~two-thirds */}
+            <mesh position={[0, jacketTopY - jacketHeight / 2, 0]}>
+              <cylinderGeometry args={[0.24, 0.22, jacketHeight, 12]} />
+              <meshStandardMaterial color="#171514" roughness={0.5} metalness={0.15} {...mat} />
+            </mesh>
+            {/* popped jacket collar */}
+            {[-1, 1].map((side) => (
+              <mesh
+                key={side}
+                position={[side * 0.09, jacketTopY + 0.03, -facing * 0.04]}
+                rotation={[0.3, 0, side * 0.35]}
+              >
+                <boxGeometry args={[0.05, 0.1, 0.02]} />
+                <meshStandardMaterial color="#171514" roughness={0.5} metalness={0.15} {...mat} />
+              </mesh>
+            ))}
+            {/* glowing lava-crack seams down the jacket */}
+            {isInferna &&
+              cracks.map((c, i) => (
+                <mesh key={i} position={[c.x, c.y, crackZ]} rotation={[0, 0, c.rot]}>
+                  <boxGeometry args={[c.len, 0.026, 0.018]} />
+                  <meshStandardMaterial
+                    color="#ff7a2a"
+                    {...mat}
+                    emissive="#ff6a1f"
+                    emissiveIntensity={2.2}
+                  />
+                </mesh>
+              ))}
+          </>
+        ) : (
+          <mesh position={[0, legTop + torso.height / 2, 0]}>
+            <cylinderGeometry args={[torso.top, torso.bottom, torso.height, 12]} />
+            <meshStandardMaterial color={clothColor} roughness={0.75} metalness={0.05} {...mat} />
+          </mesh>
+        )}
 
         {/* arms */}
         <mesh position={[-(torso.top + 0.14), legTop + torso.height - 0.2, 0]} rotation={[0, 0, 0.14]}>
@@ -293,6 +358,32 @@ export function HeroModel({
           <cylinderGeometry args={[0.07, 0.075, 0.5, 10]} />
           <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0} {...mat} />
         </mesh>
+
+        {/* Inferna: fingerless glove cuffs + a flame cupped in each palm,
+            replacing the shared Mage staff (CHARACTER_CONCEPTS.md — she
+            channels fire through her bare hands, not a focus item). */}
+        {isInferna &&
+          [-1, 1].map((side) => (
+            <group key={side}>
+              {/* fingerless glove cuff, right at the wrist */}
+              <mesh position={[side * handX, handY + 0.07, 0]} rotation={[0, 0, side * 0.14]}>
+                <cylinderGeometry args={[0.08, 0.08, 0.08, 10]} />
+                <meshStandardMaterial color="#171514" roughness={0.45} metalness={0.15} {...mat} />
+              </mesh>
+              {/* flame cupped just past the palm, out past the arm so it isn't buried in it */}
+              <mesh position={[side * (handX + 0.06), handY - 0.03, handFrontZ]}>
+                <sphereGeometry args={[0.06, 10, 10]} />
+                <meshStandardMaterial
+                  color="#ff8a3d"
+                  {...mat}
+                  emissive="#ff5a1f"
+                  emissiveIntensity={1.8}
+                  transparent
+                  opacity={0.92}
+                />
+              </mesh>
+            </group>
+          ))}
 
         {/* head */}
         <mesh position={[0, headY, 0]}>
@@ -333,16 +424,7 @@ export function HeroModel({
       <Html position={[0, 2.05, 0]} center distanceFactor={8} occlude={false}>
         <div className={`hero-plate${hero.isDefeated ? " defeated" : ""}`}>
           <div className="hero-plate-name">
-            {HERO_PORTRAITS[def.id] ? (
-              <img
-                className="hero-plate-portrait"
-                src={HERO_PORTRAITS[def.id]!.portrait}
-                alt={def.name}
-              />
-            ) : (
-              <span>{ELEMENT_SYMBOL[def.element]} </span>
-            )}
-            {def.name}
+            {ELEMENT_SYMBOL[def.element]} {def.name}
             <span className="hero-plate-speed" title="Speed — decides resolution order">
               🏃{def.stats.speed}
             </span>

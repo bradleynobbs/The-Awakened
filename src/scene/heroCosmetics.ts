@@ -17,7 +17,7 @@ export const HERO_COSMETICS: Record<HeroId, HeroCosmetics> = {
   "fire-mage": {
     skin: "#e0a878",
     eye: "#c2621a",
-    hair: "#5a2a1a",
+    hair: "#2a1712",
     feature: "ember-freckle",
   },
   "earth-guardian": {

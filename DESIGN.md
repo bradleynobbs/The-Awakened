@@ -755,3 +755,23 @@ detailed enough to paste into an external image generator or hand to
 an illustrator. Each brief keeps the identity already established in
 `heroCosmetics.ts` (skin/eye/hair color) so real concept art and the
 in-game version would read as the same character once produced.
+
+### 9.4 Inferna's rig: the first hero-specific redesign
+
+Inferna is the first hero to break from the shared per-role rig
+(§9.1) and get a bespoke primitive build, based on real reference art
+the player provided (a modern black cropped jacket with glowing
+lava-crack seams, dark hair pulled back). `HeroModel.tsx` special-cases
+`heroId === "fire-mage"` to swap the generic Mage-role torso cylinder
+for a fitted charcoal base layer plus a shorter, wider "jacket"
+cylinder worn over it, with several small emissive boxes laid on its
+front face as glowing crack seams. She also skips the shared Mage
+staff (`RoleGear`) entirely — her Fire Bolt/Flame Wave read as flame
+cupped directly in each palm (a small emissive sphere at the hand,
+above a dark fingerless-glove cuff), matching the "channels fire
+through bare hands" brief in `CHARACTER_CONCEPTS.md`. `HeroFace.tsx`
+gives her a swept-back hairstyle with a bun at the back of the head
+instead of the original short spiky-tuft hair. This is still built
+entirely from primitives (no mesh assets) — it's a proof that the
+existing rig can absorb hero-specific silhouettes, not a departure
+from the capability ceiling documented in §9.2.

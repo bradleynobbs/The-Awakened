@@ -864,16 +864,17 @@ cleanly, zero console errors), the only open questions were pacing
 ### 9.5 A real battlefield background
 
 `Battlefield.tsx` renders a `.battlefield-bg` layer using a real
-painted arena image (`src/assets/backgrounds/arena-rift.jpg`, resized
-to 1280px wide and JPEG-compressed to ~160KB) behind both formations,
-with a `.battlefield-scrim` gradient over it — darker at the top and
-bottom (where the hero-plates and hand tray need to stay legible),
-clearer through the middle where the two formations actually stand.
-This replaced the old flat two-tone gradient (`battlefield-sky`/
+painted arena image (`src/assets/backgrounds/arena-plaza.jpg`, resized
+to 1280px wide and JPEG-compressed) behind both formations, with a
+`.battlefield-scrim` gradient over it — darker at the top and bottom
+(where the hero-plates and hand tray need to stay legible), clearer
+through the middle where the two formations actually stand. This
+replaced the old flat two-tone gradient (`battlefield-sky`/
 `battlefield-ground`). Unlike hero art, a background doesn't need
 transparency or facing/mirroring — it's a single `background-image`
-sized with `cover`, so any similarly-composed wide image drops in the
-same way.
+sized with `cover`, so any similarly-composed wide image drops in
+(swapped once already, from an initial rift-meadow image to this
+plaza one, with no code changes needed beyond the import path).
 
 ### 9.6 Real-device fit-and-finish pass
 
@@ -900,3 +901,17 @@ testing size but not on an actual device:
   necessary to fit "Earth Guardian" — the roster's longest name — in
   full now that the pill costs more horizontal space than the old
   floated text did.
+
+### 9.7 Scattered formations
+
+Each `.formation`'s 3 heroes originally stacked in one rigid vertical
+line via `justify-content: space-evenly`. `nth-child` transforms on
+`.hero-slot` now jitter each slot's horizontal position (and give the
+middle slot a small vertical nudge via negative margin) so a team
+reads as loosely standing around their half of the floor instead of
+queued up single-file — while staying strictly grouped on their own
+side of the divide (`.formation-left`/`.formation-right` mirror the
+offsets so both scatter toward their own outer edge, never toward the
+center where they'd cross into the opposing team's space). This is
+static per-slot-index jitter, not a real per-hero position system —
+still fine for a fixed 3-per-side roster.

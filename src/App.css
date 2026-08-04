@@ -399,6 +399,31 @@ button {
   align-items: center;
   gap: 6px;
 }
+/* Scatter each team loosely across their half of the floor instead of
+ * stacking all 3 heroes in one rigid vertical line — still grouped on
+ * their own side of the rift, just standing at slightly different spots
+ * the way a real formation would. Mirrored between the two sides so both
+ * scatter toward their own outer edge rather than toward the center. */
+.formation-left .hero-slot:nth-child(1) {
+  transform: translateX(14px);
+}
+.formation-left .hero-slot:nth-child(2) {
+  transform: translateX(-8px);
+  margin: -6px 0;
+}
+.formation-left .hero-slot:nth-child(3) {
+  transform: translateX(22px);
+}
+.formation-right .hero-slot:nth-child(1) {
+  transform: translateX(-14px);
+}
+.formation-right .hero-slot:nth-child(2) {
+  transform: translateX(8px);
+  margin: -6px 0;
+}
+.formation-right .hero-slot:nth-child(3) {
+  transform: translateX(-22px);
+}
 
 .hero-sprite-wrap {
   position: relative;

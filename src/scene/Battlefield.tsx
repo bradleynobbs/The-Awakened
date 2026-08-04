@@ -3,7 +3,7 @@ import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
 import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
-import arenaBackground from "../assets/backgrounds/arena-rift.jpg";
+import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
 /** Which health-bar color tier to show — a flat "always green" bar doesn't
  * communicate danger the way a game health bar should. */

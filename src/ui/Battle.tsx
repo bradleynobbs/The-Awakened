@@ -73,7 +73,7 @@ export function Battle({
     if (!canAct) return;
     const instance = state.players[myRole].cardsById[cardInstanceId];
     const cardDef = getCardDefinition(instance.cardId);
-    if (cardDef.targetType === "allEnemies") {
+    if (cardDef.targetType === "allEnemies" || cardDef.targetType === "allAllies") {
       onQueueCard(cardInstanceId, {});
       return;
     }

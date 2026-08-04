@@ -178,6 +178,7 @@ export function HeroModel({
   const opacity = hero.isDefeated ? 0.35 : 1;
   const burn = hero.statuses.find((s) => s.type === "burn");
   const wet = hero.statuses.some((s) => s.type === "wet");
+  const empower = hero.statuses.find((s) => s.type === "empower");
 
   const mat: BodyMat = {
     transparent: true,
@@ -274,6 +275,9 @@ export function HeroModel({
             {hero.shield > 0 && <span className="badge shield">🛡{hero.shield}</span>}
             {burn && <span className="badge burn">🔥{burn.remainingTriggers}</span>}
             {wet && <span className="badge wet">💧</span>}
+            {empower && empower.type === "empower" && (
+              <span className="badge empower">💪+{empower.bonusDamage}</span>
+            )}
           </div>
         </div>
       </Html>

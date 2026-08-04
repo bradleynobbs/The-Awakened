@@ -18,7 +18,7 @@ matchmaking/sync design in section 4).
 ```bash
 npm install
 npm run dev        # start the dev server
-npm run test       # run the Vitest suite (56 tests, engine-only)
+npm run test       # run the Vitest suite (63 tests, engine-only)
 npm run typecheck  # tsc project build, no emit
 npm run build      # production build (tsc -b && vite build)
 npm run lint        # oxlint
@@ -135,9 +135,9 @@ The main menu has:
 - **Deck Builder** — browse every hero's full card text and save a
   preferred 3-hero loadout (stored locally), which pre-fills team
   selection in both modes above. The engine's decks are fixed per hero
-  (3 copies of their Attack + Ability card each) — there's no separate
-  card-picking mechanic yet, so this is really "choose your team," just
-  with full card details up front.
+  (3 copies each of their Attack, Ability, and Support card) — there's no
+  separate card-picking mechanic yet, so this is really "choose your
+  team," just with full card details up front.
 - **Store** — honest "coming soon" placeholder. No currency or
   purchases exist in this prototype by design.
 - A **Daily/Weekly objectives** summary (matches played/won, tracked
@@ -155,12 +155,16 @@ The main menu has:
 3. **Battle.** Every round, both players plan simultaneously — there's
    no waiting for a turn. Each round you get 3 energy and a fresh hand
    of 5 cards drawn from your personal deck (built from your 3 heroes'
-   Attack + Ability cards, 3 copies of each).
+   Attack, Ability, and Support cards, 3 copies of each).
    - Tap a card in your hand to arm it, then tap a highlighted hero on
      the battlefield to target it. This queues the action (shown in
      your **Planned Actions** list) — nothing resolves yet, and your
-     opponent can't see what you've queued. Cards that hit all enemies
-     (like Flame Wave) queue immediately with no target tap needed.
+     opponent can't see what you've queued. Cards that hit every enemy
+     or buff every ally (like Flame Wave or Guardian's Watch) queue
+     immediately with no target tap needed. Support cards target one of
+     your own heroes instead of an enemy — most **Empower** an ally
+     (shown as a 💪 badge on their plate), adding bonus damage to that
+     hero's next hit before the buff is consumed.
    - Queue as many actions as your energy allows, in any order. Change
      your mind? Tap a queued action to unqueue it and get its energy
      back.
@@ -197,8 +201,10 @@ purpose) opens a raw state inspector for debugging.
 | Lightning Duelist | Fighter | Lightning | 20 | +2 Shield after a Water+Lightning interaction |
 | Shadow Assassin | Assassin | Shadow | 16 | First hit taken each match is reduced by 3 (min 1) |
 
-Each hero has one Attack card (1 energy), one Ability card (2 energy), and
-one passive. Full card text and numbers are in `DESIGN.md` §2.
+Each hero has one Attack card (1 energy), one Ability card (2 energy), one
+Support card (2 energy — heals, shields, or Empowers an ally, see
+`DESIGN.md` §6), and one passive. Full card text and numbers are in
+`DESIGN.md` §2.
 
 **Team-Ups:** *Steam Surge* (Fire Mage + Water Healer) and *Thunder Tide*
 (Water Healer + Lightning Duelist) — 3 energy, once per match, with a
@@ -227,7 +233,7 @@ for why, and its tradeoffs).
 ```
 src/engine/       Pure rules engine (unchanged whether local or online)
   types.ts         Core typed models (Hero, Card, Status, MatchState, GameEvent…)
-  heroes.ts        The 5 hero definitions + their Attack/Ability card resolvers
+  heroes.ts        The 5 hero definitions + their Attack/Ability/Support card resolvers
   teamups.ts       The 2 Team-Up card definitions
   cards.ts         Card-id → CardDefinition registry
   selection.ts     Hero-pick validation (exactly 3 of 5, lock-in)

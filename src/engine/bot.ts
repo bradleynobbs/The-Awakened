@@ -35,6 +35,7 @@ export function chooseBotAction(
 
     switch (cardDef.targetType) {
       case "allEnemies":
+      case "allAllies":
         return { cardInstanceId, targets: {} };
 
       case "singleEnemy": {

@@ -46,6 +46,10 @@ describe("chooseBotAction", () => {
     );
     getHeroFrom(state, "player2", "earth-guardian").isDefeated = true;
     getHeroFrom(state, "player2", "water-healer").isDefeated = true;
+    // Clear the hand so chain-spark (an enemy-targeting card) is the only
+    // option — otherwise the bot could shuffle into an ally-targeting
+    // support card instead, which this test isn't about.
+    state.players.player1.hand = [];
     putInHand(state, "player1", "chain-spark");
 
     const action = chooseBotAction(state, "player1", createSeededRng(2));

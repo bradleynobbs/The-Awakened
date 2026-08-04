@@ -9,7 +9,7 @@ export function buildDeck(playerId: PlayerId, heroIds: HeroId[]): PlayerState["c
   const cardsById: PlayerState["cardsById"] = {};
   for (const heroId of heroIds) {
     const def = HERO_DEFINITIONS[heroId];
-    for (const card of [def.attack, def.ability]) {
+    for (const card of [def.attack, def.ability, def.support]) {
       for (let copy = 0; copy < COPIES_PER_CARD; copy++) {
         const instanceId = `${playerId}:${card.id}:${copy}`;
         cardsById[instanceId] = { instanceId, cardId: card.id, heroId };

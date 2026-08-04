@@ -26,9 +26,10 @@ export type TargetType =
   | "singleEnemy"
   | "singleAlly"
   | "allEnemies"
+  | "allAllies"
   | "twoEnemies";
 
-export type CardKind = "attack" | "ability" | "teamup";
+export type CardKind = "attack" | "ability" | "support" | "teamup";
 
 /** A unique instance id for a hero on the battlefield: `${ownerId}:${heroId}`. */
 export type HeroInstanceId = string;
@@ -47,7 +48,13 @@ export interface StatusWet {
   type: "wet";
 }
 
-export type StatusEffect = StatusBurn | StatusWet;
+export interface StatusEmpower {
+  type: "empower";
+  /** Bonus damage added to this hero's next damage-dealing action, then consumed. */
+  bonusDamage: number;
+}
+
+export type StatusEffect = StatusBurn | StatusWet | StatusEmpower;
 
 export interface HeroDefinition {
   id: HeroId;
@@ -58,6 +65,8 @@ export interface HeroDefinition {
   startingShield: number;
   attack: CardDefinition;
   ability: CardDefinition;
+  /** A support card: heals or buffs an ally (or the whole team) rather than hitting an enemy. */
+  support: CardDefinition;
   passive: {
     name: string;
     description: string;

@@ -7,6 +7,7 @@ const TARGET_LABEL: Record<string, string> = {
   singleEnemy: "1 Enemy",
   singleAlly: "1 Ally",
   allEnemies: "All Enemies",
+  allAllies: "All Allies",
   twoEnemies: "2 Enemies",
 };
 

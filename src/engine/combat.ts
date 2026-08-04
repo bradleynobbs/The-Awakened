@@ -80,12 +80,20 @@ export function dealDamage(
 
   let total = amount;
   let firePassiveBonus = 0;
+  let empowerBonus = 0;
 
   if (sourceHeroInstanceId) {
     const source = getHero(state, sourceHeroInstanceId);
     if (source.heroId === "fire-mage" && hasBurn(target)) {
       firePassiveBonus = 1;
       total += firePassiveBonus;
+    }
+    const empowerIdx = source.statuses.findIndex((s) => s.type === "empower");
+    if (empowerIdx !== -1) {
+      const empower = source.statuses[empowerIdx];
+      empowerBonus = empower.type === "empower" ? empower.bonusDamage : 0;
+      total += empowerBonus;
+      source.statuses.splice(empowerIdx, 1);
     }
   }
 
@@ -116,9 +124,14 @@ export function dealDamage(
     sourceHeroInstanceId,
     amount: remaining,
     firePassiveBonus,
+    empowerBonus,
     firstHitReduction,
     targetHpAfter: target.currentHp,
   });
+
+  if (empowerBonus > 0 && sourceHeroInstanceId) {
+    events.push({ type: "STATUS_REMOVED", targetId: sourceHeroInstanceId, status: "empower" });
+  }
 
   if (target.currentHp === 0 && !target.isDefeated) {
     target.isDefeated = true;
@@ -176,6 +189,20 @@ export function applyWet(ctx: CardResolveContext, targetId: HeroInstanceId): voi
   if (target.statuses.some((s) => s.type === "wet")) return;
   target.statuses.push({ type: "wet" });
   events.push({ type: "STATUS_APPLIED", targetId, status: "wet" });
+}
+
+/** Buffs an ally's next damage-dealing action; overwrites rather than stacks, like Burn's refresh. */
+export function applyEmpower(ctx: CardResolveContext, targetId: HeroInstanceId, bonusDamage: number): void {
+  const { state, events } = ctx;
+  const target = getHero(state, targetId);
+  if (target.isDefeated) return;
+  const existing = target.statuses.find((s) => s.type === "empower");
+  if (existing && existing.type === "empower") {
+    existing.bonusDamage = bonusDamage;
+  } else {
+    target.statuses.push({ type: "empower", bonusDamage });
+  }
+  events.push({ type: "STATUS_APPLIED", targetId, status: "empower" });
 }
 
 function removeWet(ctx: CardResolveContext, targetId: HeroInstanceId): boolean {

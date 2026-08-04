@@ -40,8 +40,8 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
       <div className="selection-screen deck-builder-body">
         <p className="selection-hint">
           Choose your preferred 3 heroes. This loadout pre-fills team selection when you start a
-          match — you can still change it there. Each hero's deck is fixed: 3 copies of their
-          Attack and 3 of their Ability card.
+          match — you can still change it there. Each hero's deck is fixed: 3 copies each of
+          their Attack, Ability, and Support card.
         </p>
 
         <div className="hero-select-grid">
@@ -70,6 +70,9 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
                   </div>
                   <div className="deck-builder-card-line">
                     <b>{hero.ability.name}</b> ({hero.ability.cost}⚡) — {hero.ability.description}
+                  </div>
+                  <div className="deck-builder-card-line">
+                    <b>{hero.support.name}</b> ({hero.support.cost}⚡) — {hero.support.description}
                   </div>
                   <div className="deck-builder-card-line passive">
                     <b>Passive:</b> {hero.passive.description}

@@ -13,6 +13,7 @@ export function validateTargets(
 
   switch (card.targetType) {
     case "allEnemies":
+    case "allAllies":
       return;
 
     case "singleEnemy": {

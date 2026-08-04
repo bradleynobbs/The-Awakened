@@ -6,6 +6,7 @@ const registry = new Map<string, CardDefinition>();
 for (const hero of HERO_LIST) {
   registry.set(hero.attack.id, hero.attack);
   registry.set(hero.ability.id, hero.ability);
+  registry.set(hero.support.id, hero.support);
 }
 for (const teamUp of TEAM_UP_DEFINITIONS) {
   registry.set(teamUp.id, teamUp);

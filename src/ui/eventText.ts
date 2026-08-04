@@ -17,6 +17,12 @@ function fizzledCardName(state: MatchState, playerId: PlayerId, cardInstanceId: 
   return cardId ? getCardDefinition(cardId).name : "A card";
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  burn: "Burning",
+  wet: "Wet",
+  empower: "Empowered",
+};
+
 /** Renders a single engine event as a short, readable combat-log line, from myRole's perspective. */
 export function describeEvent(state: MatchState, event: GameEvent, myRole: PlayerId): string | null {
   const e = event as Record<string, unknown>;
@@ -32,7 +38,10 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
     case "DAMAGE_DEALT": {
       const amount = e.amount as number;
       if (amount <= 0) return null;
-      const bonus = (e.firePassiveBonus as number) > 0 ? " (+1 Burn bonus)" : "";
+      const bonuses: string[] = [];
+      if ((e.firePassiveBonus as number) > 0) bonuses.push("+1 Burn bonus");
+      if ((e.empowerBonus as number) > 0) bonuses.push(`+${e.empowerBonus} Empower bonus`);
+      const bonus = bonuses.length > 0 ? ` (${bonuses.join(", ")})` : "";
       return `${heroName(state, e.targetId as string)} takes ${amount} damage${bonus}.`;
     }
     case "SHIELD_ABSORBED":
@@ -42,10 +51,10 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
     case "SHIELD_GAINED":
       return `${heroName(state, e.targetId as string)} gains ${e.amount} Shield.`;
     case "STATUS_APPLIED":
-      return `${heroName(state, e.targetId as string)} is now ${e.status === "burn" ? "Burning" : "Wet"}.`;
+      return `${heroName(state, e.targetId as string)} is now ${STATUS_LABEL[e.status as string] ?? e.status}.`;
     case "STATUS_REMOVED":
       if (!e.targetId) return null;
-      return `${heroName(state, e.targetId as string)} is no longer ${e.status === "burn" ? "Burning" : "Wet"}.`;
+      return `${heroName(state, e.targetId as string)} is no longer ${STATUS_LABEL[e.status as string] ?? e.status}.`;
     case "STATUS_TRIGGERED":
       return `${heroName(state, e.targetId as string)} takes ${e.amount} Burn damage.`;
     case "HERO_DEFEATED":

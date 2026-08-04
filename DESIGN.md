@@ -138,14 +138,19 @@ later without touching the engine.
 |---|---|---|---|
 | Fire Bolt (attack) | Fire Mage | 1 | 5 dmg to one enemy + apply Burn (2 triggers, 3 dmg each) |
 | Flame Wave (ability) | Fire Mage | 2 | 3 dmg to all enemies |
+| Kindle Spirit (support) | Fire Mage | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
 | Stone Strike (attack) | Earth Guardian | 1 | 5 dmg to one enemy |
 | Fortify (ability) | Earth Guardian | 2 | +6 Shield to one ally |
+| Guardian's Watch (support) | Earth Guardian | 2 | +3 Shield to every allied hero |
 | Tidal Shot (attack) | Water Healer | 1 | 3 dmg to one enemy + apply Wet |
 | Restoring Current (ability) | Water Healer | 2 | heal 6 (7 if first heal this match) to one ally |
+| Encouraging Current (support) | Water Healer | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
 | Charged Slash (attack) | Lightning Duelist | 1 | 5 dmg; if target Wet, +3 bonus dmg and remove Wet |
 | Chain Spark (ability) | Lightning Duelist | 2 | 4 dmg to primary target, 2 dmg to secondary target; each gets +3/removes Wet independently if Wet |
+| Static Charge (support) | Lightning Duelist | 2 | Empower one ally: +4 dmg (+7 total and cleanses Wet, if that ally is currently Wet) |
 | Quick Strike (attack) | Shadow Assassin | 1 | 5 dmg to one enemy |
 | Execute (ability) | Shadow Assassin | 2 | 4 dmg; +6 bonus dmg if target ≤ 30% max HP |
+| Marked Opening (support) | Shadow Assassin | 2 | Empower one ally: +6 dmg on their next damage-dealing action |
 
 Passives:
 - **Fire Mage**: +1 damage dealt by this hero to any target that currently has Burn.
@@ -158,8 +163,9 @@ Team-Up cards:
 - **Steam Surge** (Fire Mage + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
 - **Thunder Tide** (Water Healer + Lightning Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
 
-Deck: 3 copies each of a hero's Attack and Ability card → 18 cards per
-player. Hand size 5, draw/discard/reshuffle as in section 1.3.
+Deck: 3 copies each of a hero's Attack, Ability, and Support card → 27
+cards per player (3 heroes × 3 cards × 3 copies). Hand size 5,
+draw/discard/reshuffle as in section 1.3.
 
 ## 3. Flexibility notes (for future work, not built yet)
 
@@ -359,3 +365,62 @@ resolution order — there is exactly one place resolution ever runs.
   interactive during planning (no more "waiting for your turn" — the
   waiting now happens only after readying up, until the opponent also
   readies).
+
+## 6. Support cards: a third card per hero (heal / buff allies)
+
+Every hero originally had exactly two cards: an Attack (hits an enemy)
+and an Ability (a heavier, still self-contained effect). Only Water
+Healer's Ability actually helped a teammate — no hero had a way to
+*buff* an ally's damage, and "support" as a playstyle was really just
+one card on one hero.
+
+**Decision:** every hero gets a third card, `support`, alongside
+`attack`/`ability` (`HeroDefinition.support` in `src/engine/types.ts`).
+Deck building (`deck.ts`) includes all three at 3 copies each, so this
+is a straightforward capacity increase, not a replacement — nothing
+existing lost a card.
+
+### 6.1 The Empower status: a shared "damage boost" primitive
+
+Rather than inventing a one-off buff per hero, support cards mostly
+grant a new status effect, **Empower** (`StatusEmpower` in types.ts):
+the next time that hero deals damage via one of their own cards
+(Attack, Ability, or Support), the hit gets `+bonusDamage` and Empower
+is consumed. Team-Up damage doesn't carry a `sourceHeroInstanceId` (it
+isn't attributed to one hero — see `CardResolveContext`), so it can't
+consume or benefit from Empower; that's an existing property of
+Team-Ups, not a special case added for this feature.
+No duration/expiry to track, unlike Burn — it just waits until spent,
+the same way Wet waits for a Lightning hit to consume it. Applying a
+new Empower to an already-Empowered hero overwrites the old bonus
+rather than stacking, mirroring how re-applying Burn refreshes its
+duration instead of adding a second stack.
+
+This is intentionally a *shared* mechanic (four of the five heroes'
+support cards grant it, at different costs: 4 from Fire Mage/Water
+Healer, 6 from Shadow Assassin, 4-or-7 from Lightning Duelist depending
+on whether the target's Wet — reusing the existing Wet interaction
+flavor). That mirrors how Shield, Burn, and Wet are already
+cross-hero primitives rather than bespoke per-card math — a player
+only has to learn "Empower" once, not five different buffs.
+
+Earth Guardian's support card, **Guardian's Watch**, is the one
+exception: instead of Empower, it grants a flat Shield to *every*
+allied hero at once, using a new `allAllies` `TargetType` (a direct
+mirror of the existing `allEnemies` — resolves immediately on tap, no
+target selection needed). A pure team-wide Shield fits the
+Defender/tank identity better than a damage buff, and having one
+non-Empower support card also keeps "support" from reading as a single
+reskinned effect.
+
+### 6.2 Why Empower lives on the *source* hero, not the target card
+
+Empower is stored in `HeroInstance.statuses` on the hero who will
+attack next, not attached to a specific future card. That means it
+applies to *whatever* damage-dealing action that hero takes next —
+their Attack, their Ability, even a Team-Up they contribute to — not
+just one predetermined follow-up card. This keeps the simultaneous-
+planning interaction simple: if the Empowered hero's queued action
+fizzles (see section 5.2) before it resolves, the buff was never
+consumed and just carries into the next round untouched, since nothing
+ever reads or clears it except `dealDamage` actually firing.

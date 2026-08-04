@@ -1,6 +1,17 @@
 import type { CardDefinition, HeroDefinition } from "./types";
-import { addShield, dealDamage, dealLightningDamage, getHero, healHero, applyBurn, applyWet, livingHeroes } from "./combat";
-import { otherPlayer } from "./combat";
+import {
+  addShield,
+  applyBurn,
+  applyEmpower,
+  applyWet,
+  dealDamage,
+  dealLightningDamage,
+  getHero,
+  healHero,
+  livingHeroes,
+  otherPlayer,
+  removeWetPublic,
+} from "./combat";
 
 const fireBolt: CardDefinition = {
   id: "fire-bolt",
@@ -189,6 +200,82 @@ const execute: CardDefinition = {
   },
 };
 
+const kindleSpirit: CardDefinition = {
+  id: "kindle-spirit",
+  heroId: "fire-mage",
+  kind: "support",
+  name: "Kindle Spirit",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "fire",
+  description: "Empower one ally: their next damage-dealing action deals +4 damage.",
+  resolve: (ctx) => {
+    applyEmpower(ctx, ctx.targets.primaryTargetId!, 4);
+  },
+};
+
+const guardiansWatch: CardDefinition = {
+  id: "guardians-watch",
+  heroId: "earth-guardian",
+  kind: "support",
+  name: "Guardian's Watch",
+  cost: 2,
+  targetType: "allAllies",
+  element: "earth",
+  description: "Grant 3 Shield to every allied hero.",
+  resolve: (ctx) => {
+    for (const hero of livingHeroes(ctx.state, ctx.playerId)) {
+      addShield(ctx, hero.instanceId, 3);
+    }
+  },
+};
+
+const encouragingCurrent: CardDefinition = {
+  id: "encouraging-current",
+  heroId: "water-healer",
+  kind: "support",
+  name: "Encouraging Current",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "water",
+  description: "Empower one ally: their next damage-dealing action deals +4 damage.",
+  resolve: (ctx) => {
+    applyEmpower(ctx, ctx.targets.primaryTargetId!, 4);
+  },
+};
+
+const staticCharge: CardDefinition = {
+  id: "static-charge",
+  heroId: "lightning-duelist",
+  kind: "support",
+  name: "Static Charge",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "lightning",
+  description: "Empower one ally for +4 damage (+7 total and cleanses Wet, if they're currently Wet).",
+  resolve: (ctx) => {
+    const targetId = ctx.targets.primaryTargetId!;
+    const target = getHero(ctx.state, targetId);
+    const isWet = target.statuses.some((s) => s.type === "wet");
+    applyEmpower(ctx, targetId, isWet ? 7 : 4);
+    if (isWet) removeWetPublic(ctx, targetId);
+  },
+};
+
+const markedOpening: CardDefinition = {
+  id: "marked-opening",
+  heroId: "shadow-assassin",
+  kind: "support",
+  name: "Marked Opening",
+  cost: 2,
+  targetType: "singleAlly",
+  element: "shadow",
+  description: "Empower one ally: their next damage-dealing action deals +6 damage.",
+  resolve: (ctx) => {
+    applyEmpower(ctx, ctx.targets.primaryTargetId!, 6);
+  },
+};
+
 export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "fire-mage": {
     id: "fire-mage",
@@ -199,6 +286,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     startingShield: 0,
     attack: fireBolt,
     ability: flameWave,
+    support: kindleSpirit,
     passive: {
       name: "Kindling Focus",
       description: "This hero deals +1 damage to targets that already have Burn.",
@@ -213,6 +301,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     startingShield: 4,
     attack: stoneStrike,
     ability: fortify,
+    support: guardiansWatch,
     passive: {
       name: "Bulwark",
       description: "Begins the match with 4 Shield.",
@@ -227,6 +316,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     startingShield: 0,
     attack: tidalShot,
     ability: restoringCurrent,
+    support: encouragingCurrent,
     passive: {
       name: "First Tide",
       description: "This player's first healing card each match restores 1 additional HP.",
@@ -241,6 +331,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     startingShield: 0,
     attack: chargedSlash,
     ability: chainSpark,
+    support: staticCharge,
     passive: {
       name: "Storm Reflex",
       description: "Gains 2 Shield after triggering a Water + Lightning interaction.",
@@ -255,6 +346,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     startingShield: 0,
     attack: quickStrike,
     ability: execute,
+    support: markedOpening,
     passive: {
       name: "Evasive Instinct",
       description: "The first attack against this hero each match deals 3 less damage (min 1).",

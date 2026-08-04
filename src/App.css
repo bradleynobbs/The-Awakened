@@ -411,7 +411,35 @@ button {
   transform: scaleX(var(--facing, 1)) rotate(calc(var(--facing, 1) * 80deg)) translateY(20px);
 }
 .hero-sprite-wrap.lunging {
-  transform: scaleX(var(--facing, 1)) translateX(calc(var(--facing, 1) * 16px));
+  animation: attack-lunge 0.38s ease-out;
+}
+@keyframes attack-lunge {
+  0% {
+    transform: scaleX(var(--facing, 1)) translateX(0) scale(1);
+  }
+  35% {
+    transform: scaleX(var(--facing, 1)) translateX(calc(var(--facing, 1) * 24px)) scale(1.05);
+  }
+  100% {
+    transform: scaleX(var(--facing, 1)) translateX(0) scale(1);
+  }
+}
+/* A small continuous idle motion so standing heroes don't read as frozen —
+ * lives on the inner visual (not the wrapper) so it never fights with the
+ * wrapper's facing-mirror/lunge/defeat transforms. */
+.hero-sprite-visual {
+  animation: idle-bob 2.6s ease-in-out infinite;
+}
+.hero-sprite-wrap.defeated .hero-sprite-visual {
+  animation: none;
+}
+@keyframes idle-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 .hero-sprite-wrap.flash-hit .hero-sprite-visual {
   filter: brightness(1.7) drop-shadow(0 0 10px #ff4444);
@@ -453,6 +481,11 @@ button {
   object-fit: contain;
   object-position: bottom center;
   -webkit-user-drag: none;
+  /* Leaning into the pixelated look on purpose: crisp nearest-neighbor
+   * scaling instead of the browser's default smoothing/blur. Fallback
+   * first, "pixelated" last so it wins wherever it's supported. */
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 
 .glow-line {

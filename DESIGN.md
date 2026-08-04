@@ -769,6 +769,31 @@ background — get the source image on as plain a background as possible
 (ideally by asking the image generator for one directly) for this to
 work well.
 
+**Facing convention:** every hero, vector or real-art, is authored/
+stored facing right — `facing={1}` (the ally column) renders it as-is,
+`facing={-1}` (the enemy column) mirrors it with `scaleX(-1)`. A
+source photo doesn't automatically satisfy this — Inferna's supplied
+art had her gaze/head-turn toward image-left, so the stored asset was
+pre-flipped (`sharp().flop()`) once at import time to face right,
+rather than special-casing the mirror logic per hero. Check which way
+a new hero's source art is oriented before dropping it into `REAL_ART`.
+
+**Leaning into the pixelation:** at typical in-game display size, the
+illustration reads as pixelated rather than perfectly smooth. Rather
+than fight that, `.hero-sprite-img` sets `image-rendering: pixelated`
+so the browser scales with crisp nearest-neighbor blocks instead of
+blurring — an intentional retro-pixel look instead of an accidental
+soft one. This affects every `REAL_ART` hero, not just Inferna.
+
+**Idle and attack motion:** a small continuous idle bob
+(`@keyframes idle-bob`, ±3px vertical, 2.6s loop) now runs on every
+hero's visual layer — SVG or image — so standing heroes don't read as
+frozen; it's suppressed on defeat. The attack lunge (`.lunging`) is now
+a proper `@keyframes attack-lunge` (dash forward ~24px with a slight
+scale-punch, then back) instead of a static transform relying on the
+wrapper's generic transition, giving it a real there-and-back arc
+inside its ~380ms window rather than an instant snap.
+
 ### 9.4 What's still explicitly not attempted
 
 Hand-rigged skeletal animation (the kind Slay the Spire actually uses —

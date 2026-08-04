@@ -742,3 +742,16 @@ none of these have a tool in this project to produce them. The
 existing procedural cues (lunge-on-attack, flash-on-hit/heal/shield,
 the defeat collapse) are the full extent of "animation" here, and stay
 that way until an actual art/animation pipeline exists.
+
+### 9.3 Concept art briefs
+
+There's no image-generation tool in this project either, so actual
+concept art (2D illustrated character sheets — large expressive eyes,
+clean line art, bold silhouettes, modern-streetwear-meets-supernatural
+outfits) can't be produced here. [`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md)
+has a full written brief per hero instead — hairstyle, outfit,
+signature weapon/focus, personality, color palette, pose direction —
+detailed enough to paste into an external image generator or hand to
+an illustrator. Each brief keeps the identity already established in
+`heroCosmetics.ts` (skin/eye/hair color) so real concept art and the
+in-game version would read as the same character once produced.

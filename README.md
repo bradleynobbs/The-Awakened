@@ -14,7 +14,12 @@ See [`DESIGN.md`](./DESIGN.md) for the full list of rule decisions made
 while turning the original design brief into a buildable prototype (turn
 structure, deck size, status durations, targeting edge cases, Team-Up
 resolution order, balance numbers for every card, and the online
-matchmaking/sync design in section 4).
+matchmaking/sync design in section 4). See
+[`CHARACTER_CONCEPTS.md`](./CHARACTER_CONCEPTS.md) for a written
+concept-art brief per hero (outfit, hairstyle, signature weapon,
+palette, pose) — there's no image-generation tool in this project, so
+that's text specs for an artist or an external image generator, not
+finished art.
 
 ## Running it
 

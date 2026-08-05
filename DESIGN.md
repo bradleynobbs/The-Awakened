@@ -2226,3 +2226,83 @@ full 17-hero grid; Amp's card specifically confirmed in both screens;
 selecting Amp plus 2 others through to a locked-in, started battle
 still works end-to-end; zero console errors. Full pipeline (`tsc -b`,
 `oxlint`, 82-test Vitest suite, `vite build`) passes.
+
+### 9.31 Sorrow and Cragor get real art at last
+
+§9.20 left these two on the shared vector chassis because their
+supplied art was on a black background and both costumes ran close
+enough to black that keying it produced a shadow pixel literally
+identical to the background — an unfixable ambiguity, not a tuning
+problem, confirmed across three separate algorithmic attempts. The
+user held onto that and came back with fresh source images for both
+heroes, shot on a clean white background instead, closing the door
+that made the original pair unworkable.
+
+**Keying inverted, not reinvented.** White backgrounds need the
+mirror image of the black-background pipeline this project already
+has: the "how far is this pixel from the background" metric becomes
+`255 - min(r, g, b)` (distance from white) instead of distance from
+black, ramped LOW→HIGH into an alpha channel, then color-decontaminated
+with `(channel - 255*(1-a)) / a` to undo the white bleed on
+partially-transparent edge pixels — the same formula as the black-
+background version with the bleed color swapped. Two 3×3 erosion
+passes mop up fringe, same as before. Sampled both source images'
+corners first (252-254 out of 255, both heroes) to confirm the
+backgrounds were genuinely, consistently white before trusting a
+single global threshold to it.
+
+**A second, different defect showed up — this one solvable.** A first
+keying pass produced clean character silhouettes but left a soft gray
+smudge under Cragor's feet: not the original hard "identical to
+background" failure, but his own render's ground-contact drop shadow,
+which fades gradually rather than cutting off. A histogram scan of the
+bottom 150 rows confirmed thousands of pixels sitting at partial alpha
+(5-55) — a wide, smooth ramp with no single clean threshold, unlike a
+hard-edged region. Fixed with three combined changes: raised the
+LOW/HIGH ramp bounds so more of that gradual fade collapses to zero,
+raised the erosion pass's subtraction amount so soft ramps get pulled
+down harder than the character's own higher-contrast edges, and — the
+change that actually did the most work — computed the final trim box
+from a *strict* alpha threshold (≥200, "solid content only") rather
+than "any non-zero alpha," so the shadow's sub-threshold pixels below
+the character's feet fall outside the crop entirely instead of
+surviving as a faint halo inside it. Re-checked both heroes against a
+dark preview background afterward; no trace of the shadow remained on
+either.
+
+**Portraits and card art cropped fresh from this new source**, at
+full resolution before the final height-700 resize (better detail
+than cropping the already-downsized sprite), following the same
+conventions as every other hero: `HERO_PORTRAIT` a square headshot,
+`HERO_CARD_ART` a chest-and-shoulders crop from the top of the sprite
+at the same ~1.43:1-aimed height formula from §9.30. Cragor's design
+has no distinct face (a faceless rock golem, crown-first silhouette),
+so his headshot crop centers on the crown and upper body instead —
+there's no facial feature to center on because the source art doesn't
+have one. Both heroes read as front-on/symmetric poses, so neither
+needed a left/right flip to match the "ally art faces right" rule the
+other real-art sprites follow. One post-processing step not needed
+before: re-encoding both new sprites and their crops through `sharp`
+at max PNG compression effort dropped Cragor's raw sprite from 878KB
+to 260KB (heavy fine rock-texture detail compresses far worse at
+default settings) — brought every new asset back in line with the
+existing hero asset sizes rather than leaving an outlier in the repo.
+
+Both heroes are now in `REAL_ART` (`HeroSprite.tsx`), `HERO_PORTRAIT`,
+and `HERO_CARD_ART` (`heroVisuals.ts`) alongside the other 15 —
+`REAL_ART`'s comment and the README's roster note, both of which
+called out Sorrow/Cragor as the shared-chassis exceptions, are updated
+to reflect that every hero now has real art.
+
+Verified via Playwright: Sorrow and Cragor's cards render with the
+same premium frame as every other hero in both the Deck Builder grid
+and hero-select screen, with no code changes needed there (the frame
+is art-agnostic per §9.30) — confirming the fallback role-icon-on-disc
+path is no longer reachable for either; both heroes also render their
+full-body art correctly on the battlefield in a practice match, not
+the SVG chassis; zero console errors throughout. Full pipeline
+(`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`,
+`cap sync android`) passes. `sharp` was a temporary dev dependency for
+this image work only, as always — installed with `--no-save` and
+uninstalled again once the assets were final; `package.json` and
+`package-lock.json` carry no trace of it.

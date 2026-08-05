@@ -15,13 +15,15 @@ import flintSprite from "../assets/heroes/flint-sprite.png";
 import erosalinaSprite from "../assets/heroes/erosalina-sprite.png";
 import runeSprite from "../assets/heroes/rune-sprite.png";
 import ampSprite from "../assets/heroes/amp-sprite.png";
+import sorrowSprite from "../assets/heroes/sorrow-sprite.png";
+import cragorSprite from "../assets/heroes/cragor-sprite.png";
 
 /** Heroes with a real illustrated sprite instead of the hand-coded SVG rig.
  * Everyone else keeps the shared vector chassis below. Sorrow and Cragor
- * (§9.20) are deliberately not here yet — their supplied art had a
- * black-background/black-costume keying conflict (DESIGN.md 9.9) severe
- * enough that the cutout wasn't usable; they render on the shared chassis
- * until a better-suited source image replaces it. */
+ * were on the chassis for a while (§9.20) because their original supplied
+ * art had a black-background/black-costume keying conflict (DESIGN.md 9.9)
+ * severe enough that the cutout wasn't usable — resolved in §9.31 with
+ * fresh white-background source art for both. */
 const REAL_ART: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaSprite,
   "undead-assassin": mournSprite,
@@ -35,6 +37,8 @@ const REAL_ART: Partial<Record<HeroId, string>> = {
   erosalina: erosalinaSprite,
   rune: runeSprite,
   amp: ampSprite,
+  sorrow: sorrowSprite,
+  cragor: cragorSprite,
 };
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;

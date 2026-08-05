@@ -17,6 +17,8 @@ import flintPortrait from "../assets/heroes/flint-portrait.png";
 import erosalinaPortrait from "../assets/heroes/erosalina-portrait.png";
 import runePortrait from "../assets/heroes/rune-portrait.png";
 import ampPortrait from "../assets/heroes/amp-portrait.png";
+import sorrowPortrait from "../assets/heroes/sorrow-portrait.png";
+import cragorPortrait from "../assets/heroes/cragor-portrait.png";
 import infernaCardArt from "../assets/heroes/inferna-card-art.png";
 import mournCardArt from "../assets/heroes/mourn-card-art.png";
 import kairoCardArt from "../assets/heroes/kairo-card-art.png";
@@ -29,6 +31,8 @@ import flintCardArt from "../assets/heroes/flint-card-art.png";
 import erosalinaCardArt from "../assets/heroes/erosalina-card-art.png";
 import runeCardArt from "../assets/heroes/rune-card-art.png";
 import ampCardArt from "../assets/heroes/amp-card-art.png";
+import sorrowCardArt from "../assets/heroes/sorrow-card-art.png";
+import cragorCardArt from "../assets/heroes/cragor-card-art.png";
 
 /** Cropped headshots for the roster panel (§9.19) — only exists for
  * heroes with real illustrated art (see REAL_ART in HeroSprite.tsx).
@@ -47,6 +51,8 @@ export const HERO_PORTRAIT: Partial<Record<HeroId, string>> = {
   erosalina: erosalinaPortrait,
   rune: runePortrait,
   amp: ampPortrait,
+  sorrow: sorrowPortrait,
+  cragor: cragorPortrait,
 };
 
 /** Wider "chest and shoulders" crops for the trading-card design
@@ -73,6 +79,8 @@ export const HERO_CARD_ART: Partial<Record<HeroId, string>> = {
   erosalina: erosalinaCardArt,
   rune: runeCardArt,
   amp: ampCardArt,
+  sorrow: sorrowCardArt,
+  cragor: cragorCardArt,
 };
 
 /** Illustrated role emblems (replacing the earlier emoji placeholders) —

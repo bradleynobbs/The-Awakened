@@ -255,8 +255,10 @@ element so every element now fields exactly 2:
 | Amp | Speedster | Spark | 15 | First hit taken each match is reduced by 3 (min 1) |
 | Cragor | Tank | Earth | 27 | Starts the match with 6 Shield |
 
-Sorrow and Cragor currently render on the shared vector chassis rather
-than real illustrated art — see §9.20 in `DESIGN.md` for why.
+Every hero now renders with real illustrated art — Sorrow and Cragor were
+on the shared vector chassis for a while (§9.20 in `DESIGN.md`) until
+fresh source art resolved the keying issue that had blocked them; see
+§9.31 for the fix.
 
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
 Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing

@@ -1749,3 +1749,40 @@ Verified: no console errors at 640/844/900px, no overlap between
 `.menu-content` and `.menu-footer`, all navigation still works, full
 pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
 passes.
+
+### 9.24 Menu: brighter flank art and a brighter "stage"
+
+Feedback on §9.23's result: the flanking hero art looked "awful,"
+needing to be brighter, and so did "the main stage" (the central band
+behind the wordmark, standing in for the mockup's glowing portal/
+stairway vanishing point). Both complaints trace to the same root
+cause — the hero art was never that bright to begin with, and
+`.menu-backdrop`'s darkening overlay (tuned for a much brighter photo
+background in §9.21, never revisited after §9.23 swapped that photo
+for a gradient) stacked on top and crushed everything further toward
+near-silhouette.
+
+Fixed on both ends:
+- **Flank art**: each `.menu-flank-hero` now gets `filter:
+  brightness(1.5) saturate(1.25)` in addition to its existing glow
+  drop-shadow, refactored to share one base rule with the glow color
+  pulled from a `--glow` custom property per element (previously each
+  of the 4 tone classes fully duplicated the filter shorthand, which
+  would have meant repeating the brightness/saturate values 4 times
+  too). Mourn's glow color also got lightened (`110,90,114` →
+  `160,130,165`) since the undead element's base color is dark enough
+  that the original glow was barely visible even at the new
+  brightness.
+- **Backdrop**: eased every stop in `.menu-backdrop`'s darkening
+  gradient (0.7/0.3/0.4/0.94 → 0.55/0.12/0.22/0.88), and strengthened
+  the central "stage" glow in `.menu-root`'s own background gradient
+  with an added tighter, brighter near-white core radial layer on top
+  of the existing violet one — giving the wordmark a visible bright
+  spot to sit in rather than a uniformly dim purple field.
+
+Verified: no console errors at 640/844/900px, no overlap between
+`.menu-content` and `.menu-footer`, all navigation still works, button
+text stays legible against the brighter art (each button panel keeps
+its own opaque background regardless of what's behind it). Full
+pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
+passes.

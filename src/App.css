@@ -1140,9 +1140,10 @@ button {
    * to near-black at the edges, plus a faint vertical beam down the
    * center picking up the logo's crystal-crack motif. */
   background:
-    radial-gradient(60% 42% at 50% 32%, rgba(155, 107, 255, 0.32) 0%, rgba(155, 107, 255, 0) 72%),
-    linear-gradient(180deg, rgba(155, 107, 255, 0.16) 0%, rgba(155, 107, 255, 0) 18%),
-    linear-gradient(180deg, #1c1730 0%, #0c0f16 45%, #07080d 100%);
+    radial-gradient(46% 34% at 50% 30%, rgba(216, 196, 255, 0.55) 0%, rgba(216, 196, 255, 0) 100%),
+    radial-gradient(70% 50% at 50% 32%, rgba(155, 107, 255, 0.45) 0%, rgba(155, 107, 255, 0) 75%),
+    linear-gradient(180deg, rgba(155, 107, 255, 0.2) 0%, rgba(155, 107, 255, 0) 20%),
+    linear-gradient(180deg, #251e3f 0%, #14101f 45%, #0a0810 100%);
 }
 
 .menu-flank {
@@ -1166,6 +1167,11 @@ button {
   width: auto;
   object-fit: contain;
   object-position: bottom;
+  /* Brightened + saturated on top of each element's glow color (set per
+   * variant below via --glow) — at full natural exposure these read as
+   * flat and muddy under .menu-backdrop's darkening overlay (§9.24). */
+  filter: brightness(1.5) saturate(1.25) drop-shadow(0 0 30px var(--glow, rgba(255, 255, 255, 0.4)))
+    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
 }
 .menu-flank-left .menu-flank-hero {
   left: 0;
@@ -1186,16 +1192,16 @@ button {
 }
 
 .menu-flank-hero-spark {
-  filter: drop-shadow(0 0 26px rgba(201, 161, 59, 0.55)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  --glow: rgba(201, 161, 59, 0.7);
 }
 .menu-flank-hero-undead {
-  filter: drop-shadow(0 0 26px rgba(110, 90, 114, 0.55)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  --glow: rgba(160, 130, 165, 0.65);
 }
 .menu-flank-hero-spirit {
-  filter: drop-shadow(0 0 26px rgba(126, 203, 196, 0.55)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  --glow: rgba(126, 203, 196, 0.7);
 }
 .menu-flank-hero-water {
-  filter: drop-shadow(0 0 26px rgba(47, 143, 214, 0.55)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  --glow: rgba(47, 143, 214, 0.7);
 }
 
 .menu-backdrop {
@@ -1203,12 +1209,15 @@ button {
   inset: 0;
   z-index: 2;
   pointer-events: none;
+  /* Eased up from §9.21's original values (0.7/0.3/0.4/0.94) — that
+   * darkening, stacked on top of hero art that was already none too
+   * bright, crushed the flank characters into near-silhouettes (§9.24). */
   background: linear-gradient(
     180deg,
-    rgba(9, 7, 15, 0.7) 0%,
-    rgba(9, 7, 15, 0.3) 22%,
-    rgba(9, 7, 15, 0.4) 55%,
-    rgba(8, 6, 13, 0.94) 100%
+    rgba(9, 7, 15, 0.55) 0%,
+    rgba(9, 7, 15, 0.12) 22%,
+    rgba(9, 7, 15, 0.22) 55%,
+    rgba(8, 6, 13, 0.88) 100%
   );
 }
 

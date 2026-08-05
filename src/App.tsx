@@ -11,11 +11,12 @@ import { DebugPanel } from "./ui/DebugPanel";
 import { DeckBuilder } from "./ui/DeckBuilder";
 import { MainMenu } from "./ui/MainMenu";
 import { Matchmaking } from "./ui/Matchmaking";
+import { Objectives } from "./ui/Objectives";
 import { OnlineHeroSelection } from "./ui/OnlineHeroSelection";
 import { Store } from "./ui/Store";
 import { VictoryScreen } from "./ui/VictoryScreen";
 
-type Screen = "menu" | "deckbuilder" | "store" | "online" | "practice";
+type Screen = "menu" | "deckbuilder" | "store" | "objectives" | "online" | "practice";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("menu");
@@ -82,11 +83,13 @@ export default function App() {
           onPracticeMatch={() => setScreen("practice")}
           onDeckBuilder={() => setScreen("deckbuilder")}
           onStore={() => setScreen("store")}
+          onObjectives={() => setScreen("objectives")}
         />
       )}
 
       {screen === "deckbuilder" && <DeckBuilder onBack={goMenu} />}
       {screen === "store" && <Store onBack={goMenu} />}
+      {screen === "objectives" && <Objectives onBack={goMenu} />}
 
       {screen === "online" && (
         <>

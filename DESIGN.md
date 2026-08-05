@@ -1608,3 +1608,71 @@ suite (82 tests) all pass; `vite build` succeeds; all three QA batches
 zero console errors; and the cross-viewport fit-check confirms no
 clipping or overlap regression at any tested height once the two bugs
 above were fixed.
+
+### 9.21 Main menu redesign against a reference mockup
+
+Shown a polished mobile-game main-menu mockup (arena background with
+real character art flanking the screen, a diamond wordmark, a stack of
+color-coded action buttons with icon + title + subtitle, plus a player
+level/XP bar, gold/gem currency counters, a daily-reward countdown
+chest, and social links) and asked to build the actual menu to match.
+
+**Scope decision:** the mockup's economy elements — player leveling,
+currency, and a daily-reward timer — don't exist in this game and
+never have; the Store screen's own copy says outright "this game has
+no currency or purchases," a deliberate design stance (§1). Faking
+those with static placeholder numbers would misrepresent a system that
+isn't there, so this pass is visual-style-only: the layout, background
+treatment, wordmark, and color-coded button styling were adopted, but
+the level/XP bar, currency counters, daily-reward chest, and social
+links were left out entirely rather than stubbed. The settings gear
+button was kept (matching the mockup) but is currently inert — there's
+no settings screen yet to link it to.
+
+**Background and framing art:** the existing `arena-plaza.jpg` (used
+for the battlefield, §9.x) turned out to already match the mockup's
+own moody-arena aesthetic closely enough to reuse directly as the menu
+background, rather than sourcing a new asset. Real hero sprites frame
+the screen on both sides, picked from the already-alpha-keyed roster
+art (§9.20) rather than new source images. First attempt used Inferna
+and Kairo for the top slots — both render as unexpectedly narrow
+slivers at this large a display size (188px and 225px wide against a
+700px-tall crop, aspect ratios of 0.27 and 0.32) because their trimmed
+bounding boxes happen to be compact poses; swapped to Zera and Orin
+(aspect ratios 0.89 and 0.75), keeping Mourn and Tydra — both
+comfortably wide (0.73, 0.58) — for the lower slots. Right-side art is
+mirrored with `scaleX(-1)` so both flanks face inward toward the logo,
+since real art faces right by default (its resting orientation as an
+ally sprite in battle).
+
+**Wordmark:** the mockup's stacked-diamond emblem is approximated with
+two CSS rotated-square "gems" (a violet-gradient outer diamond, a
+lighter inner one) rather than a new SVG or image asset — cheap to
+build, no new art dependency, and reads clearly at the small size a
+phone-width menu allows.
+
+**Buttons:** each of the 5 actions (Find Match, Practice, Store, Team
+Building, Objectives) got its own accent color (violet, blue, gold,
+green, slate) driving both a border tint and an icon-badge glow, with
+an angular cut-corner `clip-path` on each panel for the mockup's
+faceted look. Objectives — previously an inline card at the bottom of
+the menu — became its own nav button and dedicated screen
+(`Objectives.tsx`, mirroring `Store.tsx`'s header/back-button
+pattern), matching the mockup's 5-button structure; the button shows a
+small red dot when any daily/weekly objective is still incomplete,
+approximating the mockup's notification badge without inventing a new
+unread-state system (it's just "any objective not yet `completed`").
+
+**A layout bug avoided rather than reintroduced:** the button list
+uses the same `justify-content: flex-start` + `margin-top/bottom: auto`
+pattern established in §9.20 for `.selection-screen`, rather than
+`justify-content: center`, even though 5 fixed buttons are far less
+likely to overflow a real device's viewport than the 17-hero grid that
+originally surfaced the bug — cheap insurance against the same
+scroll-unreachability failure mode on unusually short viewports.
+
+Verified via Playwright across three viewport heights (640/844/900px):
+no console errors, all 5 buttons clickable and navigate correctly
+(Objectives and Store screens load and their back buttons return to
+the menu), and no clipping at any tested height. Full pipeline
+(`tsc -b`, `oxlint`, the 82-test Vitest suite, `vite build`) passes.

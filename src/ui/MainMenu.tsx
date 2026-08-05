@@ -1,7 +1,9 @@
-import type { CSSProperties } from "react";
-import { HERO_LIST } from "../engine/heroes";
 import { getObjectives } from "../state/objectives";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
+import zeraSprite from "../assets/heroes/zera-sprite.png";
+import mournSprite from "../assets/heroes/mourn-sprite.png";
+import orinSprite from "../assets/heroes/orin-sprite.png";
+import tydraSprite from "../assets/heroes/tydra-sprite.png";
+import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
 interface MainMenuProps {
   online: boolean;
@@ -9,83 +11,122 @@ interface MainMenuProps {
   onPracticeMatch: () => void;
   onDeckBuilder: () => void;
   onStore: () => void;
+  onObjectives: () => void;
 }
 
-export function MainMenu({ online, onFindMatch, onPracticeMatch, onDeckBuilder, onStore }: MainMenuProps) {
+export function MainMenu({
+  online,
+  onFindMatch,
+  onPracticeMatch,
+  onDeckBuilder,
+  onStore,
+  onObjectives,
+}: MainMenuProps) {
   const { daily, weekly } = getObjectives();
+  const hasIncomplete = [...daily, ...weekly].some((o) => !o.completed);
 
   return (
-    <div className="menu-root">
-      <div className="hero-banner">
-        <div className="hero-showcase" aria-hidden="true">
-          {HERO_LIST.map((hero, i) => (
-            <div
-              key={hero.id}
-              className="showcase-hero"
-              style={{ color: ELEMENT_COLOR[hero.element], "--delay": `${i * 0.4}s` } as CSSProperties}
-            >
-              <span className="showcase-glow" style={{ background: ELEMENT_COLOR[hero.element] }} />
-              <span className="showcase-symbol">{ELEMENT_SYMBOL[hero.element]}</span>
-            </div>
-          ))}
+    <div className="menu-root" style={{ backgroundImage: `url(${arenaBackground})` }}>
+      {/* Decorative only — real hero art framing the menu, mirroring §9.21's
+       * reference mockup. Left pair faces right (their default orientation,
+       * see HeroSprite.tsx), right pair is mirrored via CSS so both sides
+       * face inward toward the logo, like a hero-select cover illustration.
+       * Picked for a wide (not narrow-crop) silhouette at this large a
+       * size — Inferna and Kairo's trimmed art is too slender a sliver to
+       * read well here, see §9.21's note on this in DESIGN.md. */}
+      <div className="menu-flank menu-flank-left" aria-hidden="true">
+        <img src={zeraSprite} className="menu-flank-hero menu-flank-hero-spark" />
+        <img src={mournSprite} className="menu-flank-hero menu-flank-hero-undead" />
+      </div>
+      <div className="menu-flank menu-flank-right" aria-hidden="true">
+        <img src={orinSprite} className="menu-flank-hero menu-flank-hero-spirit" />
+        <img src={tydraSprite} className="menu-flank-hero menu-flank-hero-water" />
+      </div>
+      <div className="menu-backdrop" aria-hidden="true" />
+
+      <button className="icon-button menu-settings-button" aria-label="Settings">
+        ⚙
+      </button>
+
+      <div className="menu-header">
+        <div className="menu-logo-emblem" aria-hidden="true">
+          <span className="menu-logo-diamond menu-logo-diamond-outer" />
+          <span className="menu-logo-diamond menu-logo-diamond-inner" />
         </div>
         <h1 className="menu-title">The Awakened</h1>
-        <p className="menu-tagline">1v1 tactical card battler</p>
+        <p className="menu-tagline">Rise. Awaken. Conquer.</p>
       </div>
 
       <div className="menu-content">
-        <div className="menu-actions">
-          <button className="primary-button menu-cta" disabled={!online} onClick={onFindMatch}>
-            ⚔ Find Match
-          </button>
-          <button className="secondary-button" onClick={onPracticeMatch}>
-            🎯 Practice vs Bot
-          </button>
-          <div className="menu-row">
-            <button className="menu-tile" onClick={onDeckBuilder}>
-              🃏 Deck Builder
-            </button>
-            <button className="menu-tile" onClick={onStore}>
-              🛒 Store
-            </button>
-          </div>
-        </div>
-
-        {!online && (
-          <p className="menu-warning">
-            Online multiplayer isn't configured yet — try Practice vs Bot instead.
-          </p>
-        )}
-
-        <div className="objectives-card">
-          <ObjectiveGroup title="Daily" objectives={daily} />
-          <ObjectiveGroup title="Weekly" objectives={weekly} />
-        </div>
+        <nav className="menu-action-list">
+          <MenuAction
+            tone="violet"
+            icon="⚔"
+            title="Find Match"
+            subtitle={
+              online
+                ? "Jump into matches against real players."
+                : "Not configured yet — try Practice instead."
+            }
+            disabled={!online}
+            onClick={onFindMatch}
+          />
+          <MenuAction
+            tone="blue"
+            icon="🎯"
+            title="Practice"
+            subtitle="Hone your skills vs AI opponents."
+            onClick={onPracticeMatch}
+          />
+          <MenuAction
+            tone="gold"
+            icon="🛒"
+            title="Store"
+            subtitle="Nothing to buy yet — skill decides matches."
+            onClick={onStore}
+          />
+          <MenuAction
+            tone="green"
+            icon="🃏"
+            title="Team Building"
+            subtitle="Build your perfect team of Awakened."
+            onClick={onDeckBuilder}
+          />
+          <MenuAction
+            tone="slate"
+            icon="📋"
+            title="Objectives"
+            subtitle="Complete objectives and track progress."
+            badge={hasIncomplete}
+            onClick={onObjectives}
+          />
+        </nav>
       </div>
     </div>
   );
 }
 
-function ObjectiveGroup({
-  title,
-  objectives,
-}: {
+type MenuActionTone = "violet" | "blue" | "gold" | "green" | "slate";
+
+interface MenuActionProps {
+  tone: MenuActionTone;
+  icon: string;
   title: string;
-  objectives: ReturnType<typeof getObjectives>["daily"];
-}) {
+  subtitle: string;
+  disabled?: boolean;
+  badge?: boolean;
+  onClick: () => void;
+}
+
+function MenuAction({ tone, icon, title, subtitle, disabled, badge, onClick }: MenuActionProps) {
   return (
-    <div className="objective-group">
-      <div className="objective-group-title">{title}</div>
-      {objectives.map((o) => (
-        <div key={o.id} className={`objective-row${o.completed ? " done" : ""}`}>
-          <span className="objective-label">
-            {o.completed ? "✓" : "○"} {o.label}
-          </span>
-          <span className="objective-progress">
-            {o.progress}/{o.target}
-          </span>
-        </div>
-      ))}
-    </div>
+    <button className={`menu-action menu-action-${tone}`} disabled={disabled} onClick={onClick}>
+      <span className="menu-action-icon">{icon}</span>
+      <span className="menu-action-copy">
+        <span className="menu-action-title">{title}</span>
+        <span className="menu-action-subtitle">{subtitle}</span>
+      </span>
+      {badge && <span className="menu-action-badge" aria-hidden="true" />}
+    </button>
   );
 }

@@ -1676,3 +1676,51 @@ no console errors, all 5 buttons clickable and navigate correctly
 (Objectives and Store screens load and their back buttons return to
 the menu), and no clipping at any tested height. Full pipeline
 (`tsc -b`, `oxlint`, the 82-test Vitest suite, `vite build`) passes.
+
+### 9.22 Main menu, take two: full mockup fidelity
+
+§9.21 deliberately left out the mockup's player level/XP bar, currency
+counters, daily-reward chest, and social links, on the reasoning that
+this game has no leveling or currency system and faking those numbers
+would misrepresent it. Told directly to revert that call and just
+match the sent mockup, added all four back:
+
+- **Player badge** (top-left): a small rotated-diamond avatar, a
+  "Level 1" label, and a mostly-empty XP bar — static, cosmetic, no
+  backing system, same as the settings gear.
+- **Currency pills** (top-right): a gold-coin count and a gem count,
+  both hardcoded to 0. This does sit in direct tension with the
+  Store screen's own copy ("this game has no currency or
+  purchases") — noted here rather than silently resolved, since it's
+  a real inconsistency between two screens, not just a bug.
+- **Daily-reward chest** (bottom-left): labeled "Daily Reset" rather
+  than "Daily Reward" since there's no reward to grant, but its
+  countdown is the one genuinely real piece of this batch — it ticks
+  down to the actual UTC-midnight boundary `objectives.ts`'s
+  `dayKey()` already resets daily progress at (`toISOString()` is
+  UTC, despite the README describing the reset as "local midnight" —
+  a pre-existing inconsistency in the README, not touched here).
+- **Social links** (bottom-right): three inert icon buttons (no real
+  Discord/Instagram/Twitter presence exists for this project), same
+  "not wired up yet" precedent as the settings gear.
+
+**A real bug this surfaced:** adding a fixed-height footer below
+`.menu-content` (which is `flex: 1` with `overflow-y: auto`) exposed a
+different flexbox gotcha than §9.20's — a flex item's default
+`min-height` is `auto` (content-sized), not `0`, so without an
+explicit `min-height: 0` override, `flex: 1` doesn't actually cap the
+box's height on short viewports; it grows to fit its content instead
+of clipping/scrolling, pushing later siblings down and under it. First
+overlap check gave a false positive by comparing the *inner* scrollable
+child's (`.menu-action-list`) bounding box against the footer instead
+of `.menu-content`'s own box — a child's `getBoundingClientRect()`
+reports its full layout size regardless of an ancestor's
+`overflow: auto` clipping, so that comparison couldn't actually tell
+clipped-and-scrollable apart from genuinely overlapping. Re-checked
+against `.menu-content` itself once `min-height: 0` was added: no
+overlap at any tested height.
+
+Verified again after these additions: no console errors at
+640/844/900px, all navigation still works, `.menu-content` no longer
+overlaps `.menu-footer` at any tested height, and the full pipeline
+(`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`) passes.

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { getObjectives } from "../state/objectives";
 import zeraSprite from "../assets/heroes/zera-sprite.png";
 import mournSprite from "../assets/heroes/mourn-sprite.png";
@@ -24,6 +25,7 @@ export function MainMenu({
 }: MainMenuProps) {
   const { daily, weekly } = getObjectives();
   const hasIncomplete = [...daily, ...weekly].some((o) => !o.completed);
+  const resetTimer = useCountdownToNextReset();
 
   return (
     <div className="menu-root" style={{ backgroundImage: `url(${arenaBackground})` }}>
@@ -44,9 +46,38 @@ export function MainMenu({
       </div>
       <div className="menu-backdrop" aria-hidden="true" />
 
-      <button className="icon-button menu-settings-button" aria-label="Settings">
-        ⚙
-      </button>
+      {/* Player badge, currency, and the daily-reward timer below are
+       * cosmetic — this game has no leveling or currency system (see
+       * Store.tsx's own copy), so there's nothing real backing these
+       * numbers. Included anyway per direct request to match the
+       * reference mockup as closely as possible (§9.21) rather than
+       * only its layout/style. The one genuinely real piece is the
+       * countdown itself: it ticks down to the actual UTC-midnight
+       * boundary objectives.ts already resets daily progress at. */}
+      <div className="menu-topbar">
+        <div className="menu-player-badge">
+          <span className="menu-player-avatar" aria-hidden="true">
+            <span className="menu-logo-diamond menu-logo-diamond-outer avatar-diamond" />
+          </span>
+          <div className="menu-player-info">
+            <span className="menu-player-name">Awakened · Level 1</span>
+            <div className="menu-player-xp-track">
+              <div className="menu-player-xp-fill" style={{ width: "4%" }} />
+            </div>
+          </div>
+        </div>
+        <div className="menu-topbar-right">
+          <span className="menu-currency-pill">
+            <span className="menu-currency-icon">🪙</span>0
+          </span>
+          <span className="menu-currency-pill">
+            <span className="menu-currency-icon">💎</span>0
+          </span>
+          <button className="icon-button menu-settings-button" aria-label="Settings">
+            ⚙
+          </button>
+        </div>
+      </div>
 
       <div className="menu-header">
         <div className="menu-logo-emblem" aria-hidden="true">
@@ -102,6 +133,29 @@ export function MainMenu({
           />
         </nav>
       </div>
+
+      <div className="menu-footer">
+        <div className="menu-daily-reward">
+          <span className="menu-daily-reward-icon" aria-hidden="true">
+            🎁
+          </span>
+          <div className="menu-daily-reward-info">
+            <span className="menu-daily-reward-label">Daily Reset</span>
+            <span className="menu-daily-reward-timer">{resetTimer}</span>
+          </div>
+        </div>
+        <div className="menu-social-links">
+          <button className="menu-social-icon" aria-label="Discord">
+            💬
+          </button>
+          <button className="menu-social-icon" aria-label="Instagram">
+            📷
+          </button>
+          <button className="menu-social-icon" aria-label="Twitter">
+            🐦
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -129,4 +183,30 @@ function MenuAction({ tone, icon, title, subtitle, disabled, badge, onClick }: M
       {badge && <span className="menu-action-badge" aria-hidden="true" />}
     </button>
   );
+}
+
+/** Ticks down to the next UTC-midnight boundary — the exact instant
+ * objectives.ts's dayKey() rolls over daily progress (it keys off
+ * `toISOString()`, which is UTC). Reusing that real boundary instead of
+ * a made-up one, since this timer otherwise has nothing real to count
+ * down to (see the no-currency/no-leveling note above). */
+function useCountdownToNextReset(): string {
+  const [remainingMs, setRemainingMs] = useState(msUntilNextUtcMidnight);
+
+  useEffect(() => {
+    const id = setInterval(() => setRemainingMs(msUntilNextUtcMidnight()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+}
+
+function msUntilNextUtcMidnight(): number {
+  const now = new Date();
+  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0);
+  return next - now.getTime();
 }

@@ -131,9 +131,11 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 
 ## How to play
 
-The main menu (redesigned in `DESIGN.md` §9.21 against a reference
-mockup — real hero art framing the screen, a diamond wordmark, a stack
-of color-coded action buttons) has:
+The main menu (redesigned in `DESIGN.md` §9.21-§9.22 against a
+reference mockup — real hero art framing the screen, a diamond
+wordmark, a stack of color-coded action buttons, and matching the
+mockup's player badge/currency/daily-reward chrome too, even though
+none of that has a real system behind it yet — see §9.22) has:
 - **Find Match** — real online matchmaking (needs Supabase configured; see
   above). Grayed out with an explanation if it isn't.
 - **Practice** — a local, offline match against a simple bot

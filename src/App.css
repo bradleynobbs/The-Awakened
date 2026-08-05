@@ -1131,9 +1131,18 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #0c0f16;
-  background-size: cover;
-  background-position: center 35%;
+  /* §9.23: was the arena-plaza.jpg photo (reused from the battlefield),
+   * but its warm sunset palette read as mismatched/muddy against the
+   * mockup's cooler dark-purple night mood and the hero art layered on
+   * top of it. Replaced with a pure CSS gradient tuned to that same
+   * palette instead of a photo — a soft violet glow behind the wordmark
+   * (echoing the mockup's portal-at-the-end-of-the-stairway glow) fading
+   * to near-black at the edges, plus a faint vertical beam down the
+   * center picking up the logo's crystal-crack motif. */
+  background:
+    radial-gradient(60% 42% at 50% 32%, rgba(155, 107, 255, 0.32) 0%, rgba(155, 107, 255, 0) 72%),
+    linear-gradient(180deg, rgba(155, 107, 255, 0.16) 0%, rgba(155, 107, 255, 0) 18%),
+    linear-gradient(180deg, #1c1730 0%, #0c0f16 45%, #07080d 100%);
 }
 
 .menu-flank {

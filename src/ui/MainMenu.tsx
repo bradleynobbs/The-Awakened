@@ -4,7 +4,6 @@ import zeraSprite from "../assets/heroes/zera-sprite.png";
 import mournSprite from "../assets/heroes/mourn-sprite.png";
 import orinSprite from "../assets/heroes/orin-sprite.png";
 import tydraSprite from "../assets/heroes/tydra-sprite.png";
-import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
 interface MainMenuProps {
   online: boolean;
@@ -28,7 +27,7 @@ export function MainMenu({
   const resetTimer = useCountdownToNextReset();
 
   return (
-    <div className="menu-root" style={{ backgroundImage: `url(${arenaBackground})` }}>
+    <div className="menu-root">
       {/* Decorative only — real hero art framing the menu, mirroring §9.21's
        * reference mockup. Left pair faces right (their default orientation,
        * see HeroSprite.tsx), right pair is mirrored via CSS so both sides

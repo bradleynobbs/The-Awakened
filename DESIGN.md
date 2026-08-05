@@ -1724,3 +1724,28 @@ Verified again after these additions: no console errors at
 640/844/900px, all navigation still works, `.menu-content` no longer
 overlaps `.menu-footer` at any tested height, and the full pipeline
 (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`) passes.
+
+### 9.23 Menu background: photo swapped for a CSS gradient
+
+Feedback on §9.22's result: the `arena-plaza.jpg` background (reused
+from the battlefield) "looks rubbish" against the mockup's own
+background. The mismatch is real — `arena-plaza.jpg` is a warm sunset
+palette (orange sky, golden light), while the mockup's environment is
+a cool dark-purple night scene, and layered under the equally busy
+hero-flank art and button panels, the warm photo read as visual noise
+rather than atmosphere.
+
+No image-generation tool exists in this project (same limitation
+noted in `CHARACTER_CONCEPTS.md`), and there wasn't a second
+background asset already in the repo to swap in, so this replaces the
+photo with a pure CSS gradient instead of another image: a soft violet
+radial glow behind the wordmark (standing in for the mockup's
+portal-at-the-end-of-the-stairway light source) fading to near-black
+at the edges, on top of a vertical dark-purple-to-near-black base
+gradient. `.menu-backdrop`'s existing darkening overlay (§9.21) still
+sits on top for the hero art, unchanged.
+
+Verified: no console errors at 640/844/900px, no overlap between
+`.menu-content` and `.menu-footer`, all navigation still works, full
+pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
+passes.

@@ -1879,3 +1879,95 @@ targets (5 sidebar items, Custom Match, and 3 bottom tabs beyond
 Home/Decks) route correctly and every ComingSoon screen's back button
 returns to the menu. Full pipeline (`tsc -b`, `oxlint`, 82-test Vitest
 suite, `vite build`) passes.
+
+### 9.26 Three follow-up complaints on §9.25's shell
+
+Screenshots from an actual phone (not just the Playwright viewports
+this project's QA has relied on) surfaced three problems with §9.25's
+result, plus a fourth: "doesn't look like our app at all... needs to
+look more interesting... some of our characters... and our logo."
+
+**1. Menu content sat visibly right of center.** `.menu-body-row` was
+`display: flex` with the sidebar and `.menu-content-v2` as row
+siblings — the sidebar's 56px ate into the row's width, so
+`.menu-content-v2`'s own internal centering (`align-items: center`)
+centered its children in the *remaining* ~334px, not the full screen,
+landing about 28px right of true center. Fixed by making the sidebar
+float (`position: absolute`) over the content instead of sharing row
+space with it — `.menu-content-v2` now fills `.menu-body-row` exactly
+(`position: absolute; inset: 0`) and centers on the *full* width, with
+the sidebar layered on top in the ~56px-wide strip its icons actually
+occupy. This is safe in a way an even earlier absolute-sidebar attempt
+wasn't: `.menu-body-row` is itself already properly height-bounded
+(`flex: 1` + `min-height: 0`, from §9.22's lesson), so anchoring the
+sidebar's `top: 0`/`bottom: 0` to it is anchoring to a real box, not
+guessing a pixel offset. The sidebar itself gets `pointer-events: none`
+with `pointer-events: auto` on just its item buttons, so an empty gap
+between icons doesn't "eat" a click meant for content peeking out from
+underneath at the small overlap zone where the two visually meet.
+
+**2. The bottom tab bar only existed on the main menu.** It was
+JSX owned by `MainMenu.tsx`, so navigating anywhere else (concretely
+demonstrated with a Deck Builder screenshot) lost it entirely — "the
+bar along the bottom... should be available to click on every page
+you're on." Pulled it out into its own component, `BottomTabs.tsx`,
+rendered by `App.tsx` as a sibling alongside whichever screen is
+currently showing, with active-tab state computed from a
+`Partial<Record<Screen, BottomTab | null>>` lookup (`null` for screens
+with no matching tab — Store, Objectives, Events, Leaderboard, Custom
+Match — rather than falsely highlighting one). Deliberately hidden
+during the actual match flow (`online`/`practice`, every phase):
+that's a focused session with its own leave mechanism, tapping "Clan"
+mid-battle isn't a real use case, and the tabs would compete with
+Battle's own hand-tray UI for the same screen real estate. Since a
+persistent bottom bar now competes for height on every meta screen,
+not just the menu, `.menu-screen`/`.selection-screen`/`.victory-screen`
+picked up the same `min-height: 0` fix `.menu-content` needed in
+§9.22 — latent before (nothing ever shared their space), now a real
+risk.
+
+**3 & 4. No real hero art, no real logo — "doesn't look like our
+app."** §9.25's rebuild dropped both in favor of the new mockup's
+own CSS-built dressing (a 3-triangle "mountain" for the logo, no
+characters at all). Restored the real flank hero art from §9.21/9.24
+(same four heroes, same brightness/glow treatment, layered behind the
+new chrome) and replaced the CSS mountain with the actual supplied
+emblem image.
+
+The emblem file has a near-black (not transparent) background. First
+attempt used `mix-blend-mode: screen` to make black disappear against
+the dark menu without a real keying pass — this produced a visible
+hard-edged square instead. Root cause: `mix-blend-mode` only
+composites against paint within its *own* stacking context, and
+`.menu-emblem-image`'s ancestor `.menu-content-v2` (`position: absolute`
++ `z-index`) isolates one — the blend couldn't reach the hero art
+layered behind it (a sibling of `.menu-content-v2`, outside its
+context) to disappear against. A second attempt gave the blend a
+same-context radial-gradient glow to composite against instead
+(reasoning: the gradient's own fade-to-transparent edge would use
+*plain alpha compositing*, unaffected by the blend-mode restriction,
+to reveal the real background beyond it) — still showed a square,
+because the image's fully-opaque black rectangle blended against the
+gradient at a mostly-fixed value rather than the intended smooth
+falloff, and debugging *why* cost more than just fixing it properly.
+Switched to real alpha-keying instead, temporarily installing `sharp`
+(same "never a permanent dependency" pattern as the hero-art pipeline,
+`npm uninstall`'d immediately after): a brightness-threshold ramp
+(`LOW=8`/`HIGH=34` on the max RGB channel) rather than the wide
+photo-oriented ramp the hero pipeline uses, since this source has a
+uniform near-black background, not a busy photo needing a fringe-
+mopping pass. Verified clean via the same checkerboard/solid-background
+composite check used for hero art before shipping. Trimming to a
+content bounding box (as the hero-art pipeline does) turned out to be
+wrong for this asset specifically — its ambient sparkle-particle effect
+scatters faint bright specks across the *entire* canvas, so a
+non-zero-alpha bounding box covers the full image and "trimming" would
+do nothing; kept the full canvas.
+
+Verified again after all three fixes: no console errors at
+640/844/900px, `.menu-mode-list` measures exactly centered on-screen
+(0px offset, down from ~28px), the bottom tabs are visible and
+functional from the menu, Deck Builder (via both entry points), and
+Store, correctly hidden once inside Practice's hero-selection screen,
+and all 9 §9.25 nav targets still route correctly. Full pipeline
+(`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`) passes.

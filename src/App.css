@@ -86,6 +86,12 @@ button {
 .selection-screen,
 .victory-screen {
   flex: 1;
+  /* A global persistent bottom nav (§9.26) now competes for space in
+   * app-root's flex column on some screens — without this, flex:1's
+   * default min-height:auto would refuse to shrink below this box's
+   * content size instead of scrolling internally, the same class of
+   * bug fixed for .menu-content in §9.22. */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1157,6 +1163,69 @@ button {
   pointer-events: none;
 }
 
+/* Real hero art (§9.21/9.24, dropped in §9.25's rebuild, restored in
+ * §9.26 — its absence was a real complaint: "doesn't look like our
+ * app," "needs some of our characters"). Sits behind everything else
+ * (.menu-backdrop darkens it uniformly along with the plaza/banners),
+ * showing through wherever the UI chrome above leaves negative space. */
+.menu-flank {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48%;
+  z-index: 1;
+  pointer-events: none;
+}
+.menu-flank-left {
+  left: -10%;
+}
+.menu-flank-right {
+  right: -10%;
+}
+
+.menu-flank-hero {
+  position: absolute;
+  height: 42%;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom;
+  /* Brightened + saturated on top of each element's glow color (set per
+   * variant below via --glow) — at full natural exposure these read as
+   * flat and muddy under .menu-backdrop's darkening overlay (§9.24). */
+  filter: brightness(1.5) saturate(1.25) drop-shadow(0 0 30px var(--glow, rgba(255, 255, 255, 0.4)))
+    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+}
+.menu-flank-left .menu-flank-hero {
+  left: 0;
+}
+.menu-flank-right .menu-flank-hero {
+  right: 0;
+  /* Real art faces right by default (its resting orientation as an ally
+   * sprite in battle, see HeroSprite.tsx) — mirrored here so both flanks
+   * face inward toward the logo instead of both facing the same way. */
+  transform: scaleX(-1);
+}
+.menu-flank-hero:nth-child(1) {
+  top: 4%;
+}
+.menu-flank-hero:nth-child(2) {
+  top: 50%;
+  height: 44%;
+}
+
+.menu-flank-hero-spark {
+  --glow: rgba(201, 161, 59, 0.7);
+}
+.menu-flank-hero-undead {
+  --glow: rgba(160, 130, 165, 0.65);
+}
+.menu-flank-hero-spirit {
+  --glow: rgba(126, 203, 196, 0.7);
+}
+.menu-flank-hero-water {
+  --glow: rgba(47, 143, 214, 0.7);
+}
+
 .menu-banner-pole {
   position: absolute;
   top: 10%;
@@ -1328,24 +1397,42 @@ button {
  * nothing behind them yet (see ComingSoon.tsx). */
 
 .menu-body-row {
+  /* §9.26: no longer display: flex — the sidebar used to be a flex-row
+   * sibling of .menu-content-v2, which meant its centered content
+   * (season banner, logo, buttons) was actually centered in the
+   * *remaining* width after the sidebar, not the full screen — visibly
+   * shifted right, a real complaint. The sidebar is now absolutely
+   * positioned over the content instead, anchored to this element's
+   * own top:0/bottom:0 — safe (unlike an even earlier absolute attempt
+   * that used guessed pixel offsets) because this box is itself
+   * properly height-bounded via flex:1 + min-height:0. */
   position: relative;
   z-index: 4;
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: stretch;
 }
 
 .menu-sidebar {
-  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
   width: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 14px;
   padding: 10px 0;
+  /* The nav itself doesn't capture clicks (only its item buttons do,
+   * see below) — otherwise an empty gap between icons would "eat" a
+   * click meant for whatever of .menu-content-v2's centered content
+   * peeks out from behind the sidebar's left-edge overlap zone. */
+  pointer-events: none;
 }
 .menu-sidebar-item {
+  pointer-events: auto;
   background: none;
   border: none;
   color: #cfd4e6;
@@ -1400,8 +1487,13 @@ button {
 }
 
 .menu-content-v2 {
-  flex: 1;
-  min-height: 0;
+  /* Fills .menu-body-row exactly (which is itself already height-
+   * bounded via flex:1 + min-height:0 one level up) — full width, not
+   * reduced by the sidebar's width, since the sidebar now floats over
+   * this instead of sitting beside it as a flex-row sibling (§9.26). */
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   /* Same flex-start + margin-auto safety pattern as §9.20/§9.22 —
@@ -1485,41 +1577,28 @@ button {
   padding: 6px 0 0;
 }
 
-.menu-logo-mountain {
-  position: relative;
-  width: 120px;
-  height: 74px;
-  margin-bottom: 4px;
+.menu-emblem-wrap {
+  margin: 0 auto 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.menu-logo-mountain .peak {
-  position: absolute;
-  bottom: 0;
-  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-}
-.menu-logo-mountain .peak-center {
-  left: 50%;
-  width: 58px;
-  height: 74px;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, #e4d4ff 0%, #9b6bff 55%, #4b2a99 100%);
-  filter: drop-shadow(0 0 18px rgba(155, 107, 255, 0.75));
-  z-index: 2;
-}
-.menu-logo-mountain .peak-left {
-  left: 4px;
-  width: 40px;
-  height: 52px;
-  background: linear-gradient(180deg, #9b7bff, #4a2f78);
-  opacity: 0.85;
-  z-index: 1;
-}
-.menu-logo-mountain .peak-right {
-  right: 4px;
-  width: 40px;
-  height: 52px;
-  background: linear-gradient(180deg, #9b7bff, #4a2f78);
-  opacity: 0.85;
-  z-index: 1;
+
+.menu-emblem-image {
+  /* The actual game emblem, not a CSS approximation. Its source file
+   * had a near-black (not transparent) background — mix-blend-mode
+   * was tried first to fake transparency against it, but that only
+   * composites within its own stacking context, and this image's
+   * position:absolute ancestor (.menu-content-v2) isolates one; the
+   * result was a visible hard square edge where the blend couldn't
+   * reach the hero art behind it. Ran the image through the same kind
+   * of alpha-keying pass as the hero-art pipeline instead (a
+   * brightness-threshold ramp; its background is a uniform near-black,
+   * not a busy photo, so a simple ramp was enough) — real
+   * transparency, no blend-mode restrictions. */
+  width: 100px;
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(155, 107, 255, 0.6));
 }
 
 .menu-title-v2 {

@@ -131,15 +131,19 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 
 ## How to play
 
-The main menu went through 3 rounds of redesign against reference
-mockups (`DESIGN.md` §9.21-§9.25); §9.25's version is a full
-mobile-game home-screen shell — a side nav rail, a top bar, a season
-banner, 3 mode buttons, a daily-reward bar, and a 5-tab bottom nav.
-Almost none of the systems that chrome implies exist (no leveling,
-currency, seasons, clans, or a battle pass — this prototype is
-explicitly skill-decides-matches, not pay-to-win), so every number on
-it is a static, neutral placeholder, and anything with no real screen
-behind it opens a shared "Coming Soon" screen (`ComingSoon.tsx`)
+The main menu went through several rounds of redesign against
+reference mockups (`DESIGN.md` §9.21-§9.26) and is now a full
+mobile-game home-screen shell — real hero art and the actual game
+emblem layered behind a side nav rail, a top bar, a season banner, 3
+mode buttons, a daily-reward bar, and a 5-tab bottom nav that's
+persistent across every meta/menu screen (not just the menu itself —
+`BottomTabs.tsx`, rendered by `App.tsx`), hidden only during the
+actual match flow. Almost none of the systems that chrome implies
+exist (no leveling, currency, seasons, clans, or a battle pass — this
+prototype is explicitly skill-decides-matches, not pay-to-win), so
+every number on it is a static, neutral placeholder, and anything
+with no real screen behind it opens a shared "Coming Soon" screen
+(`ComingSoon.tsx`)
 instead of a silent dead click. What's actually real:
 - **Find Match** — real online matchmaking (needs Supabase configured; see
   above). Disabled with an explanation if it isn't.
@@ -378,13 +382,14 @@ src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
                      regardless of engine player id), useEventQueue
                      (steps engine events into per-event animation cues
                      one at a time)
-src/ui/             MainMenu (full home-screen shell, §9.25),
-                     DeckBuilder, Store, Objectives, ComingSoon
-                     (shared placeholder for unbuilt nav targets),
-                     Matchmaking, OnlineHeroSelection (shared by
-                     online + practice), Battle (TopBar, CardHand,
-                     TeamUpBar, CombatLog sheet, LatestEventToast),
-                     VictoryScreen, DebugPanel
+src/ui/             MainMenu (full home-screen shell, §9.25-§9.26),
+                     BottomTabs (persistent app-wide nav, rendered by
+                     App.tsx, not owned by MainMenu), DeckBuilder,
+                     Store, Objectives, ComingSoon (shared placeholder
+                     for unbuilt nav targets), Matchmaking,
+                     OnlineHeroSelection (shared by online + practice),
+                     Battle (TopBar, CardHand, TeamUpBar, CombatLog
+                     sheet, LatestEventToast), VictoryScreen, DebugPanel
 ```
 
 Every round's resolution produces an ordered list of `GameEvent`s (e.g.

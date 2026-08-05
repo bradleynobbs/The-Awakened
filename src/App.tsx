@@ -7,6 +7,8 @@ import { isOnlineConfigured } from "./net/supabaseClient";
 import { getPreferredLoadout } from "./state/loadout";
 import { recordMatchResult } from "./state/objectives";
 import { Battle } from "./ui/Battle";
+import { BottomTabs } from "./ui/BottomTabs";
+import type { BottomTab } from "./ui/BottomTabs";
 import { ComingSoon } from "./ui/ComingSoon";
 import { DebugPanel } from "./ui/DebugPanel";
 import { DeckBuilder } from "./ui/DeckBuilder";
@@ -93,6 +95,30 @@ export default function App() {
 
   const preferredLoadout = getPreferredLoadout() ?? undefined;
 
+  /** §9.26: the bottom tabs are a persistent, app-wide sibling (not
+   * owned by MainMenu) so they're clickable from every meta/menu
+   * screen, not just the menu itself — the concrete complaint was the
+   * Deck Builder screen having no way back to Home except the header's
+   * back arrow. Hidden during the actual match flow (online/practice,
+   * every phase) since that's a focused session with its own "leave"
+   * mechanism — tapping "Clan" mid-battle isn't a real use case, and
+   * showing tabs there would compete with Battle's own hand-tray UI
+   * for the bottom of the screen. */
+  const bottomTabsScreen: Partial<Record<Screen, BottomTab | null>> = {
+    menu: "home",
+    deckbuilder: "decks",
+    store: null,
+    objectives: null,
+    events: null,
+    leaderboard: null,
+    custommatch: null,
+    battlepass: "battlepass",
+    clan: "clan",
+    profile: "profile",
+  };
+  const activeTab = bottomTabsScreen[screen];
+  const showBottomTabs = activeTab !== undefined;
+
   return (
     <div className="app-root">
       {screen === "menu" && (
@@ -107,8 +133,6 @@ export default function App() {
           onLeaderboard={() => setScreen("leaderboard")}
           onCustomMatch={() => setScreen("custommatch")}
           onBattlePass={() => setScreen("battlepass")}
-          onClan={() => setScreen("clan")}
-          onProfile={() => setScreen("profile")}
         />
       )}
 
@@ -205,6 +229,17 @@ export default function App() {
             <VictoryScreen winnerId={practice.state.winnerId} myRole="player1" onLeave={handlePracticeLeave} />
           )}
         </>
+      )}
+
+      {showBottomTabs && (
+        <BottomTabs
+          active={activeTab ?? null}
+          onHome={goMenu}
+          onDecks={() => setScreen("deckbuilder")}
+          onBattlePass={() => setScreen("battlepass")}
+          onClan={() => setScreen("clan")}
+          onProfile={() => setScreen("profile")}
+        />
       )}
 
       <button

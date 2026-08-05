@@ -17,6 +17,18 @@ import flintPortrait from "../assets/heroes/flint-portrait.png";
 import erosalinaPortrait from "../assets/heroes/erosalina-portrait.png";
 import runePortrait from "../assets/heroes/rune-portrait.png";
 import ampPortrait from "../assets/heroes/amp-portrait.png";
+import infernaCardArt from "../assets/heroes/inferna-card-art.png";
+import mournCardArt from "../assets/heroes/mourn-card-art.png";
+import kairoCardArt from "../assets/heroes/kairo-card-art.png";
+import tydraCardArt from "../assets/heroes/tydra-card-art.png";
+import torrentCardArt from "../assets/heroes/torrent-card-art.png";
+import zeraCardArt from "../assets/heroes/zera-card-art.png";
+import orinCardArt from "../assets/heroes/orin-card-art.png";
+import kharosCardArt from "../assets/heroes/kharos-card-art.png";
+import flintCardArt from "../assets/heroes/flint-card-art.png";
+import erosalinaCardArt from "../assets/heroes/erosalina-card-art.png";
+import runeCardArt from "../assets/heroes/rune-card-art.png";
+import ampCardArt from "../assets/heroes/amp-card-art.png";
 
 /** Cropped headshots for the roster panel (§9.19) — only exists for
  * heroes with real illustrated art (see REAL_ART in HeroSprite.tsx).
@@ -35,6 +47,32 @@ export const HERO_PORTRAIT: Partial<Record<HeroId, string>> = {
   erosalina: erosalinaPortrait,
   rune: runePortrait,
   amp: ampPortrait,
+};
+
+/** Wider "chest and shoulders" crops for the trading-card design
+ * (§9.30) — HERO_PORTRAIT above is a tight square headshot sized for
+ * the roster panel's small circular avatar, too tight to fill a
+ * card's entire upper half the way this design calls for. Cropped
+ * fresh from the top of each hero's existing full-body sprite (not
+ * new art — this project has no image-generation tool) at a width-
+ * dependent height aimed at the card's upper-half aspect ratio, so
+ * each hero needs only a little further cropping via object-fit:
+ * cover rather than a drastic zoom. Same 12 heroes as HERO_PORTRAIT;
+ * heroes without dedicated art keep the same role-icon-on-disc
+ * fallback. */
+export const HERO_CARD_ART: Partial<Record<HeroId, string>> = {
+  "fire-mage": infernaCardArt,
+  "undead-assassin": mournCardArt,
+  "charm-gunslinger": kairoCardArt,
+  "water-healer": tydraCardArt,
+  torrent: torrentCardArt,
+  zera: zeraCardArt,
+  orin: orinCardArt,
+  kharos: kharosCardArt,
+  flint: flintCardArt,
+  erosalina: erosalinaCardArt,
+  rune: runeCardArt,
+  amp: ampCardArt,
 };
 
 /** Illustrated role emblems (replacing the earlier emoji placeholders) —

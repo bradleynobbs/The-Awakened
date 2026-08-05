@@ -2158,3 +2158,71 @@ card specifically shows its real portrait, badges, and all 4 abilities
 in both screens; selecting Amp (and 2 others) through to a locked-in,
 started battle still works end-to-end. Full pipeline (`tsc -b`,
 `oxlint`, 82-test Vitest suite, `vite build`) passes.
+
+### 9.30 Premium collectible-card redesign, against a much more specific brief
+
+§9.29's card got a detailed follow-up brief — explicitly "DO NOT
+SIMPLIFY" — reworking almost every visual decision it made: no
+per-element colored border (matte black + gunmetal frame + subtle
+purple accents instead), art filling the *entire* upper half in a
+chest-and-shoulders crop that slightly overlaps the name plate, a
+name plate with nothing else on it, and exactly 3 ability panels —
+explicitly dropping stats, costs, and the Passive row this project has
+otherwise treated as real gameplay information worth surfacing.
+Followed the brief's own suggested layering (frame / character art /
+role icon / element icon / text) since it's sound architecture
+regardless of visual style — a new hero only ever needs a new
+`HERO_CARD_ART` entry, never a CSS change.
+
+**A new, wider portrait crop was needed.** §9.29's `HERO_PORTRAIT` is
+a tight square headshot sized for the roster panel's small circular
+avatar — nowhere near wide enough to fill a card's entire upper half
+in a "chest and shoulders" framing without an extreme zoom. Cropped a
+second, wider set (`HERO_CARD_ART`) fresh from the top of each hero's
+existing full-body sprite instead of sourcing new art (no image-
+generation tool exists in this project): crop height computed per hero
+from its sprite's own width, aimed at the card's own upper-half aspect
+ratio (~1.43:1), so `object-fit: cover` only has to nudge the final
+fit rather than perform a drastic zoom — a narrow sprite (Inferna,
+188px wide) and a wide one (Zera, 624px wide) both crop to a sensible
+chest-up shot instead of one being a tiny sliver and the other showing
+half the body.
+
+**Amp's "signature black lightning visor glasses," specifically:** the
+brief calls this out as something to preserve exactly. Checked the
+actual `amp-sprite.png` this project has — it's a stylized/
+"crystallized" gold-effect rendering where the face is turned at an
+angle, partially hair-covered, and doesn't clearly show a distinct
+visor the way the brief's own reference mockup image does. This is the
+only Amp art asset in the repo; used it as-is rather than attempting
+to redraw or fabricate a clearer visor that isn't actually in the
+source file. If a cleaner reference image exists, re-cropping from it
+is a drop-in swap of one `HERO_CARD_ART` entry, nothing else.
+
+**One color choice adjusted mid-build:** first pass forced the role-
+icon badge images to a flat white silhouette (`brightness(0)
+invert(1)`) to make them read as "silver," but `ROLE_ICON`'s own
+images are already illustrated in their own metallic gold/bronze
+finish (a prior session's "matching metallic target-ring frames"
+work) — flattening them to solid white would have destroyed that
+existing bevel/shading detail, working against the brief's own
+"realistic metallic materials, depth, bevels" goal. Kept the icons in
+their native finish and made only the *badge circle* itself silver/
+gunmetal, which is what "the badges should be silver" most sensibly
+refers to.
+
+**What got removed, per the brief's explicit list:** the numeric stat
+grid (`showStats` prop and `.deck-builder-stat-grid`, both fully
+deleted rather than left disabled), each ability's energy cost number,
+the Passive row, and the per-element `border-color` inline style on
+the card button (the frame is now identical for every hero,
+independent of element, with `.selected` state communicated via a
+purple glow instead).
+
+Verified via Playwright: all 17 cards across both screens render with
+the new frame, badges, overlapping name plate, and exactly 3 ability
+panels; no horizontal overflow at any scroll position through the
+full 17-hero grid; Amp's card specifically confirmed in both screens;
+selecting Amp plus 2 others through to a locked-in, started battle
+still works end-to-end; zero console errors. Full pipeline (`tsc -b`,
+`oxlint`, 82-test Vitest suite, `vite build`) passes.

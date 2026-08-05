@@ -3,7 +3,6 @@ import { HERO_LIST } from "../engine/heroes";
 import type { HeroId } from "../engine/types";
 import type { HeroTrio } from "../engine/match";
 import { getPreferredLoadout, savePreferredLoadout } from "../state/loadout";
-import { ELEMENT_COLOR } from "./heroVisuals";
 import { HeroCard } from "./HeroCard";
 
 interface DeckBuilderProps {
@@ -42,8 +41,7 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
         <p className="selection-hint">
           Choose your preferred 3 heroes. This loadout pre-fills team selection when you start a
           match — you can still change it there. Each hero's deck is fixed: 3 copies each of
-          their Attack, Ability, and Support card. The stats below modify those cards'
-          numbers every time — no dice rolls, every outcome is calculable.
+          their Attack, Ability, and Support card, shown below.
         </p>
 
         <div className="hero-select-grid">
@@ -54,11 +52,10 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
               <button
                 key={hero.id}
                 className={`hero-select-card${isSelected ? " selected" : ""}`}
-                style={{ borderColor: ELEMENT_COLOR[hero.element] }}
                 onClick={() => toggle(hero.id)}
               >
                 {isSelected && <span className="pick-badge">{index + 1}</span>}
-                <HeroCard hero={hero} showStats />
+                <HeroCard hero={hero} />
               </button>
             );
           })}

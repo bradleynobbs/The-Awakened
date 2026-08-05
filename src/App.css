@@ -164,10 +164,19 @@ button {
   width: 100%;
 }
 
+/* ---------- Hero card (§9.30): premium collectible-TCG redesign ----------
+ * §9.29's first pass had a per-element colored border and a plain flat
+ * card; this brief explicitly banned the colored border ("NO coloured
+ * borders around the whole card") and asked for a matte-black,
+ * gunmetal-framed, purple-accented premium card instead, split into
+ * layers per the brief's own suggestion: this button is the frame
+ * (identical for every hero, never changes); HeroCard.tsx supplies the
+ * portrait/badges/text layers on top of it. */
+
 .hero-select-card {
   position: relative;
-  background: #161b28;
-  border: 2px solid #333;
+  background: #0a0a0d;
+  border: 2px solid #5a5d66;
   border-radius: 14px;
   padding: 0;
   overflow: hidden;
@@ -176,17 +185,54 @@ button {
   align-items: stretch;
   color: #e8eaf0;
   text-align: left;
+  /* Inner highlight + outer dark ring approximates a beveled metal
+   * edge without needing a real material/lighting render. */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 6px 16px rgba(0, 0, 0, 0.5);
+}
+/* Subtle purple energy in the corners + small crystal accents — kept
+ * deliberately faint ("very subtle") so they read as ambient card
+ * material, not a colored border repeated by another name. */
+.hero-select-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 4% 4%, rgba(155, 107, 255, 0.22) 0%, rgba(155, 107, 255, 0) 24%),
+    radial-gradient(circle at 96% 96%, rgba(155, 107, 255, 0.22) 0%, rgba(155, 107, 255, 0) 24%);
+}
+.hero-select-card::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(135deg, #d8c4ff, #9b6bff);
+  transform: rotate(45deg);
+  box-shadow: 0 0 4px rgba(155, 107, 255, 0.8);
+  pointer-events: none;
 }
 .hero-select-card.selected {
-  background: #232b45;
-  box-shadow: 0 0 0 2px #ffd24a inset;
+  border-color: #9b6bff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 2px rgba(155, 107, 255, 0.7),
+    0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .pick-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 2;
+  z-index: 3;
   background: #ffd24a;
   color: #1a1400;
   border-radius: 50%;
@@ -199,18 +245,16 @@ button {
   justify-content: center;
 }
 
-/* ---------- Hero card (§9.29): trading-card-style hero presentation
- * shared by Deck Builder and hero-select, modeled on a supplied
- * reference card (portrait, role/element corner badges, name banner,
- * ability list) — see HeroCard.tsx. ---------- */
-
 .hero-card-portrait-wrap {
   position: relative;
+  z-index: 1;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-bottom: 2px solid;
+  /* Matches the width-dependent crop aimed at this same ratio when
+   * generating HERO_CARD_ART (see heroVisuals.ts) — object-fit: cover
+   * below only needs to nudge the fit, not perform a drastic zoom. */
+  aspect-ratio: 1.43 / 1;
   overflow: hidden;
-  background: #0c0f16;
+  background: #0e0c10;
   flex-shrink: 0;
 }
 .hero-card-portrait {
@@ -226,106 +270,126 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(160deg, #2a2a30, #14141a);
 }
 .hero-card-fallback-icon {
-  width: 40%;
-  height: 40%;
+  width: 38%;
+  height: 38%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
 
+/* Silver/gunmetal metallic badges, per the brief — both role and
+ * element badges share the identical neutral-metal treatment (no
+ * per-element tinting) so the only color signal on the whole card is
+ * the small purple accents established above. */
 .hero-card-badge {
   position: absolute;
   top: 6px;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(30, 22, 10, 0.9) 0%, rgba(10, 8, 4, 0.9) 100%);
-  border: 1px solid rgba(255, 210, 74, 0.55);
+  background: radial-gradient(circle, #7a7d86 0%, #2c2d33 70%, #17171b 100%);
+  border: 1px solid rgba(220, 224, 235, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  z-index: 2;
+  box-shadow: 0 0 6px rgba(200, 210, 230, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.25);
 }
 .hero-card-badge img {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
-  filter: drop-shadow(0 0 2px rgba(255, 190, 60, 0.9));
+  /* The role icons are already illustrated in their own metallic
+   * gold/bronze finish (see ROLE_ICON's own "matching metallic
+   * target-ring frames" note) — kept as-is rather than forced to
+   * silver, which would flatten their existing bevel/shading detail
+   * into a plain silhouette. */
+  filter: drop-shadow(0 0 2px rgba(230, 235, 245, 0.6));
 }
 .hero-card-badge-role {
   left: 6px;
 }
 .hero-card-badge-element {
   right: 6px;
-  font-size: 12px;
+  font-size: 13px;
+  filter: drop-shadow(0 0 3px rgba(230, 235, 245, 0.7));
 }
 
-.hero-card-name-banner {
-  display: flex;
-  flex-direction: column;
-  padding: 6px 10px 4px;
-  border-top: 2px solid;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+/* Name plate overlaps the portrait's bottom edge slightly, per the
+ * brief — a negative margin pulls it up over the (later-painted, so
+ * naturally on top) portrait, with a top fade instead of a hard edge
+ * so the overlap reads as intentional rather than a layout accident. */
+.hero-card-name-plate {
+  position: relative;
+  z-index: 2;
+  margin-top: -16px;
+  padding: 14px 12px 8px;
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 13, 0) 0%,
+    rgba(10, 10, 13, 0.75) 35%,
+    rgba(20, 20, 24, 0.96) 65%,
+    rgba(20, 20, 24, 0.96) 100%
+  );
+  border-bottom: 1px solid rgba(220, 224, 235, 0.2);
   flex-shrink: 0;
 }
 .hero-card-name {
   font-weight: 800;
-  font-size: 14px;
-  letter-spacing: 0.3px;
-}
-.hero-card-subrole {
-  font-size: 10px;
-  color: #9aa2c0;
-  text-transform: capitalize;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #f0f1f5;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.9);
 }
 
 .hero-card-abilities {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 6px 10px 10px;
+  gap: 8px;
+  padding: 10px 10px 12px;
 }
-.hero-card-ability-row {
+.hero-card-ability-panel {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: #100e14;
+  border: 1px solid rgba(210, 215, 225, 0.18);
+  box-shadow: 0 0 8px rgba(155, 107, 255, 0.22), inset 0 0 10px rgba(155, 107, 255, 0.06);
 }
 .hero-card-ability-icon {
   flex-shrink: 0;
-  font-size: 9px;
-  color: #ffd24a;
-  line-height: 1.5;
-}
-.hero-card-ability-row.passive .hero-card-ability-icon {
+  font-size: 13px;
   color: #b794f6;
+  line-height: 1.4;
+  filter: drop-shadow(0 0 3px rgba(155, 107, 255, 0.6));
 }
 .hero-card-ability-copy {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 .hero-card-ability-label {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #e8eaf0;
-}
-.hero-card-ability-cost {
-  font-weight: 600;
-  color: #ffd24a;
 }
 .hero-card-ability-desc {
   font-size: 10px;
   color: #9aa2c0;
-  line-height: 1.3;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-.hero-card-ability-row.passive .hero-card-ability-desc {
-  color: #7c84a8;
-  font-style: italic;
 }
 
 /* ---------- Battle shell ---------- */
@@ -2119,18 +2183,6 @@ button {
 .deck-builder-body {
   justify-content: flex-start;
   padding-top: 20px;
-}
-
-.deck-builder-stat-grid {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3px 8px;
-  padding: 8px 10px 10px;
-  font-size: 10px;
-  color: #b7bcd6;
-  text-align: left;
 }
 
 .store-icon {

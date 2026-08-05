@@ -260,8 +260,12 @@ than real illustrated art — see §9.20 in `DESIGN.md` for why.
 
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
 Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing
-Power, Shield Strength) shown in full in the Deck Builder — see "Stats"
-below and `DESIGN.md` §8 for exactly how each one is used.
+Power, Shield Strength) — see "Stats" below and `DESIGN.md` §8 for
+exactly how each one is used. The hero cards themselves (Deck Builder
+and hero-select, §9.30) deliberately don't show these numbers or a
+Passive row — just the Attack/Ability/Support text, by design, for a
+cleaner premium-card look; the full numeric breakdown lives in
+`DESIGN.md` §2/§8 instead.
 
 Each hero has one Attack card (1 energy), one Ability card (2 energy), one
 Support card (2 energy — heals, shields, or Empowers an ally, see
@@ -298,8 +302,9 @@ hero's health plate (🔥 Burn ticks remaining, 💧 Wet, 🛡 Shield amount,
 
 Every hero has Health, Attack, Defense, and Speed, plus 8 secondary
 stats (Accuracy, Evasion, Critical Chance/Damage, Energy, Cooldown
-Reduction, Healing Power, Shield Strength) — see the Deck Builder for
-every hero's full block, and `DESIGN.md` §8 for the exact formulas.
+Reduction, Healing Power, Shield Strength) — see `DESIGN.md` §2/§8 for
+every hero's full block and the exact formulas (the in-app hero cards
+themselves don't show these numbers, by design — see §9.30).
 **Nothing here is randomized** — the same "no dice rolls, every outcome
 predictable" rule from the top of this README applies to stats too:
 
@@ -393,10 +398,13 @@ src/ui/             MainMenu (full home-screen shell, §9.25-§9.28),
                      MenuSheet (bottom sheet replacing the old sidebar,
                      §9.27), BottomTabs (persistent app-wide nav,
                      rendered by App.tsx, not owned by MainMenu),
-                     HeroCard (trading-card-style hero presentation,
-                     §9.29 — portrait + role/element badges + name
-                     banner + ability list, shared by DeckBuilder and
-                     OnlineHeroSelection), DeckBuilder, Store,
+                     HeroCard (premium collectible-card hero
+                     presentation, §9.29-§9.30 — chest-up portrait
+                     filling the card's upper half, silver/gunmetal
+                     role+element badges, an overlapping name plate,
+                     and exactly 3 ability panels; shared by
+                     DeckBuilder and OnlineHeroSelection), DeckBuilder,
+                     Store,
                      Objectives, ComingSoon (shared placeholder for
                      unbuilt nav targets), Matchmaking,
                      OnlineHeroSelection (shared by online + practice),

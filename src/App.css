@@ -89,11 +89,29 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center directly conflicts with overflow-y: auto on
+   * a flex container — when content is taller than the box, the browser
+   * still centers the flex content around the midpoint, and the portion
+   * that overflows past the TOP becomes unreachable by scrolling (a
+   * well-known flexbox gotcha). Harmless with the original 7-hero grid
+   * (always short enough to fit), but a real bug once the roster grew to
+   * 17 (§9.20) — some hero cards were genuinely unclickable, scroll or
+   * not. margin-top: auto centers short content exactly like
+   * justify-content: center did, but degrades gracefully to top-anchored
+   * + scrollable once content overflows, instead of clipping unreachably. */
+  justify-content: flex-start;
   padding: 32px 24px;
   text-align: center;
   gap: 18px;
   overflow-y: auto;
+}
+.selection-screen > *:first-child,
+.victory-screen > *:first-child {
+  margin-top: auto;
+}
+.selection-screen > *:last-child,
+.victory-screen > *:last-child {
+  margin-bottom: auto;
 }
 
 .menu-title {
@@ -790,17 +808,33 @@ button {
   align-items: center;
   gap: 3px;
 }
+/* A dark circular badge behind each emblem — the gold role icon in
+ * particular got lost against the roster banner's own dark background
+ * at a plain small size (see DESIGN.md 9.14), so this gives it a
+ * dedicated backdrop plus a matching glow instead of relying on size
+ * alone for contrast. */
+.roster-emblem-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30, 22, 10, 0.9) 0%, rgba(10, 8, 4, 0.9) 100%);
+  border: 1px solid rgba(255, 210, 74, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 .roster-role-icon {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 0 3px rgba(255, 190, 60, 0.9));
 }
 .roster-element-icon {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
 }
 .roster-hpbar {
   position: relative;

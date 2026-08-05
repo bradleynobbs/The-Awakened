@@ -70,7 +70,7 @@ export interface DealDamageOptions {
   targetId: HeroInstanceId;
   amount: number;
   sourceHeroInstanceId?: HeroInstanceId;
-  /** Direct card hits count for Mourn's passive; status ticks (Burn) do not. */
+  /** Direct card hits count for Mourn's/Amp's first-hit passives; status ticks (Burn) do not. */
   isDirectHit?: boolean;
 }
 
@@ -114,7 +114,10 @@ export function dealDamage(
       total = Math.max(1, total - charmReduction);
       source.statuses.splice(charmIdx, 1);
     }
-    if (source.heroId === "charm-gunslinger" && target.statuses.some((s) => s.type === "charm")) {
+    if (
+      (source.heroId === "charm-gunslinger" || source.heroId === "erosalina") &&
+      target.statuses.some((s) => s.type === "charm")
+    ) {
       total += 1;
     }
 
@@ -139,7 +142,11 @@ export function dealDamage(
   }
 
   let firstHitReduction = 0;
-  if (isDirectHit && target.heroId === "undead-assassin" && !target.hasTakenFirstHit) {
+  if (
+    isDirectHit &&
+    (target.heroId === "undead-assassin" || target.heroId === "amp") &&
+    !target.hasTakenFirstHit
+  ) {
     target.hasTakenFirstHit = true;
     firstHitReduction = Math.min(3, total - 1);
     total = Math.max(1, total - 3);

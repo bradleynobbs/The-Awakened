@@ -12,7 +12,17 @@ export type HeroId =
   | "spark-duelist"
   | "undead-assassin"
   | "charm-gunslinger"
-  | "spirit-mage";
+  | "spirit-mage"
+  | "torrent"
+  | "zera"
+  | "orin"
+  | "sorrow"
+  | "kharos"
+  | "flint"
+  | "erosalina"
+  | "rune"
+  | "amp"
+  | "cragor";
 
 export type Element = "fire" | "water" | "spark" | "earth" | "undead" | "charm" | "spirit";
 
@@ -148,7 +158,7 @@ export interface HeroInstance {
   shield: number;
   statuses: StatusEffect[];
   isDefeated: boolean;
-  /** Mourn passive: has this hero already taken its first reduced hit? */
+  /** Mourn's/Amp's passive: has this hero already taken its first reduced hit? */
   hasTakenFirstHit: boolean;
   /** Spirit Mage passive: has this hero already survived a lethal hit at 1 HP this match? */
   hasCheatedDeath: boolean;

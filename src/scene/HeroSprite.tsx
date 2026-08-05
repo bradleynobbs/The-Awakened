@@ -6,13 +6,35 @@ import { HERO_COSMETICS } from "./heroCosmetics";
 import infernaSprite from "../assets/heroes/inferna-sprite.png";
 import mournSprite from "../assets/heroes/mourn-sprite.png";
 import kairoSprite from "../assets/heroes/kairo-sprite.png";
+import tydraSprite from "../assets/heroes/tydra-sprite.png";
+import torrentSprite from "../assets/heroes/torrent-sprite.png";
+import zeraSprite from "../assets/heroes/zera-sprite.png";
+import orinSprite from "../assets/heroes/orin-sprite.png";
+import kharosSprite from "../assets/heroes/kharos-sprite.png";
+import flintSprite from "../assets/heroes/flint-sprite.png";
+import erosalinaSprite from "../assets/heroes/erosalina-sprite.png";
+import runeSprite from "../assets/heroes/rune-sprite.png";
+import ampSprite from "../assets/heroes/amp-sprite.png";
 
 /** Heroes with a real illustrated sprite instead of the hand-coded SVG rig.
- * Everyone else keeps the shared vector chassis below. */
+ * Everyone else keeps the shared vector chassis below. Sorrow and Cragor
+ * (§9.20) are deliberately not here yet — their supplied art had a
+ * black-background/black-costume keying conflict (DESIGN.md 9.9) severe
+ * enough that the cutout wasn't usable; they render on the shared chassis
+ * until a better-suited source image replaces it. */
 const REAL_ART: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaSprite,
   "undead-assassin": mournSprite,
   "charm-gunslinger": kairoSprite,
+  "water-healer": tydraSprite,
+  torrent: torrentSprite,
+  zera: zeraSprite,
+  orin: orinSprite,
+  kharos: kharosSprite,
+  flint: flintSprite,
+  erosalina: erosalinaSprite,
+  rune: runeSprite,
+  amp: ampSprite,
 };
 
 export type AnimCue = "attacking" | "hit" | "healed" | "shielded" | null;

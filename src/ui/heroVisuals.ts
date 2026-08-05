@@ -8,6 +8,15 @@ import supportIcon from "../assets/roles/support.png";
 import infernaPortrait from "../assets/heroes/inferna-portrait.png";
 import mournPortrait from "../assets/heroes/mourn-portrait.png";
 import kairoPortrait from "../assets/heroes/kairo-portrait.png";
+import tydraPortrait from "../assets/heroes/tydra-portrait.png";
+import torrentPortrait from "../assets/heroes/torrent-portrait.png";
+import zeraPortrait from "../assets/heroes/zera-portrait.png";
+import orinPortrait from "../assets/heroes/orin-portrait.png";
+import kharosPortrait from "../assets/heroes/kharos-portrait.png";
+import flintPortrait from "../assets/heroes/flint-portrait.png";
+import erosalinaPortrait from "../assets/heroes/erosalina-portrait.png";
+import runePortrait from "../assets/heroes/rune-portrait.png";
+import ampPortrait from "../assets/heroes/amp-portrait.png";
 
 /** Cropped headshots for the roster panel (§9.19) — only exists for
  * heroes with real illustrated art (see REAL_ART in HeroSprite.tsx).
@@ -17,6 +26,15 @@ export const HERO_PORTRAIT: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaPortrait,
   "undead-assassin": mournPortrait,
   "charm-gunslinger": kairoPortrait,
+  "water-healer": tydraPortrait,
+  torrent: torrentPortrait,
+  zera: zeraPortrait,
+  orin: orinPortrait,
+  kharos: kharosPortrait,
+  flint: flintPortrait,
+  erosalina: erosalinaPortrait,
+  rune: runePortrait,
+  amp: ampPortrait,
 };
 
 /** Illustrated role emblems (replacing the earlier emoji placeholders) —

@@ -1,11 +1,20 @@
 # The Awakened — Character Concept Briefs
 
-Written concept-art briefs for all 7 heroes, meant to be copy-pasted
-into an image generator (Midjourney, DALL-E, etc.) or handed to an
-illustrator. There's no image-generation tool in this project, so
-these are text specs, not finished art — see `DESIGN.md` §9 for why,
-and for how the current in-game 3D rig (built from primitives, not
-these designs) relates to this brief.
+Written concept-art briefs for heroes that don't have real illustrated
+art yet, meant to be copy-pasted into an image generator (Midjourney,
+DALL-E, etc.) or handed to an illustrator. There's no image-generation
+tool in this project, so these are text specs, not finished art — see
+`DESIGN.md` §9 for why, and for how the current in-game 3D rig (built
+from primitives, not these designs) relates to this brief.
+
+Of the 17 heroes (§9.20 in `DESIGN.md`), 12 already ship with real
+uploaded art and no longer need a brief here: Inferna, Mourn, Kairo,
+Tydra, Torrent, Zera, Orin, Kharos, Flint, Erosalina, Rune, and Amp —
+that's 12, all removed below. The remaining 5 — Earth Guardian, Spark
+Duelist, Spirit Mage, Sorrow, and Cragor — still render on the shared
+vector chassis and keep their briefs. (Sorrow and Cragor hit a
+background-removal defect in their first art pass and are waiting on
+replacement source images — see §9.20's note in `DESIGN.md`.)
 
 **Shared style direction for every prompt**, in case you want to
 prepend it: *"Stylized hero-game character concept art, Brawl
@@ -76,7 +85,7 @@ expression even mid-block.
 
 ---
 
-## Water Healer — Water · Support
+## Tydra — Water · Support
 
 **Personality:** Warm, nurturing, the type who's already handing you
 a water bottle before you knew you needed one.
@@ -209,3 +218,62 @@ Fire or Charm.
 
 **Pose direction:** Still, calm stance, coat hem lifted slightly by an
 unseen breeze, one or two charms visibly orbiting, faint knowing smile.
+
+---
+
+## Sorrow — Earth · Brawler
+
+**Personality:** Withdrawn and heavy-hearted, but far from fragile —
+grief has calcified into raw physical strength rather than despair.
+
+**Hair & face:** Dark umber hair (`#3a3020`), weathered tan skin
+(`#a87858`), moss-green eyes (`#5a7a3a`) that rarely meet another's
+gaze. Faint crystal-vein markings along the jaw and forearms, like
+mineral scarring.
+
+**Outfit:** A dark, roughspun hooded tunic layered over wrapped
+bindings on the forearms, patched work trousers, heavy boots caked
+with dust — the look of someone who works the earth rather than
+commands it. No ornamentation; whatever finery Sorrow once had is
+long gone.
+
+**Signature focus:** Bare, bandage-wrapped fists — Crushing Fist/
+Seismic Slam read as raw, grief-driven force rather than a trained
+martial style, cracked stone spreading from the point of impact.
+
+**Palette:** Muted earth browns and grays, with the crystal-vein
+markings as the only accent — deliberately the least colorful hero
+in the earth pairing, contrasting Cragor's warmer mossy palette.
+
+**Pose direction:** Hunched, low center of gravity, one fist already
+grounded against the earth, eyes downcast — reads as coiled grief
+about to erupt, not a showy fighting stance.
+
+---
+
+## Cragor — Earth · Tank
+
+**Personality:** Immovable and unbothered, the literal bedrock of a
+team — slow to anger, slower to fall.
+
+**Hair & face:** Near-black cropped hair (`#2a2318`), deep bronze skin
+(`#8a6a48`), mossy green eyes (`#6a8a4a`). A patch of living moss
+growing along one temple and shoulder, like the character himself is
+half-becoming terrain.
+
+**Outfit:** A heavy stone-plated harness over a thick canvas tunic,
+mossy patchwork reinforcing the seams, wide stone bracers, sturdy
+boots sunk slightly as if rooted. Broader and heavier-looking than
+Sorrow — the wall to Sorrow's hammer.
+
+**Signature focus:** No weapon — Boulder Toss/Fortress Stance read as
+Cragor tearing a chunk of stone directly from his own armor and
+hurling it, then the gap re-forming as moss and rock knit back
+together.
+
+**Palette:** Warm mossy greens and stone grays, broadest silhouette of
+the earth pairing, deliberately the more "fortified" of the two.
+
+**Pose direction:** Wide, planted stance, arms crossed or braced,
+moss-covered shoulder catching the light, utterly unbothered
+expression.

@@ -1,7 +1,6 @@
 import type { HeroId, PlayerId } from "./types";
 import { IllegalActionError } from "./errors";
 
-export const HEROES_OFFERED = 7;
 export const TEAM_SIZE = 3;
 
 export interface TeamSelectionState {
@@ -11,9 +10,13 @@ export interface TeamSelectionState {
   isLocked: boolean;
 }
 
+/** `offered` is meant to be the whole current roster (see HERO_LIST), so
+ * this deliberately doesn't pin an exact count — the roster has grown
+ * from 7 to 17 heroes already (§9.20) and will likely keep growing. The
+ * real invariant is just "enough heroes exist to actually pick a team." */
 export function createTeamSelection(playerId: PlayerId, offered: HeroId[]): TeamSelectionState {
-  if (offered.length !== HEROES_OFFERED) {
-    throw new IllegalActionError(`Exactly ${HEROES_OFFERED} heroes must be offered.`);
+  if (offered.length < TEAM_SIZE) {
+    throw new IllegalActionError(`At least ${TEAM_SIZE} heroes must be offered.`);
   }
   return { playerId, offered, selected: [], isLocked: false };
 }

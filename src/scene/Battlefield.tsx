@@ -152,9 +152,11 @@ function TeamRoster({
               <div className="roster-name-row">
                 <span className="roster-name-text">{def.name}</span>
                 <span className="roster-emblems">
-                  <img className="roster-role-icon" src={ROLE_ICON[def.role]} alt={def.role} />
-                  <span className="roster-element-icon" title={def.element}>
-                    {ELEMENT_SYMBOL[def.element]}
+                  <span className="roster-emblem-badge" title={def.role}>
+                    <img className="roster-role-icon" src={ROLE_ICON[def.role]} alt={def.role} />
+                  </span>
+                  <span className="roster-emblem-badge" title={def.element}>
+                    <span className="roster-element-icon">{ELEMENT_SYMBOL[def.element]}</span>
                   </span>
                 </span>
               </div>

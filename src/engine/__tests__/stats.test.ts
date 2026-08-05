@@ -42,12 +42,12 @@ describe("elemental advantage web (DESIGN.md §8.3)", () => {
 
 describe("effectiveCardCost (Cooldown Reduction, DESIGN.md §8.2)", () => {
   it("discounts a hero's Ability/Support cards by their Cooldown Reduction, floored at 1", () => {
-    const restoringCurrent = getCardDefinition("restoring-current"); // Water Healer ability, cost 2, CDR 1
+    const restoringCurrent = getCardDefinition("restoring-current"); // Tydra ability, cost 2, CDR 1
     expect(effectiveCardCost(restoringCurrent, "water-healer")).toBe(1);
   });
 
   it("never discounts Attack cards", () => {
-    const tidalShot = getCardDefinition("tidal-shot"); // Water Healer attack, cost 1
+    const tidalShot = getCardDefinition("tidal-shot"); // Tydra attack, cost 1
     expect(effectiveCardCost(tidalShot, "water-healer")).toBe(1);
   });
 

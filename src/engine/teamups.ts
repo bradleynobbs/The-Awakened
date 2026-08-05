@@ -3,7 +3,7 @@ import { applyBurn, applyWet, dealDamage, dealSparkDamage, getHero, livingHeroes
 import { otherPlayer } from "./combat";
 
 /**
- * Inferna + Water Healer.
+ * Inferna + Tydra.
  * Resolution order (see DESIGN.md 1.12): damage all enemies, then remove Wet
  * from anyone hit, then apply Burn to all enemies.
  */
@@ -16,7 +16,7 @@ export const steamSurge: TeamUpDefinition = {
   targetType: "allEnemies",
   element: "combined",
   description:
-    "Inferna + Water Healer: deal 6 damage to all enemies, remove Wet from anyone hit, then apply Burn to all enemies.",
+    "Inferna + Tydra: deal 6 damage to all enemies, remove Wet from anyone hit, then apply Burn to all enemies.",
   requiredHeroes: ["fire-mage", "water-healer"],
   resolve: (ctx) => {
     const enemyId = otherPlayer(ctx.playerId);
@@ -31,7 +31,7 @@ export const steamSurge: TeamUpDefinition = {
 };
 
 /**
- * Water Healer + Spark Duelist.
+ * Tydra + Spark Duelist.
  * Resolution order (see DESIGN.md 1.12): apply Wet to all enemies, then deal
  * Spark damage (base + Wet bonus) to each, consuming the Wet just applied.
  */
@@ -44,7 +44,7 @@ export const thunderTide: TeamUpDefinition = {
   targetType: "allEnemies",
   element: "combined",
   description:
-    "Water Healer + Spark Duelist: apply Wet to all enemies, then deal 4 (+3 Wet bonus) Spark damage to each.",
+    "Tydra + Spark Duelist: apply Wet to all enemies, then deal 4 (+3 Wet bonus) Spark damage to each.",
   requiredHeroes: ["water-healer", "spark-duelist"],
   resolve: (ctx) => {
     const enemyId = otherPlayer(ctx.playerId);

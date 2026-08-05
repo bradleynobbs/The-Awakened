@@ -10,7 +10,7 @@ describe("Empower (damage-boost support buff)", () => {
   it("adds bonus damage to the empowered hero's next hit, then is consumed", () => {
     // Mourn (speed 13) needs to out-pace Inferna (speed 9) so
     // its buff resolves *before* Fire Bolt tries to consume it, under the
-    // new speed-sorted order (DESIGN.md §8.5) — Water Healer (speed 7)
+    // new speed-sorted order (DESIGN.md §8.5) — Tydra (speed 7)
     // would now be too slow for this same-round setup.
     const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "undead-assassin", "earth-guardian"];
     let state = createMatch(P1, P2, createSeededRng(1));

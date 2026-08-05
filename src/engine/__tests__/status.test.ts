@@ -47,7 +47,7 @@ describe("Wet and Spark interaction", () => {
     const target = heroInstanceId("player2", "fire-mage");
     const hpBefore = getHeroFrom(state, "player2", "fire-mage").currentHp;
 
-    // Water Healer (speed 7) is slower than Spark Duelist (speed 10), so
+    // Tydra (speed 7) is slower than Spark Duelist (speed 10), so
     // queuing both in the same round would resolve Charged Slash *first*
     // under the new speed-sorted order (DESIGN.md §8.5) — the opposite of
     // what this test needs. Splitting across two rounds sidesteps that
@@ -55,7 +55,7 @@ describe("Wet and Spark interaction", () => {
     const tidal = putInHand(state, "player1", "tidal-shot");
     state = readyBoth(queueCard(state, "player1", tidal, { primaryTargetId: target }));
 
-    // Tidal Shot: 3 base + 0 Attack (Water Healer), neutral Water-vs-Fire
+    // Tidal Shot: 3 base + 0 Attack (Tydra), neutral Water-vs-Fire
     // matchup (×1), 0 Defense.
     const afterTidal = getHeroFrom(state, "player2", "fire-mage");
     expect(afterTidal.currentHp).toBe(hpBefore - 3);

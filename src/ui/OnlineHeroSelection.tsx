@@ -50,8 +50,8 @@ export function OnlineHeroSelection({ waitingOnOpponent, initialHeroIds, onLockI
     <div className="selection-screen">
       <h1>Choose Your 3 Heroes</h1>
       <p className="selection-hint">
-        Pick exactly 3 of the 7 heroes below. Once locked in, your team cannot change for the rest
-        of the match.
+        Pick exactly 3 of the {HERO_LIST.length} heroes below. Once locked in, your team cannot
+        change for the rest of the match.
       </p>
       <div className="hero-select-grid">
         {HERO_LIST.map((hero) => {

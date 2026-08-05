@@ -27,7 +27,7 @@ describe("damage and healing", () => {
     const next = readyBoth(queueCard(state, "player1", cardId, { primaryTargetId: ally.instanceId }));
 
     const healedAlly = getHeroFrom(next, "player1", "earth-guardian");
-    // First heal this match: 7 base, ×130% Water Healer's Healing Power
+    // First heal this match: 7 base, ×130% Tydra's Healing Power
     // stat (DESIGN.md §8.2), rounded: round(7 * 1.3) = 9.
     expect(healedAlly.currentHp).toBe(ally.maxHp - 10 + 9);
     expect(next.players.player1.hasUsedFirstHeal).toBe(true);

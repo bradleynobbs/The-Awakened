@@ -156,7 +156,7 @@ The main menu has:
    with the next other player who's also looking (public queue — see
    `DESIGN.md` §4.1). (Or tap **Practice vs Bot** to skip matchmaking
    entirely.)
-2. **Hero Selection.** Pick exactly 3 of your 7 offered heroes and lock
+2. **Hero Selection.** Pick exactly 3 of your 17 offered heroes and lock
    in. You see only your own picks; once both players have locked in,
    both teams' full rosters become visible on the battlefield. A locked
    team cannot change for the rest of the match.
@@ -203,17 +203,33 @@ The 📜 icon opens the full battle log; the latest event also shows as a
 small banner on the battlefield. The 🐞 icon (bottom-right, low-key on
 purpose) opens a raw state inspector for debugging.
 
-## The 7 heroes (prototype names — easy to reskin later)
+## The 17 heroes (prototype names — easy to reskin later)
+
+The original 7, plus a second wave (§9.20) adding one more hero per
+element so every element now fields exactly 2:
 
 | Hero | Role | Element | HP | Passive |
 |---|---|---|---|---|
 | Inferna | Mage | Fire | 18 | +1 damage to targets already Burning |
 | Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
-| Water Healer | Support | Water | 20 | First heal each match restores +1 HP |
+| Tydra | Support | Water | 20 | First heal each match restores +1 HP |
 | Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
 | Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
 | Kairo | Ranger | Charm | 17 | +1 damage to targets already Charmed |
 | Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
+| Torrent | Tank | Water | 26 | Starts the match with 5 Shield |
+| Zera | Ranger | Spark | 18 | Extremely high Accuracy/Crit vs. Wet targets |
+| Orin | Mage | Spirit | 17 | This hero's healing is 10% stronger |
+| Sorrow | Brawler | Earth | 22 | +2 damage to Shielded targets |
+| Kharos | Tank | Undead | 28 | Starts the match with 4 Shield |
+| Flint | Support | Fire | 19 | Rekindle also grants 2 Shield to its target |
+| Erosalina | Ranger | Charm | 17 | +1 damage to targets already Charmed |
+| Rune | Support | Spirit | 18 | A spirit wolf watches over this hero's allies |
+| Amp | Speedster | Spark | 15 | First hit taken each match is reduced by 3 (min 1) |
+| Cragor | Tank | Earth | 27 | Starts the match with 6 Shield |
+
+Sorrow and Cragor currently render on the shared vector chassis rather
+than real illustrated art — see §9.20 in `DESIGN.md` for why.
 
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
 Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing
@@ -225,8 +241,8 @@ Support card (2 energy — heals, shields, or Empowers an ally, see
 `DESIGN.md` §6), and one passive. Full card text and numbers are in
 `DESIGN.md` §2.
 
-**Team-Ups:** *Steam Surge* (Inferna + Water Healer) and *Thunder Tide*
-(Water Healer + Spark Duelist) — 3 energy, once per match, with a
+**Team-Ups:** *Steam Surge* (Inferna + Tydra) and *Thunder Tide*
+(Tydra + Spark Duelist) — 3 energy, once per match, with a
 fixed resolution order shown in the card's description. Kairo
 and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
 

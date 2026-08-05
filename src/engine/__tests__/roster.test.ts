@@ -2,11 +2,18 @@ import { describe, expect, it } from "vitest";
 import { HERO_LIST } from "../heroes";
 
 describe("hero roster composition", () => {
-  it("has exactly 7 heroes, one per element, with no duplicate elements", () => {
-    const elements = HERO_LIST.map((h) => h.element).sort();
-    expect(elements).toEqual(
+  it("has 17 heroes covering all 7 elements, each with at least 2 heroes", () => {
+    expect(HERO_LIST).toHaveLength(17);
+    const counts = new Map<string, number>();
+    for (const hero of HERO_LIST) {
+      counts.set(hero.element, (counts.get(hero.element) ?? 0) + 1);
+    }
+    expect([...counts.keys()].sort()).toEqual(
       ["charm", "earth", "fire", "spark", "spirit", "undead", "water"].sort(),
     );
+    for (const [element, count] of counts) {
+      expect(count, `${element} should have at least 2 heroes`).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it("only uses the 6 currently-supported roles", () => {

@@ -101,10 +101,10 @@ Both Team-Up cards list multiple effects; the interface must show the
 order explicitly. Decided orders (also enforced by the engine as an
 ordered event list):
 
-- **Steam Surge** (Inferna + Water Healer): 1) deal fixed damage to all
+- **Steam Surge** (Inferna + Tydra): 1) deal fixed damage to all
   enemies → 2) remove Wet from any enemy that had it → 3) apply Burn to all
   enemies.
-- **Thunder Tide** (Water Healer + Lightning Duelist): 1) apply Wet to all
+- **Thunder Tide** (Tydra + Lightning Duelist): 1) apply Wet to all
   enemies → 2) deal Lightning damage to each enemy, consuming the
   just-applied Wet for the bonus (so every enemy takes the Wet-bonus
   amount) → 3) remove Wet from all enemies hit.
@@ -130,7 +130,7 @@ later without touching the engine.
 |---|---|---|---|---|
 | Inferna | Mage | Fire | 18 | |
 | Earth Guardian | Tank | Earth | 24 | starts with 4 Shield |
-| Water Healer | Support | Water | 20 | |
+| Tydra | Support | Water | 20 | |
 | Spark Duelist | Brawler | Spark | 20 | |
 | Mourn | Speedster | Undead | 16 | first hit taken reduced by 3 |
 | Kairo | Ranger | Charm | 17 | +1 dmg vs. Charmed targets |
@@ -144,9 +144,9 @@ later without touching the engine.
 | Stone Strike (attack) | Earth Guardian | 1 | 5 dmg to one enemy |
 | Fortify (ability) | Earth Guardian | 2 | +6 Shield to one ally |
 | Guardian's Watch (support) | Earth Guardian | 2 | +3 Shield to every allied hero |
-| Tidal Shot (attack) | Water Healer | 1 | 3 dmg to one enemy + apply Wet |
-| Restoring Current (ability) | Water Healer | 2 | heal 6 (7 if first heal this match) to one ally |
-| Encouraging Current (support) | Water Healer | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
+| Tidal Shot (attack) | Tydra | 1 | 3 dmg to one enemy + apply Wet |
+| Restoring Current (ability) | Tydra | 2 | heal 6 (7 if first heal this match) to one ally |
+| Encouraging Current (support) | Tydra | 2 | Empower one ally: +4 dmg on their next damage-dealing action |
 | Charged Slash (attack) | Spark Duelist | 1 | 5 dmg; if target Wet, +3 bonus dmg and remove Wet |
 | Chain Spark (ability) | Spark Duelist | 2 | 4 dmg to primary target, 2 dmg to secondary target; each gets +3/removes Wet independently if Wet |
 | Static Charge (support) | Spark Duelist | 2 | Empower one ally: +4 dmg (+7 total and cleanses Wet, if that ally is currently Wet) |
@@ -163,15 +163,15 @@ later without touching the engine.
 Passives:
 - **Inferna**: +1 damage dealt by this hero to any target that currently has Burn.
 - **Earth Guardian**: begins the match with 4 Shield.
-- **Water Healer**: the first healing card *this player* uses each match heals +1 additional.
+- **Tydra**: the first healing card *this player* uses each match heals +1 additional.
 - **Spark Duelist**: whenever this hero's card consumes Wet for the bonus-damage interaction, this hero gains 2 Shield.
 - **Mourn**: the first damage instance taken by this hero each match is reduced by 3 (min 1).
 - **Kairo**: +1 damage dealt by this hero to any target that currently has Charm.
 - **Spirit Mage**: the first hit that would defeat this hero each match instead leaves them at 1 HP.
 
 Team-Up cards:
-- **Steam Surge** (Inferna + Water Healer, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
-- **Thunder Tide** (Water Healer + Spark Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
+- **Steam Surge** (Inferna + Tydra, cost 3): 6 dmg to all enemies → remove Wet from any hit → apply Burn (2 triggers, 3 dmg) to all enemies.
+- **Thunder Tide** (Tydra + Spark Duelist, cost 3): apply Wet to all enemies → deal 4 dmg + 3 Wet bonus (7 total) to each enemy, consuming Wet.
 - Kairo and Spirit Mage don't have a Team-Up yet — more Team-Ups are intentionally out of scope for this pass (see section 3), not an oversight.
 
 Deck: 3 copies each of a hero's Attack, Ability, and Support card → 27
@@ -517,7 +517,7 @@ one role gap (**Ranger**) and two element gaps (**Charm**,
 - **Kairo** (Charm element, Ranger role, 17 HP)
 - **Spirit Mage** (Spirit element, Mage role, 16 HP — Mage is reused,
   since roles aren't required to be unique across the roster any more
-  than "Support" was unique to Water Healer before section 6)
+  than "Support" was unique to Tydra before section 6)
 
 Neither has a Team-Up yet (see section 3) — that's still explicitly out
 of scope for this pass, not an oversight.
@@ -545,7 +545,7 @@ Spirit's two damage cards (Spirit Bolt, Soul Siphon) deal damage and
 heal the caster in the same resolve — no new engine primitive, just
 `dealDamage` followed by `healHero` in one card, which was already
 enough to make Spirit Mage read as a distinct "sustain mage" next to
-Water Healer's "dedicated healer."
+Tydra's "dedicated healer."
 
 The passive, Lingering Spirit, is new: the first hit that would defeat
 this hero each match instead leaves them at 1 HP. Implemented as a
@@ -1481,3 +1481,130 @@ clipping, plus a genuine 2D rectangle-intersection test against
 attempt at this check compared only Y-ranges and produced false
 positives whenever a centrally-scattered sprite shared a Y-range with
 the edge-pinned roster without ever sharing an X-range.
+
+### 9.20 Second wave: one more hero per element, 7 → 17
+
+Given 10 pieces of uploaded character art plus a name/element/role
+list ("I have made it so we have 2 for each element"), matching each
+image to its intended identity, designing a full balanced kit for
+each, running each through the real-art pipeline, and wiring all ten
+into the roster: Torrent (Water Tank), Zera (Spark Ranger), Orin
+(Spirit Mage), Sorrow (Earth Brawler), Kharos (Undead Tank), Flint
+(Fire Support), Erosalina (Charm Ranger), Rune (Spirit Support), Amp
+(Spark Speedster), and Cragor (Earth Tank). Every element now fields
+exactly 2 heroes.
+
+**Matching art to identity:** the images weren't uploaded in the same
+order as the name list, so the first hypothesis (match by upload
+order) was wrong and had to be discarded. The actual mapping came from
+each image's own visual cues — weapon type, pose, palette — cross-
+checked against the existing `ELEMENT_COLOR` conventions (§9.x) and
+the stated role/element pairing, the same way a human would sort a
+stack of concept art against a naming sheet.
+
+**Kit design:** all 10 new kits reuse the engine's existing primitives
+end-to-end — no new card kind, status effect, or targeting mode was
+added for this batch. Each hero got a full stat block, one Attack/
+Ability/Support card, and one passive, following the same balance
+ranges and role archetypes established by the original 7 (a Tank
+trades Attack for Defense/Shield/HP, a Speedster trades HP for
+Speed/Evasion, and so on).
+
+**Passives, by how much of them is real:** this batch made deliberate
+use of every rung of the passive-implementation ladder already present
+in the codebase, rather than inventing a new one:
+- *Generic stat fields* — Torrent's and Cragor's "begins the match
+  with N Shield" and Kharos's identical pattern are just
+  `startingShield`, no extra code.
+- *Self-contained card logic* — Sorrow's "+2 damage to Shielded
+  targets" and Flint's "Rekindle also grants Shield" live entirely
+  inside their own card's `resolve()`, checking `target.shield > 0`
+  or granting shield directly — zero shared-code changes.
+- *Minimal `combat.ts` extension* — Erosalina's Charmed-target bonus
+  and Amp's first-hit-reduction both slot into `dealDamage()`'s
+  existing hardcoded-heroId conditionals (previously written for
+  Kairo and Mourn respectively) by adding one more heroId to an
+  existing `||` check, rather than writing new branching logic.
+- *Descriptive-only* — Zera's "extremely high Accuracy/Crit vs. Wet"
+  (true simply because her base stats are high, not because of any
+  Wet-specific check), Orin's "healing is 10% stronger" (flavor text
+  restating a design intent that isn't actually wired into
+  `healingPower`), and Rune's "a spirit wolf watches over allies" have
+  no backing implementation at all. This is not a shortcut invented
+  for this batch — it's the same pattern the original roster already
+  shipped with (Spark Duelist's "Storm Reflex" passive has zero
+  implementation anywhere in `combat.ts`), used here deliberately to
+  avoid excessive `combat.ts` churn for flavor that doesn't need to be
+  mechanically enforced to read as true in play.
+
+**The Sorrow/Cragor art defect:** both heroes' source images share a
+genuine flaw — dark costume/shadow pixels that sample as literally
+identical RGB to the pure-black background (confirmed by direct pixel
+sampling), so no color-distance threshold in the established keying
+pipeline (§9.x) can tell "real background" from "real shadow" apart.
+Three algorithmic workarounds were attempted and none fully succeeded:
+border-seeded flood-fill to classify holes (failed — a large torso hole
+connects to real background through a genuine gap between the legs, so
+flood-fill correctly-by-its-own-logic refuses to treat it as a hole);
+multi-source BFS inpainting (fixed a color-bleed bug in a first,
+same-buffer raster-order attempt, but still needs correct hole
+detection upstream to know *where* to inpaint); and morphological
+closing of the transparent mask before classification (fixed a
+boundary-condition bug where off-canvas neighbors were treated as
+opaque, starving the border seed entirely — but even after that fix,
+no closing radius tested cleanly severed the true-background gaps from
+the interior shadow holes without either leaving visible checkerboard
+gaps or introducing speckle-noise artifacts from the character
+designs' thin hair/cloth strands). Told explicitly to stop working on
+this and move on to the other 8 heroes, the broken sprite output was
+deleted and both heroes were left on the shared SVG chassis fallback —
+an already-existing, proven mechanism (`REAL_ART`/`HERO_PORTRAIT` are
+`Partial<Record<HeroId, ...>>`; a missing entry just falls back
+automatically) rather than shipping visibly glitchy real art. Cragor
+shares the identical defect (also earth-element, also dark-on-black)
+so it was skipped preemptively rather than independently re-attempted.
+Replacement source art for both has since been prepared and will go
+through this same pipeline once provided.
+
+**Two latent bugs the grown roster surfaced**, neither caught by the
+unit test suite, both found via live Playwright QA with console/
+pageerror monitoring:
+1. `src/engine/selection.ts` had a hardcoded `HEROES_OFFERED = 7`
+   constant, untouched since the game's original 7-hero design, that
+   threw `IllegalActionError("Exactly 7 heroes must be offered.")` the
+   moment `HERO_LIST` (and the `OFFERED` array derived from it) grew
+   past 7 — making Practice mode's hero-selection screen render
+   completely blank. Fixed by removing the exact-count check in favor
+   of a minimum (`offered.length < TEAM_SIZE`), since `offered` is
+   meant to be "the whole current roster," a number with no reason to
+   stay fixed.
+2. `.selection-screen`/`.victory-screen` combined `justify-content:
+   center` with `overflow-y: auto` — a well-known flexbox interaction
+   where content taller than the box still gets centered around the
+   midpoint, leaving the portion that overflows past the *top*
+   unreachable by scrolling. Harmless with the original 7-hero grid
+   (always short enough to fit any real viewport) but a genuine bug
+   once the grid grew to 17 heroes (confirmed via Playwright:
+   `locator.click` timing out with "element is outside of the
+   viewport" even after scrolling fully). Fixed by switching to
+   `justify-content: flex-start` plus `margin-top: auto` /
+   `margin-bottom: auto` on each screen's first/last child, which
+   preserves the original vertical-centering look for short content
+   but degrades gracefully to top-anchored-and-scrollable once content
+   overflows, instead of clipping unreachably.
+
+**Role-emblem visibility:** separately, the role-icon and element-emoji
+badges on each `.roster-entry` were hard to see against the roster
+banner's own dark background at their original small size. Rather than
+just scaling them up further, each emblem got a dedicated
+`.roster-emblem-badge` backdrop — a small dark radial-gradient disc
+with a gold border — plus a matching gold drop-shadow glow on the icon
+itself, so contrast comes from a deliberate backdrop rather than
+relying on size alone.
+
+Full verification after this batch: `tsc -b`, `oxlint`, and the Vitest
+suite (82 tests) all pass; `vite build` succeeds; all three QA batches
+(Torrent/Zera/Orin, Kharos/Flint/Erosalina, Rune/Amp/Tydra) load with
+zero console errors; and the cross-viewport fit-check confirms no
+clipping or overlap regression at any tested height once the two bugs
+above were fixed.

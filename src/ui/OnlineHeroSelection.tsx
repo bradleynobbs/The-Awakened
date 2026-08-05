@@ -4,7 +4,8 @@ import { createTeamSelection, lockSelection, toggleHero } from "../engine/select
 import type { TeamSelectionState } from "../engine/selection";
 import type { HeroId } from "../engine/types";
 import type { HeroTrio } from "../engine/match";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
+import { ELEMENT_COLOR } from "./heroVisuals";
+import { HeroCard } from "./HeroCard";
 
 const OFFERED: HeroId[] = HERO_LIST.map((h) => h.id);
 
@@ -65,15 +66,7 @@ export function OnlineHeroSelection({ waitingOnOpponent, initialHeroIds, onLockI
               onClick={() => handleToggle(hero.id)}
             >
               {selected && <span className="pick-badge">{index + 1}</span>}
-              <span className="hero-symbol" style={{ color: ELEMENT_COLOR[hero.element] }}>
-                {ELEMENT_SYMBOL[hero.element]}
-              </span>
-              <span className="hero-select-name">{hero.name}</span>
-              <span className="hero-select-role">
-                {hero.role} · {hero.element}
-              </span>
-              <span className="hero-select-hp">{hero.maxHp} HP</span>
-              <span className="hero-select-passive">{hero.passive.description}</span>
+              <HeroCard hero={hero} />
             </button>
           );
         })}

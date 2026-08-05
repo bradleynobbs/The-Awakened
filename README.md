@@ -393,8 +393,12 @@ src/ui/             MainMenu (full home-screen shell, §9.25-§9.28),
                      MenuSheet (bottom sheet replacing the old sidebar,
                      §9.27), BottomTabs (persistent app-wide nav,
                      rendered by App.tsx, not owned by MainMenu),
-                     DeckBuilder, Store, Objectives, ComingSoon (shared
-                     placeholder for unbuilt nav targets), Matchmaking,
+                     HeroCard (trading-card-style hero presentation,
+                     §9.29 — portrait + role/element badges + name
+                     banner + ability list, shared by DeckBuilder and
+                     OnlineHeroSelection), DeckBuilder, Store,
+                     Objectives, ComingSoon (shared placeholder for
+                     unbuilt nav targets), Matchmaking,
                      OnlineHeroSelection (shared by online + practice),
                      Battle (TopBar, CardHand, TeamUpBar, CombatLog
                      sheet, LatestEventToast), VictoryScreen, DebugPanel

@@ -3,7 +3,8 @@ import { HERO_LIST } from "../engine/heroes";
 import type { HeroId } from "../engine/types";
 import type { HeroTrio } from "../engine/match";
 import { getPreferredLoadout, savePreferredLoadout } from "../state/loadout";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
+import { ELEMENT_COLOR } from "./heroVisuals";
+import { HeroCard } from "./HeroCard";
 
 interface DeckBuilderProps {
   onBack: () => void;
@@ -57,41 +58,7 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
                 onClick={() => toggle(hero.id)}
               >
                 {isSelected && <span className="pick-badge">{index + 1}</span>}
-                <span className="hero-symbol" style={{ color: ELEMENT_COLOR[hero.element] }}>
-                  {ELEMENT_SYMBOL[hero.element]}
-                </span>
-                <span className="hero-select-name">{hero.name}</span>
-                <span className="hero-select-role">
-                  {hero.role} · {hero.element}
-                </span>
-                <span className="hero-select-hp">{hero.maxHp} HP</span>
-                <div className="deck-builder-stat-grid">
-                  <span>⚔️ ATK {hero.stats.attack}</span>
-                  <span>🛡️ DEF {hero.stats.defense}</span>
-                  <span>🏃 SPD {hero.stats.speed}</span>
-                  <span>🎯 ACC {hero.stats.accuracy}</span>
-                  <span>💨 EVA {hero.stats.evasion}</span>
-                  <span>✨ CRIT {hero.stats.criticalChance}</span>
-                  <span>💥 CRIT DMG {hero.stats.criticalDamage}%</span>
-                  <span>⚡ ENERGY +{hero.stats.energy}</span>
-                  <span>⏱️ CDR {hero.stats.cooldownReduction}</span>
-                  <span>💚 HEAL {hero.stats.healingPower}%</span>
-                  <span>🔷 SHIELD {hero.stats.shieldStrength}%</span>
-                </div>
-                <div className="deck-builder-cards">
-                  <div className="deck-builder-card-line">
-                    <b>{hero.attack.name}</b> ({hero.attack.cost}⚡) — {hero.attack.description}
-                  </div>
-                  <div className="deck-builder-card-line">
-                    <b>{hero.ability.name}</b> ({hero.ability.cost}⚡) — {hero.ability.description}
-                  </div>
-                  <div className="deck-builder-card-line">
-                    <b>{hero.support.name}</b> ({hero.support.cost}⚡) — {hero.support.description}
-                  </div>
-                  <div className="deck-builder-card-line passive">
-                    <b>Passive:</b> {hero.passive.description}
-                  </div>
-                </div>
+                <HeroCard hero={hero} showStats />
               </button>
             );
           })}

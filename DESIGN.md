@@ -2102,3 +2102,59 @@ Verified: full nav suite re-run (all 5 sheet items, Practice, the
 Battle Pass tab) still routes correctly with the 2 remaining mode
 buttons, zero console errors. Full pipeline (`tsc -b`, `oxlint`,
 82-test Vitest suite, `vite build`) passes.
+
+### 9.29 Trading-card-style hero presentation (Deck Builder + hero-select)
+
+Given a polished reference card for Amp — portrait art, role/element
+badges in the top corners, a name banner, and a numbered ability
+list — with a request to add it to "Amp's team builder and where you
+select your card before a game," i.e. `DeckBuilder.tsx` and
+`OnlineHeroSelection.tsx`, the two screens sharing the plain
+`.hero-select-card` grid since §9.9-ish.
+
+**Scope decision:** styled only Amp this way and it would look
+broken sitting in a 2-column grid next to 16 heroes still on the old
+plain card — so this became a new shared component,
+`HeroCard.tsx`, applied to every hero in both screens rather than
+Amp alone. Amp still gets exactly what was asked (the card, in both
+named places); everyone else gets the same visual upgrade instead of
+looking suddenly inconsistent next to them.
+
+**What the card shows:** real portrait art via the existing
+`HERO_PORTRAIT` map (falling back to the existing role-icon-on-
+colored-disc treatment for the 5 heroes without dedicated art —
+Earth Guardian, Spark Duelist, Spirit Mage, Sorrow, Cragor — same
+fallback mechanism the roster panel already relies on), a role-icon
+badge and an element-symbol badge in the portrait's top corners
+(reusing the dark-radial-gradient-plus-gold-border badge treatment
+established for the roster panel in an earlier session), a name
+banner tinted by the hero's element color, and all 4 of the hero's
+real abilities (Attack/Ability/Support/Passive — not just the
+passive, which is all the old compact hero-select card showed).
+Ability descriptions are 2-line-clamped so 17 cards' worth of text
+doesn't run unbounded. Deck Builder additionally appends the existing
+numeric stat grid below the abilities (`showStats` prop) — hero-select
+mid-match-flow doesn't, since 4 ability rows are already substantial
+per card.
+
+**Not a full recreation of the reference card's ornate metal-bezel
+border** — that's a detailed painted frame, not a CSS pattern, and
+this project has no image-generation tool to produce 17 of them.
+Captured the reference's actual information architecture (portrait +
+corner badges + name banner + ability list) instead, in the
+established gold/purple palette, which is the same tradeoff made for
+the menu's crystal-mountain logo and castle-plaza background in
+§9.25-§9.27.
+
+**Selection/interaction logic is completely unchanged** — `HeroCard`
+only renders the card's *content*; each screen keeps its own
+`<button>` wrapper, `selected`/`pick-badge` state, and click handler
+exactly as before, so this was a pure presentation swap with no risk
+to the actual team-selection logic.
+
+Verified via Playwright: hero-select and Deck Builder both render all
+17 cards with no horizontal overflow and no console errors; Amp's
+card specifically shows its real portrait, badges, and all 4 abilities
+in both screens; selecting Amp (and 2 others) through to a locked-in,
+started battle still works end-to-end. Full pipeline (`tsc -b`,
+`oxlint`, 82-test Vitest suite, `vite build`) passes.

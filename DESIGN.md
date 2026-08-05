@@ -1786,3 +1786,96 @@ text stays legible against the brighter art (each button panel keeps
 its own opaque background regardless of what's behind it). Full
 pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
 passes.
+
+### 9.25 Main menu, take three: a full mobile-game home-screen shell
+
+Shown a much more detailed reference mockup than §9.21's ("make this
+exactly this") — a side nav rail, a top bar with a player card and two
+currencies, a season/battle-pass banner with a countdown, a bigger
+crystal-mountain wordmark, 3 mode buttons with chevrons, a daily-
+reward-with-Claim bar, and a 5-tab bottom nav — and asked to match it,
+this replaces §9.21-9.24's single-column menu wholesale rather than
+extending it further.
+
+**Scope.** Almost none of the systems this chrome implies exist:
+player leveling, two currencies, seasons/battle-pass, clans, a
+dedicated profile screen, friends, mail, a leaderboard, events, or
+custom lobbies. Rather than reopen the "how much of this is real"
+question from §9.21/9.22 a third time, this follows §9.22's resolved
+answer directly: build the chrome, keep every number neutral/zero
+rather than the mockup's specific large ones (same reasoning as
+before — copying "12,450 gold" would read as real earned progress,
+not empty template dressing), and route anything with no real screen
+behind it to a new shared `ComingSoon.tsx` component (one file, driven
+by a `COMING_SOON_SCREENS` lookup table in `App.tsx`) rather than a
+silent dead click — Events, Leaderboard, Custom Match, Battle Pass,
+Clan, and Profile all land there. Where a real screen already existed
+that plausibly matches a new nav item, it's reused instead of stubbed:
+Store → Store, Missions → Objectives (its incomplete-objective red dot
+carried over directly), Collection and the bottom tab's Decks → Deck
+Builder (two entry points to the same "browse every hero's cards"
+screen, a normal pattern in mobile-game navigation).
+
+One judgment call made without asking: the season banner's countdown
+says "Coming soon" rather than a fabricated day count. Every other
+placeholder number here is a neutral *absence* (0 gold, Level 1) —
+a countdown is different in kind, since it actively implies a real
+deadline you should feel urgency about, which is a manipulative
+pattern worth not replicating even in cosmetic form.
+
+**Background.** No image-generation tool exists in this project, and
+§9.23 already dropped the one background photo in the repo
+(`arena-plaza.jpg`) after "looks rubbish" feedback on its mismatched
+warm palette — but this mockup's background has real structure to
+reproduce (a glowing concentric-ring plaza floor, two banner pillars)
+that a flat gradient alone can't suggest. Built that structure directly
+from CSS/SVG-free shapes instead: a radial-gradient-plus-box-shadow-
+rings glow standing in for the plaza floor, two `clip-path` pennant
+shapes on absolutely-positioned poles for the banners, and a 3-triangle
+`clip-path` cluster for the crystal-mountain logo (a tall center peak
+gradient-lit brighter than two flanking side peaks) — all cheap to
+build and tunable, at the cost of reading as flatter/simpler than the
+mockup's fully painted-illustration version.
+
+**Layout: a lesson applied twice over.** With this many stacked UI
+regions (top bar, sidebar, season banner, logo, 3 buttons, reward bar,
+bottom tabs) on a single phone-width screen, the sidebar and the
+scrollable content area are siblings inside one flex row
+(`.menu-body-row`) rather than the sidebar being absolutely positioned
+with a guessed pixel offset — a real layout reservation instead of a
+number that would silently drift wrong the next time spacing changed
+elsewhere. `.menu-content-v2` carries the same `flex: 1` +
+`min-height: 0` + `overflow-y: auto` + `margin-top/bottom: auto`
+combination established in §9.20 and re-learned the hard way in §9.22
+(a flex item's default `min-height: auto` means `flex: 1` alone doesn't
+actually cap its height — without the override it grows to fit content
+and overlaps whatever comes after it).
+
+**Two real bugs found via the fit-check, both before any of this
+shipped:**
+1. `.menu-sidebar-item` had no width — a long label ("Collection",
+   "Leaderboard") rendered wider than the sidebar's nominal 56px and,
+   centered against the screen's left edge, overflowed off-canvas on
+   the left (the right overflow stayed visible, so only a leading
+   letter or two actually went missing, e.g. "Leaderboard" showing as
+   "eaderboard"). Fixing the *button's* width wasn't enough on its
+   own — the label span inside still rendered at its own natural
+   width as an unbreakable word and overflowed past the now-fixed
+   button anyway. Needed both: an explicit `width: 54px` on the label
+   itself, and `word-break: break-word` so a single long word can
+   actually wrap instead of overflowing unbroken.
+2. The pre-existing global `.debug-toggle` button (`position: fixed;
+   bottom: 6px; right: 6px`, present on every screen) sat directly on
+   top of the new bottom tab bar's Profile tab, since nothing about
+   the tab bar's arrival adjusted it. Raised its `bottom` offset to
+   clear the ~57px-tall tab bar.
+
+Verified via Playwright at 640/844/900px: no console errors, no
+overlap between `.menu-content-v2` and `.menu-bottom-tabs` at any
+tested height (the partial daily-reward-bar visibility at 640px is the
+scrollable area's own clip edge — confirmed reachable via
+`scrollIntoViewIfNeeded` + click, not a real overlap), all 9 new nav
+targets (5 sidebar items, Custom Match, and 3 bottom tabs beyond
+Home/Decks) route correctly and every ComingSoon screen's back button
+returns to the menu. Full pipeline (`tsc -b`, `oxlint`, 82-test Vitest
+suite, `vite build`) passes.

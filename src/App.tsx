@@ -7,6 +7,7 @@ import { isOnlineConfigured } from "./net/supabaseClient";
 import { getPreferredLoadout } from "./state/loadout";
 import { recordMatchResult } from "./state/objectives";
 import { Battle } from "./ui/Battle";
+import { ComingSoon } from "./ui/ComingSoon";
 import { DebugPanel } from "./ui/DebugPanel";
 import { DeckBuilder } from "./ui/DeckBuilder";
 import { MainMenu } from "./ui/MainMenu";
@@ -16,7 +17,25 @@ import { OnlineHeroSelection } from "./ui/OnlineHeroSelection";
 import { Store } from "./ui/Store";
 import { VictoryScreen } from "./ui/VictoryScreen";
 
-type Screen = "menu" | "deckbuilder" | "store" | "objectives" | "online" | "practice";
+/** Nav destinations added in §9.25's menu redesign that have nothing
+ * real behind them yet — all rendered through the one ComingSoon
+ * component below rather than six near-identical screen files. */
+const COMING_SOON_SCREENS = {
+  events: { title: "Events", icon: "📅", message: "Limited-time events aren't running yet — check back later." },
+  leaderboard: { title: "Leaderboard", icon: "🏆", message: "Ranked standings aren't tracked yet." },
+  custommatch: {
+    title: "Custom Match",
+    icon: "🛡",
+    message: "Private lobbies with custom rules aren't wired up yet — try Find Match or Practice instead.",
+  },
+  battlepass: { title: "Battle Pass", icon: "🎫", message: "There's no season pass yet — no currency or purchases exist in this prototype by design." },
+  clan: { title: "Clan", icon: "🛡", message: "Clans/guilds aren't built yet." },
+  profile: { title: "Profile", icon: "👤", message: "A dedicated profile screen isn't built yet." },
+} as const;
+
+type ComingSoonKey = keyof typeof COMING_SOON_SCREENS;
+
+type Screen = "menu" | "deckbuilder" | "store" | "objectives" | "online" | "practice" | ComingSoonKey;
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("menu");
@@ -84,12 +103,22 @@ export default function App() {
           onDeckBuilder={() => setScreen("deckbuilder")}
           onStore={() => setScreen("store")}
           onObjectives={() => setScreen("objectives")}
+          onEvents={() => setScreen("events")}
+          onLeaderboard={() => setScreen("leaderboard")}
+          onCustomMatch={() => setScreen("custommatch")}
+          onBattlePass={() => setScreen("battlepass")}
+          onClan={() => setScreen("clan")}
+          onProfile={() => setScreen("profile")}
         />
       )}
 
       {screen === "deckbuilder" && <DeckBuilder onBack={goMenu} />}
       {screen === "store" && <Store onBack={goMenu} />}
       {screen === "objectives" && <Objectives onBack={goMenu} />}
+      {(Object.keys(COMING_SOON_SCREENS) as ComingSoonKey[]).map(
+        (key) =>
+          screen === key && <ComingSoon key={key} {...COMING_SOON_SCREENS[key]} onBack={goMenu} />,
+      )}
 
       {screen === "online" && (
         <>

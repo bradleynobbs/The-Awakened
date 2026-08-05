@@ -1086,7 +1086,9 @@ button {
 
 .debug-toggle {
   position: fixed;
-  bottom: 6px;
+  /* Cleared to sit above .menu-bottom-tabs (§9.25, ~57px tall) — at the
+   * old bottom: 6px this sat directly on top of the new Profile tab. */
+  bottom: 64px;
   right: 6px;
   width: 28px;
   height: 28px;
@@ -1114,94 +1116,81 @@ button {
   z-index: 45;
 }
 
-/* ---------- Main menu ---------- */
+/* ---------- Main menu (§9.25) ----------
+ * Rebuilt from a much more detailed reference mockup — a full mobile-
+ * game home-screen shell (side nav rail, top currency/profile bar, a
+ * season banner, 3 mode buttons, a daily-reward bar, bottom tabs)
+ * replacing the simpler single-column menu from §9.21-9.24. See the
+ * per-block comments below and DESIGN.md §9.25 for what's real vs.
+ * purely cosmetic dressing. */
 
-/* Redesigned §9.21 against a reference mockup: real hero art framing
- * the screen over the arena-plaza background (previously a flat radial
- * gradient), an art-deco diamond wordmark, and a stack of color-coded
- * action buttons replacing the old CTA + 2x1 tile grid. Player level,
- * currency, and a daily-reward timer from the mockup were deliberately
- * left out — this game has no leveling or currency system (see Store's
- * own copy), so faking those with static numbers would be misleading
- * rather than just decorative. */
-
-.menu-root {
+.menu-root-v2 {
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* §9.23: was the arena-plaza.jpg photo (reused from the battlefield),
-   * but its warm sunset palette read as mismatched/muddy against the
-   * mockup's cooler dark-purple night mood and the hero art layered on
-   * top of it. Replaced with a pure CSS gradient tuned to that same
-   * palette instead of a photo — a soft violet glow behind the wordmark
-   * (echoing the mockup's portal-at-the-end-of-the-stairway glow) fading
-   * to near-black at the edges, plus a faint vertical beam down the
-   * center picking up the logo's crystal-crack motif. */
+  /* §9.23 dropped the arena-plaza.jpg photo for a CSS gradient after
+   * "looks rubbish" feedback on its mismatched warm palette; §9.25's
+   * much busier reference has real structure to reproduce (a glowing
+   * plaza floor, banner pillars) that a flat gradient alone can't, so
+   * this builds that structure from CSS/SVG shapes below instead of
+   * reaching for another photo. */
   background:
-    radial-gradient(46% 34% at 50% 30%, rgba(216, 196, 255, 0.55) 0%, rgba(216, 196, 255, 0) 100%),
-    radial-gradient(70% 50% at 50% 32%, rgba(155, 107, 255, 0.45) 0%, rgba(155, 107, 255, 0) 75%),
-    linear-gradient(180deg, rgba(155, 107, 255, 0.2) 0%, rgba(155, 107, 255, 0) 20%),
-    linear-gradient(180deg, #251e3f 0%, #14101f 45%, #0a0810 100%);
+    radial-gradient(55% 30% at 50% 78%, rgba(155, 107, 255, 0.32) 0%, rgba(155, 107, 255, 0) 72%),
+    radial-gradient(42% 24% at 50% 28%, rgba(216, 196, 255, 0.4) 0%, rgba(216, 196, 255, 0) 100%),
+    linear-gradient(180deg, #201a38 0%, #120e1f 42%, #08060d 100%);
 }
 
-.menu-flank {
+.menu-plaza-floor {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 48%;
+  left: 50%;
+  bottom: 8%;
+  width: 65%;
+  max-width: 300px;
+  height: 90px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(155, 107, 255, 0.5), rgba(155, 107, 255, 0.16) 55%, rgba(155, 107, 255, 0) 80%);
+  box-shadow: 0 0 0 1px rgba(155, 107, 255, 0.3), 0 0 0 14px rgba(155, 107, 255, 0.09), 0 0 0 28px rgba(155, 107, 255, 0.05);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.menu-banner-pole {
+  position: absolute;
+  top: 10%;
+  width: 24px;
+  height: 44%;
   z-index: 1;
   pointer-events: none;
 }
-.menu-flank-left {
-  left: -10%;
+.menu-banner-pole-left {
+  left: 8%;
 }
-.menu-flank-right {
-  right: -10%;
+.menu-banner-pole-right {
+  right: 8%;
 }
-
-.menu-flank-hero {
+.menu-banner-pole::before {
+  content: "";
   position: absolute;
-  height: 42%;
-  width: auto;
-  object-fit: contain;
-  object-position: bottom;
-  /* Brightened + saturated on top of each element's glow color (set per
-   * variant below via --glow) — at full natural exposure these read as
-   * flat and muddy under .menu-backdrop's darkening overlay (§9.24). */
-  filter: brightness(1.5) saturate(1.25) drop-shadow(0 0 30px var(--glow, rgba(255, 255, 255, 0.4)))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #4a4064, #201a30);
 }
-.menu-flank-left .menu-flank-hero {
-  left: 0;
-}
-.menu-flank-right .menu-flank-hero {
-  right: 0;
-  /* Real art faces right by default (its resting orientation as an ally
-   * sprite in battle, see HeroSprite.tsx) — mirrored here so both flanks
-   * face inward toward the logo instead of both facing the same way. */
-  transform: scaleX(-1);
-}
-.menu-flank-hero:nth-child(1) {
-  top: 4%;
-}
-.menu-flank-hero:nth-child(2) {
-  top: 50%;
-  height: 44%;
-}
-
-.menu-flank-hero-spark {
-  --glow: rgba(201, 161, 59, 0.7);
-}
-.menu-flank-hero-undead {
-  --glow: rgba(160, 130, 165, 0.65);
-}
-.menu-flank-hero-spirit {
-  --glow: rgba(126, 203, 196, 0.7);
-}
-.menu-flank-hero-water {
-  --glow: rgba(47, 143, 214, 0.7);
+.menu-banner-flag {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  width: 22px;
+  height: 72%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #5a3a90, #2a1a48);
+  clip-path: polygon(0 0, 100% 0, 100% 84%, 50% 100%, 0 84%);
+  box-shadow: 0 0 16px rgba(155, 107, 255, 0.4);
 }
 
 .menu-backdrop {
@@ -1209,130 +1198,18 @@ button {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  /* Eased up from §9.21's original values (0.7/0.3/0.4/0.94) — that
-   * darkening, stacked on top of hero art that was already none too
-   * bright, crushed the flank characters into near-silhouettes (§9.24). */
   background: linear-gradient(
     180deg,
-    rgba(9, 7, 15, 0.55) 0%,
-    rgba(9, 7, 15, 0.12) 22%,
-    rgba(9, 7, 15, 0.22) 55%,
-    rgba(8, 6, 13, 0.88) 100%
+    rgba(8, 6, 13, 0.5) 0%,
+    rgba(8, 6, 13, 0.06) 20%,
+    rgba(8, 6, 13, 0.16) 55%,
+    rgba(8, 6, 13, 0.85) 100%
   );
 }
 
-/* ---------- Top bar: player badge + currency + settings (§9.22) ----------
- * All cosmetic — see the comment in MainMenu.tsx. Sits in normal flex
- * flow above .menu-header, not absolutely positioned, so it reserves
- * its own row instead of overlapping the title. */
-
-.menu-topbar {
-  position: relative;
-  z-index: 3;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 14px 14px 0;
-}
-
-.menu-player-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(155, 107, 255, 0.35);
-  border-radius: 12px;
-  padding: 6px 12px 6px 6px;
-  min-width: 0;
-}
-.menu-player-avatar {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.avatar-diamond {
-  position: static;
-  transform: rotate(45deg);
-  width: 20px;
-  height: 20px;
-}
-.menu-player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.menu-player-name {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #e8e4f7;
-  white-space: nowrap;
-}
-.menu-player-xp-track {
-  width: 78px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-}
-.menu-player-xp-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #9b6bff, #c9a8ff);
-}
-
-.menu-topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.menu-currency-pill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #e8eaf5;
-}
-.menu-currency-icon {
-  font-size: 13px;
-}
-
-.menu-settings-button {
-  background: rgba(20, 16, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.menu-header {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 16px 20px 4px;
-  text-align: center;
-}
-
-.menu-logo-emblem {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  margin-bottom: 6px;
-}
+/* Small rotated-square "gem" used both for the player avatar (below)
+ * and reused at a different size for the sidebar/other diamond accents
+ * — kept from §9.21's original wordmark treatment. */
 .menu-logo-diamond {
   position: absolute;
   left: 50%;
@@ -1346,219 +1223,506 @@ button {
   background: linear-gradient(135deg, #9b6bff, #5b3aa8);
   box-shadow: 0 0 18px rgba(155, 107, 255, 0.65);
 }
-.menu-logo-diamond-inner {
-  width: 18px;
-  height: 18px;
-  transform: translate(-50%, -50%) rotate(45deg);
-  background: linear-gradient(135deg, #ece3ff, #b794f6);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.avatar-diamond {
+  position: static;
+  transform: rotate(45deg);
+  width: 20px;
+  height: 20px;
 }
 
-.menu-header .menu-title {
-  font-size: 26px;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: #f2eefc;
-  text-shadow: 0 0 20px rgba(155, 107, 255, 0.55), 0 2px 8px rgba(0, 0, 0, 0.7);
-}
-.menu-header .menu-tagline {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 2.5px;
-  color: #b9a8e0;
-  margin-bottom: 0;
-}
+/* ---------- Top bar: player card + currency + utility icons ----------
+ * All cosmetic — this game has no leveling or currency system (Store
+ * says so outright). Kept at neutral/zero placeholder values rather
+ * than the mockup's specific large numbers. */
 
-.menu-content {
+.menu-topbar-v2 {
   position: relative;
-  z-index: 3;
+  z-index: 5;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 12px 10px 8px;
+}
+
+.menu-player-card {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.menu-player-avatar-v2 {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(14, 12, 22, 0.72);
+  border: 1px solid rgba(155, 107, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.menu-player-card-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.menu-player-name-v2 {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f2eefc;
+  white-space: nowrap;
+}
+.menu-player-level-v2 {
+  font-size: 9.5px;
+  color: #a68fe0;
+  white-space: nowrap;
+}
+
+.menu-currency-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.menu-currency-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(14, 12, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #e8eaf5;
+  white-space: nowrap;
+}
+.menu-currency-row-icon {
+  font-size: 11px;
+}
+.menu-currency-row-plus {
+  color: #7c84a8;
+  margin-left: 2px;
+}
+
+.menu-topbar-icons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.menu-topbar-icon {
+  background: rgba(20, 16, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+/* ---------- Sidebar + scrollable content share a flex row ----------
+ * Sidebar width is a real layout reservation (flex-shrink: 0), not a
+ * guessed absolute-position offset. Store/Missions map onto real
+ * screens; Collection reuses the Deck Builder; Events/Leaderboard have
+ * nothing behind them yet (see ComingSoon.tsx). */
+
+.menu-body-row {
+  position: relative;
+  z-index: 4;
   flex: 1;
-  /* A flex item's default min-height is `auto` (content-based), not 0 —
-   * without this override, flex:1 never actually caps this box's height
-   * on short viewports; it grows to fit its content instead of clipping/
-   * scrolling, and pushes .menu-footer down and under it (found via the
-   * same overlap check that caught the §9.20 hero-select bug). */
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.menu-sidebar {
+  flex-shrink: 0;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+}
+.menu-sidebar-item {
+  background: none;
+  border: none;
+  color: #cfd4e6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 2px;
+  /* Fixed to the sidebar's own width, not sized to content — a long
+   * label ("Collection", "Leaderboard") would otherwise render wider
+   * than the 56px column and, centered against the screen's left
+   * edge, overflow off-canvas on the left with no way to scroll to it. */
+  width: 54px;
+}
+.menu-sidebar-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(14, 12, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+.menu-sidebar-label {
+  /* Explicit width + word-break — without both, an unbreakable single
+   * word ("Leaderboard", "Collection") renders at its own natural
+   * width regardless of the parent button's width:54px and overflows
+   * past it rather than wrapping, which — centered against the
+   * screen's left edge — clipped off-canvas the same way the parent's
+   * missing width did just above. */
+  width: 54px;
+  word-break: break-word;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #a8adc4;
+  text-align: center;
+  line-height: 1.1;
+}
+.menu-sidebar-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  box-shadow: 0 0 5px rgba(255, 77, 77, 0.85);
+}
+
+.menu-content-v2 {
+  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  /* Same flex-start + margin-auto pattern as .selection-screen (§9.20) —
-   * only 5 buttons so overflow is unlikely on real devices, but this
-   * degrades safely instead of clipping unreachably if it ever does. */
+  /* Same flex-start + margin-auto safety pattern as §9.20/§9.22 —
+   * degrades to top-anchored + scrollable instead of clipping
+   * unreachably if this ever overflows a short viewport. */
   justify-content: flex-start;
   align-items: center;
-  padding: 16px 20px 28px;
+  gap: 10px;
+  padding: 4px 14px 14px;
   overflow-y: auto;
 }
-.menu-content > *:first-child {
+.menu-content-v2 > *:first-child {
   margin-top: auto;
 }
-.menu-content > *:last-child {
+.menu-content-v2 > *:last-child {
   margin-bottom: auto;
 }
 
-.menu-action-list {
+/* ---------- Season banner ----------
+ * Purely decorative — not a real season/battle-pass system. The
+ * countdown says "Coming soon" rather than a fabricated day count,
+ * since a fake countdown implies a real deadline in a way a static 0
+ * currency doesn't. */
+
+.menu-season-banner {
+  width: 100%;
+  max-width: 320px;
+  background: linear-gradient(120deg, rgba(45, 30, 75, 0.85), rgba(20, 16, 30, 0.85));
+  border: 1px solid rgba(255, 210, 74, 0.4);
+  border-radius: 14px;
+  padding: 10px 14px;
+  text-align: left;
+  color: #e8eaf5;
+}
+.menu-season-copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 340px;
+  gap: 1px;
+}
+.menu-season-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #ffd24a;
+}
+.menu-season-title {
+  font-size: 15px;
+  font-weight: 800;
+}
+.menu-season-timer {
+  font-size: 10.5px;
+  color: #a8adc4;
+  margin-top: 2px;
 }
 
-.menu-action {
+.menu-carousel-dots {
+  display: flex;
+  gap: 5px;
+}
+.menu-carousel-dots .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+.menu-carousel-dots .dot.active {
+  background: #ffd24a;
+}
+
+/* ---------- Logo + wordmark ---------- */
+
+.menu-header-v2 {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 6px 0 0;
+}
+
+.menu-logo-mountain {
+  position: relative;
+  width: 120px;
+  height: 74px;
+  margin-bottom: 4px;
+}
+.menu-logo-mountain .peak {
+  position: absolute;
+  bottom: 0;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+.menu-logo-mountain .peak-center {
+  left: 50%;
+  width: 58px;
+  height: 74px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #e4d4ff 0%, #9b6bff 55%, #4b2a99 100%);
+  filter: drop-shadow(0 0 18px rgba(155, 107, 255, 0.75));
+  z-index: 2;
+}
+.menu-logo-mountain .peak-left {
+  left: 4px;
+  width: 40px;
+  height: 52px;
+  background: linear-gradient(180deg, #9b7bff, #4a2f78);
+  opacity: 0.85;
+  z-index: 1;
+}
+.menu-logo-mountain .peak-right {
+  right: 4px;
+  width: 40px;
+  height: 52px;
+  background: linear-gradient(180deg, #9b7bff, #4a2f78);
+  opacity: 0.85;
+  z-index: 1;
+}
+
+.menu-title-v2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #f5f2fc;
+  text-shadow: 0 0 22px rgba(155, 107, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+.menu-tagline-v2 {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #ffd24a;
+}
+
+/* ---------- Mode buttons (Find Match / Practice / Custom Match) ---------- */
+
+.menu-mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.menu-mode-button {
   position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px 12px 14px;
+  padding: 11px 14px;
   border-radius: 14px;
   clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: #e8eaf5;
   text-align: left;
 }
-.menu-action:not(:disabled):active {
-  background: rgba(26, 22, 38, 0.88);
-}
-.menu-action:disabled {
+.menu-mode-button:disabled {
   opacity: 0.55;
 }
-
-.menu-action-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+.menu-mode-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.25);
 }
-.menu-action-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.menu-action-title {
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: #f5f5fb;
-}
-.menu-action-subtitle {
-  font-size: 11.5px;
-  color: #a8adc4;
-  line-height: 1.3;
-}
-.menu-action-badge {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #ff4d4d;
-  box-shadow: 0 0 6px rgba(255, 77, 77, 0.85);
-}
-
-.menu-action-violet {
-  border-color: rgba(155, 107, 255, 0.5);
-}
-.menu-action-violet .menu-action-icon {
-  background: radial-gradient(circle, rgba(155, 107, 255, 0.35), rgba(91, 58, 168, 0.12));
-  box-shadow: 0 0 12px rgba(155, 107, 255, 0.5);
-}
-.menu-action-blue {
-  border-color: rgba(61, 139, 255, 0.5);
-}
-.menu-action-blue .menu-action-icon {
-  background: radial-gradient(circle, rgba(61, 139, 255, 0.35), rgba(30, 80, 168, 0.12));
-  box-shadow: 0 0 12px rgba(61, 139, 255, 0.5);
-}
-.menu-action-gold {
-  border-color: rgba(255, 210, 74, 0.5);
-}
-.menu-action-gold .menu-action-icon {
-  background: radial-gradient(circle, rgba(255, 210, 74, 0.35), rgba(168, 122, 20, 0.12));
-  box-shadow: 0 0 12px rgba(255, 210, 74, 0.5);
-}
-.menu-action-green {
-  border-color: rgba(94, 194, 106, 0.5);
-}
-.menu-action-green .menu-action-icon {
-  background: radial-gradient(circle, rgba(94, 194, 106, 0.35), rgba(40, 120, 55, 0.12));
-  box-shadow: 0 0 12px rgba(94, 194, 106, 0.5);
-}
-.menu-action-slate {
-  border-color: rgba(168, 173, 196, 0.35);
-}
-.menu-action-slate .menu-action-icon {
-  background: radial-gradient(circle, rgba(168, 173, 196, 0.3), rgba(80, 84, 104, 0.12));
-  box-shadow: 0 0 10px rgba(168, 173, 196, 0.35);
-}
-
-/* ---------- Bottom bar: daily reset timer + social links (§9.22) ----------
- * Cosmetic, same as the top bar — see the comment in MainMenu.tsx. */
-
-.menu-footer {
-  position: relative;
-  z-index: 3;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 16px 14px;
-}
-
-.menu-daily-reward {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 210, 74, 0.35);
-  border-radius: 12px;
-  padding: 8px 14px;
-}
-.menu-daily-reward-icon {
-  font-size: 18px;
-}
-.menu-daily-reward-info {
+.menu-mode-copy {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  flex: 1;
+  min-width: 0;
 }
-.menu-daily-reward-label {
-  font-size: 9.5px;
+.menu-mode-title {
+  font-weight: 800;
+  font-size: 15px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9aa2c0;
+  letter-spacing: 0.4px;
 }
-.menu-daily-reward-timer {
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.menu-mode-subtitle {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.8;
+}
+.menu-mode-chevron {
+  font-size: 20px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.menu-mode-teal {
+  background: linear-gradient(120deg, rgba(20, 45, 55, 0.9), rgba(12, 28, 36, 0.9));
+  border-color: rgba(94, 200, 220, 0.45);
+}
+.menu-mode-teal .menu-mode-title {
+  color: #bdeefc;
+}
+.menu-mode-teal .menu-mode-subtitle {
+  color: #7fd6ea;
+}
+
+.menu-mode-gold {
+  background: linear-gradient(120deg, rgba(55, 42, 16, 0.9), rgba(32, 24, 10, 0.9));
+  border-color: rgba(255, 210, 74, 0.45);
+}
+.menu-mode-gold .menu-mode-title {
+  color: #ffe9b0;
+}
+.menu-mode-gold .menu-mode-subtitle {
   color: #ffd24a;
 }
 
-.menu-social-links {
-  display: flex;
-  gap: 6px;
+.menu-mode-purple {
+  background: linear-gradient(120deg, rgba(40, 26, 60, 0.9), rgba(24, 16, 36, 0.9));
+  border-color: rgba(155, 107, 255, 0.45);
 }
-.menu-social-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #cfd4e6;
-  font-size: 14px;
+.menu-mode-purple .menu-mode-title {
+  color: #e4d4ff;
+}
+.menu-mode-purple .menu-mode-subtitle {
+  color: #b794f6;
+}
+
+/* ---------- Daily reward bar ---------- */
+
+.menu-daily-reward-bar {
+  width: 100%;
+  max-width: 320px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  background: rgba(14, 12, 22, 0.72);
+  border: 1px solid rgba(255, 210, 74, 0.35);
+  border-radius: 14px;
+  padding: 9px 12px;
+}
+.menu-daily-reward-bar-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.menu-daily-reward-bar-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.menu-daily-reward-bar-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ffd24a;
+  font-weight: 700;
+}
+.menu-daily-reward-bar-count {
+  font-size: 11px;
+  color: #e8eaf5;
+  font-variant-numeric: tabular-nums;
+}
+.menu-daily-reward-bar-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.menu-daily-reward-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd24a, #ffe9b0);
+}
+.menu-claim-button {
+  flex-shrink: 0;
+  background: #ffd24a;
+  color: #1a1400;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ---------- Bottom tabs ---------- */
+
+.menu-bottom-tabs {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  display: flex;
+  background: rgba(10, 8, 15, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.menu-tab-button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #7c84a8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px 10px;
+}
+.menu-tab-icon {
+  font-size: 17px;
+}
+.menu-tab-label {
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.menu-tab-button.active {
+  color: #ffd24a;
 }
 
 .objectives-card {

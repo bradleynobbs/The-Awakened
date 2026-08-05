@@ -131,32 +131,42 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 
 ## How to play
 
-The main menu (redesigned in `DESIGN.md` §9.21-§9.22 against a
-reference mockup — real hero art framing the screen, a diamond
-wordmark, a stack of color-coded action buttons, and matching the
-mockup's player badge/currency/daily-reward chrome too, even though
-none of that has a real system behind it yet — see §9.22) has:
+The main menu went through 3 rounds of redesign against reference
+mockups (`DESIGN.md` §9.21-§9.25); §9.25's version is a full
+mobile-game home-screen shell — a side nav rail, a top bar, a season
+banner, 3 mode buttons, a daily-reward bar, and a 5-tab bottom nav.
+Almost none of the systems that chrome implies exist (no leveling,
+currency, seasons, clans, or a battle pass — this prototype is
+explicitly skill-decides-matches, not pay-to-win), so every number on
+it is a static, neutral placeholder, and anything with no real screen
+behind it opens a shared "Coming Soon" screen (`ComingSoon.tsx`)
+instead of a silent dead click. What's actually real:
 - **Find Match** — real online matchmaking (needs Supabase configured; see
-  above). Grayed out with an explanation if it isn't.
+  above). Disabled with an explanation if it isn't.
 - **Practice** — a local, offline match against a simple bot
   opponent (`src/engine/bot.ts` + `src/state/usePracticeMatch.ts`). No
   network involved, good for trying out mechanics or verifying a change
   without needing a second device. The bot plays a random affordable,
   legal card each turn and never uses Team-Ups — it's a punching bag, not
   a serious AI.
-- **Store** — honest "coming soon" placeholder. No currency or
+- **Store** (sidebar) — honest "coming soon" placeholder. No currency or
   purchases exist in this prototype by design.
-- **Team Building** (the Deck Builder) — browse every hero's full card
-  text and save a preferred 3-hero loadout (stored locally), which
-  pre-fills team selection in both modes above. The engine's decks are
-  fixed per hero (3 copies each of their Attack, Ability, and Support
-  card) — there's no separate card-picking mechanic yet, so this is
-  really "choose your team," just with full card details up front.
-- **Objectives** — its own screen as of §9.21 (previously an inline
-  card on the menu itself) showing a Daily/Weekly summary (matches
-  played/won, tracked locally, reset at local midnight / Monday) — no
-  rewards wired up yet, just progress visibility. Its menu button shows
-  a small red dot while anything on either list is still incomplete.
+- **Collection** (sidebar) and **Decks** (bottom tab) — both open the
+  Deck Builder: browse every hero's full card text and save a
+  preferred 3-hero loadout (stored locally), which pre-fills team
+  selection in both modes above. The engine's decks are fixed per hero
+  (3 copies each of their Attack, Ability, and Support card) — there's
+  no separate card-picking mechanic yet, so this is really "choose your
+  team," just with full card details up front.
+- **Missions** (sidebar) — opens the Objectives screen: a Daily/Weekly
+  summary (matches played/won, tracked locally, reset at local
+  midnight / Monday) — no rewards wired up yet, just progress
+  visibility. Shows a small red dot while anything on either list is
+  still incomplete.
+- Everything else on the menu — **Custom Match**, **Events**,
+  **Leaderboard**, **Battle Pass**, **Clan**, **Profile**, the friends/
+  mail icons, the season banner, and the daily-reward Claim button —
+  is cosmetic or opens "Coming Soon."
 
 1. **Find Match.** Tap **Find Match** on the main menu. You're paired
    with the next other player who's also looking (public queue — see
@@ -368,11 +378,13 @@ src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
                      regardless of engine player id), useEventQueue
                      (steps engine events into per-event animation cues
                      one at a time)
-src/ui/             MainMenu (hero-art-framed, §9.21), DeckBuilder,
-                     Store, Objectives, Matchmaking, OnlineHeroSelection
-                     (shared by online + practice), Battle (TopBar,
-                     CardHand, TeamUpBar, CombatLog sheet,
-                     LatestEventToast), VictoryScreen, DebugPanel
+src/ui/             MainMenu (full home-screen shell, §9.25),
+                     DeckBuilder, Store, Objectives, ComingSoon
+                     (shared placeholder for unbuilt nav targets),
+                     Matchmaking, OnlineHeroSelection (shared by
+                     online + practice), Battle (TopBar, CardHand,
+                     TeamUpBar, CombatLog sheet, LatestEventToast),
+                     VictoryScreen, DebugPanel
 ```
 
 Every round's resolution produces an ordered list of `GameEvent`s (e.g.

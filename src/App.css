@@ -1549,8 +1549,8 @@ button {
    * clipping unreachably if this ever overflows a short viewport. */
   justify-content: flex-start;
   align-items: center;
-  gap: 16px;
-  padding: 8px 20px 20px;
+  gap: 12px;
+  padding: 4px 20px 14px;
   overflow-y: auto;
 }
 .menu-content-v2 > *:first-child {
@@ -1780,15 +1780,15 @@ button {
   justify-content: center;
 }
 .menu-emblem-image {
-  width: 128px;
+  width: 104px;
   height: auto;
-  filter: drop-shadow(0 0 26px rgba(155, 107, 255, 0.65));
+  filter: drop-shadow(0 0 22px rgba(155, 107, 255, 0.65));
 }
 
 .menu-title-v2 {
   margin: 0;
-  font-size: 36px;
-  line-height: 1.02;
+  font-size: 31px;
+  line-height: 1.04;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #f5f2fc;
@@ -1820,7 +1820,7 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 15px 18px;
+  padding: 13px 18px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #f5f2fc;
@@ -1904,18 +1904,6 @@ button {
 }
 .menu-mode-gold .menu-mode-subtitle {
   color: #ffd24a;
-}
-
-.menu-mode-purple {
-  background: linear-gradient(120deg, #3a2258 0%, #1e1230 100%);
-  border-color: rgba(155, 107, 255, 0.5);
-  --pulse: rgba(155, 107, 255, 0.4);
-}
-.menu-mode-purple .menu-mode-title {
-  color: #e4d4ff;
-}
-.menu-mode-purple .menu-mode-subtitle {
-  color: #b794f6;
 }
 
 /* ---------- Bottom tabs (§9.27: floating pill, was a flush bar) ---------- */

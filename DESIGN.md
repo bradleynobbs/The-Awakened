@@ -2067,3 +2067,38 @@ and via backdrop tap), all 5 sheet items and Custom Match and Battle
 Pass route correctly, and the banner slide advances after 5s. Full
 pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
 passes.
+
+### 9.28 Dropping Custom Match to kill the last scroll
+
+Feedback with a phone screenshot: cut Custom Match so the main menu
+doesn't need to scroll. Measuring `.menu-content-v2`'s `scrollHeight`
+vs. `clientHeight` directly (rather than eyeballing screenshots)
+confirmed it: with 3 mode buttons, real small-phone heights (iPhone
+SE's 667px, common budget-Android's 640px) genuinely didn't fit — 555px
+of content in a ~500-525px box.
+
+Removed the button, its `onCustomMatch` prop from `MainMenu.tsx`, and
+the `custommatch` entry from `App.tsx`'s `COMING_SOON_SCREENS`/
+`bottomTabsScreen` lookup — since nothing links to it anymore, kept it
+removed rather than orphaned. The now-fully-unused `"purple"`
+`ModeTone` variant and its `.menu-mode-purple` CSS went too (Find
+Match is blue for ranked, Practice is gold; nothing uses purple
+anymore).
+
+Removing the button alone wasn't quite enough — measured again and
+iPhone SE/640px-Android still needed ~30-55px of scroll. Trimmed
+`.menu-content-v2`'s padding/gap, the emblem image (128px → 104px),
+the wordmark font-size (36px → 31px), and each mode button's vertical
+padding (15px → 13px) — small individual amounts that add up across
+4 stacked sections. Confirmed via direct measurement rather than
+another screenshot squint: content now fits without scrolling at
+667px, 640px, 844px, and 900px. A synthetic 600px-tall viewport (no
+real current device is this short) still needs a small scroll — left
+as-is, since that's the established safe fallback (§9.20) rather than
+a regression, and chasing it further would mean shrinking the UI past
+the point of looking premium for a height nothing actually ships at.
+
+Verified: full nav suite re-run (all 5 sheet items, Practice, the
+Battle Pass tab) still routes correctly with the 2 remaining mode
+buttons, zero console errors. Full pipeline (`tsc -b`, `oxlint`,
+82-test Vitest suite, `vite build`) passes.

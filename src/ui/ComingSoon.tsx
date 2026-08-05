@@ -6,10 +6,10 @@ interface ComingSoonProps {
 }
 
 /** Shared placeholder for every nav destination added in §9.25 that has
- * no real system behind it yet (Events, Leaderboard, Custom Match,
- * Battle Pass, Clan, Profile) — one component instead of six near-
- * identical screens, following Store.tsx's existing "honest coming
- * soon" precedent rather than a silent dead click. */
+ * no real system behind it yet (Events, Leaderboard, Battle Pass,
+ * Clan, Profile) — one component instead of five near-identical
+ * screens, following Store.tsx's existing "honest coming soon"
+ * precedent rather than a silent dead click. */
 export function ComingSoon({ title, icon, message, onBack }: ComingSoonProps) {
   return (
     <div className="screen-with-header">

@@ -25,11 +25,6 @@ import { VictoryScreen } from "./ui/VictoryScreen";
 const COMING_SOON_SCREENS = {
   events: { title: "Events", icon: "📅", message: "Limited-time events aren't running yet — check back later." },
   leaderboard: { title: "Leaderboard", icon: "🏆", message: "Ranked standings aren't tracked yet." },
-  custommatch: {
-    title: "Custom Match",
-    icon: "🛡",
-    message: "Private lobbies with custom rules aren't wired up yet — try Find Match or Practice instead.",
-  },
   battlepass: { title: "Battle Pass", icon: "🎫", message: "There's no season pass yet — no currency or purchases exist in this prototype by design." },
   clan: { title: "Clan", icon: "🛡", message: "Clans/guilds aren't built yet." },
   profile: { title: "Profile", icon: "👤", message: "A dedicated profile screen isn't built yet." },
@@ -111,7 +106,6 @@ export default function App() {
     objectives: null,
     events: null,
     leaderboard: null,
-    custommatch: null,
     battlepass: "battlepass",
     clan: "clan",
     profile: "profile",
@@ -131,7 +125,6 @@ export default function App() {
           onObjectives={() => setScreen("objectives")}
           onEvents={() => setScreen("events")}
           onLeaderboard={() => setScreen("leaderboard")}
-          onCustomMatch={() => setScreen("custommatch")}
           onBattlePass={() => setScreen("battlepass")}
         />
       )}

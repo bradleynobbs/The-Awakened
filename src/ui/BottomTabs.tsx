@@ -2,8 +2,8 @@ export type BottomTab = "home" | "decks" | "battlepass" | "clan" | "profile";
 
 interface BottomTabsProps {
   /** null when the current screen doesn't correspond to any tab
-   * (Store, Objectives, Events, Leaderboard, Custom Match) — none of
-   * them highlight as active, rather than falsely claiming one does. */
+   * (Store, Objectives, Events, Leaderboard) — none of them highlight
+   * as active, rather than falsely claiming one does. */
   active: BottomTab | null;
   onHome: () => void;
   onDecks: () => void;

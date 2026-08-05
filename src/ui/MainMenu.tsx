@@ -16,7 +16,6 @@ interface MainMenuProps {
   onObjectives: () => void;
   onEvents: () => void;
   onLeaderboard: () => void;
-  onCustomMatch: () => void;
   onBattlePass: () => void;
 }
 
@@ -56,7 +55,6 @@ export function MainMenu({
   onObjectives,
   onEvents,
   onLeaderboard,
-  onCustomMatch,
   onBattlePass,
 }: MainMenuProps) {
   const { daily, weekly } = getObjectives();
@@ -193,8 +191,10 @@ export function MainMenu({
           </div>
 
           {/* Blue is reserved for ranked (Find Match) per the palette
-           * spec — Practice and Custom Match stay in the purple/gold
-           * family used everywhere else. */}
+           * spec — Practice stays in the purple/gold family used
+           * everywhere else. Custom Match was dropped in §9.28 — with
+           * it gone, the menu fits a real phone viewport without
+           * scrolling. */}
           <nav className="menu-mode-list">
             <ModeButton
               tone="blue"
@@ -205,7 +205,6 @@ export function MainMenu({
               onClick={onFindMatch}
             />
             <ModeButton tone="gold" icon="🧑‍🤝‍🧑" title="Practice" subtitle="Train & Improve" onClick={onPracticeMatch} />
-            <ModeButton tone="purple" icon="🛡" title="Custom Match" subtitle="Play Your Way" onClick={onCustomMatch} />
           </nav>
         </div>
       </div>
@@ -236,7 +235,7 @@ function CurrencyRow({ icon, value }: { icon: string; value: string }) {
   );
 }
 
-type ModeTone = "blue" | "gold" | "purple";
+type ModeTone = "blue" | "gold";
 
 function ModeButton({
   tone,

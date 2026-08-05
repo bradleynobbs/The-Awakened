@@ -132,19 +132,23 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 ## How to play
 
 The main menu went through several rounds of redesign against
-reference mockups and a detailed design brief (`DESIGN.md` §9.21-§9.27)
+reference mockups and a detailed design brief (`DESIGN.md` §9.21-§9.28)
 and is now a full mobile-game home-screen shell — real hero art (faded
 to ~28% opacity as ambient dressing) and the actual game emblem
 layered behind glassmorphism panels, a top bar, a rotating promo
-banner, 3 mode buttons, and a 5-tab bottom nav that's persistent across
+banner, 2 mode buttons, and a 5-tab bottom nav that's persistent across
 every meta/menu screen (not just the menu itself — `BottomTabs.tsx`,
 rendered by `App.tsx`), hidden only during the actual match flow.
 Secondary navigation (Store, Collection, Missions, Events,
 Leaderboard) lives in a bottom sheet (`MenuSheet.tsx`, opened from a
 top-bar trigger) rather than a permanent sidebar, freeing the main
-screen for artwork and the 3 mode buttons. Almost none of the systems
-this chrome implies exist (no leveling, currency, seasons, clans, or a
-battle pass — this prototype is explicitly skill-decides-matches, not
+screen for artwork and the mode buttons. Fits a real phone viewport
+without scrolling (measured directly against `scrollHeight`, not
+eyeballed — §9.28 dropped a third mode button, Custom Match, and
+trimmed spacing after confirming the menu genuinely didn't fit on
+common small-phone heights). Almost none of the systems this chrome
+implies exist (no leveling, currency, seasons, clans, or a battle
+pass — this prototype is explicitly skill-decides-matches, not
 pay-to-win), so every number on it is a static, neutral placeholder,
 and anything with no real screen behind it opens a shared "Coming
 Soon" screen (`ComingSoon.tsx`) instead of a silent dead click. What's
@@ -171,10 +175,9 @@ actually real:
   local midnight / Monday) — no rewards wired up yet, just progress
   visibility. Shows a small red dot while anything on either list is
   still incomplete.
-- Everything else on the menu — **Custom Match**, **Events**,
-  **Leaderboard**, **Battle Pass**, **Clan**, **Profile**, the friends/
-  mail icons, and the rotating promo banner — is cosmetic or opens
-  "Coming Soon."
+- Everything else on the menu — **Events**, **Leaderboard**, **Battle
+  Pass**, **Clan**, **Profile**, the friends/mail icons, and the
+  rotating promo banner — is cosmetic or opens "Coming Soon."
 
 1. **Find Match.** Tap **Find Match** on the main menu. You're paired
    with the next other player who's also looking (public queue — see
@@ -386,7 +389,7 @@ src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
                      regardless of engine player id), useEventQueue
                      (steps engine events into per-event animation cues
                      one at a time)
-src/ui/             MainMenu (full home-screen shell, §9.25-§9.27),
+src/ui/             MainMenu (full home-screen shell, §9.25-§9.28),
                      MenuSheet (bottom sheet replacing the old sidebar,
                      §9.27), BottomTabs (persistent app-wide nav,
                      rendered by App.tsx, not owned by MainMenu),

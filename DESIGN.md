@@ -1971,3 +1971,99 @@ functional from the menu, Deck Builder (via both entry points), and
 Store, correctly hidden once inside Practice's hero-selection screen,
 and all 9 §9.25 nav targets still route correctly. Full pipeline
 (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`) passes.
+
+### 9.27 Premium polish pass: sidebar → bottom sheet, glassmorphism, palette discipline
+
+A full design brief modeled on Clash Royale/Marvel Snap/Brawl Stars/
+Wild Rift-tier menus, plus one explicit structural ask: replace the
+persistent left sidebar with a bottom sheet so the main screen has
+more room for artwork and the 3 mode buttons.
+
+**Sidebar → bottom sheet.** `MenuSheet.tsx` is new — a backdrop-tap-
+to-dismiss sheet sliding up from the bottom, holding the same 5 items
+(Store, Collection, Missions, Events, Leaderboard) as premium list
+rows (icon badge, label, chevron, the Missions red dot carried over
+unchanged) instead of small circular icons in a permanent 56px column.
+Opened from a compact hamburger trigger. First placement attempt put
+the trigger as a floating corner button over the scrollable button
+list (first `position: absolute` within the scrolling container, then
+`position: fixed` at a screen corner after that put it at a scroll-
+following spot that still overlapped content) — both failed the same
+way: a floating element and edge-to-edge full-width buttons will
+always collide at *some* viewport height once there's no dedicated
+horizontal gutter for the floater to live in. Moved it into the top
+bar instead, sized to match the other utility icons — chrome that
+never overlaps scrollable content because it isn't inside the
+scrollable area at all.
+
+**Palette discipline.** Blue is now reserved for Find Match (the one
+ranked element) — it was "teal" before, a different color for no
+particular reason; Practice/Custom Match stay gold/purple. The overall
+background shifted from uniformly purple-tinted toward black-dominant
+(per the brief's explicit "black background, purple highlights, gold
+accents"), with the same violet glow layers as before just toned down.
+
+**Hero art opacity — a deliberate reversal of §9.24.** §9.24's fix was
+"the characters look awful, make them brighter" (brightness 1.5,
+saturate 1.25). This brief asks the opposite: "faded... at 20-30%
+opacity so they don't interfere with readability." Both are correct
+for their moment — §9.24's chrome was sparse enough that dim art read
+as murky; §9.27's chrome is dense enough that vivid art competes with
+it. Set to `opacity: 0.28`, brightness filter dropped entirely
+(desaturated slightly instead, `saturate(0.85)`), glow reduced to
+match the lower prominence.
+
+**Glassmorphism.** Every UI panel (top bar's player card/currency
+pills/icon buttons, the promo banner, the bottom sheet, the mode
+buttons' icon badges) got semi-transparent backgrounds plus
+`backdrop-filter: blur(...)`, so background art blurs *through* panels
+rather than being visually separate from them.
+
+**A third currency (Crystals)** joins Gold and Gems in the top bar, per
+the brief — same cosmetic-only treatment as the other two (Store still
+says outright there's no currency system).
+
+**Rotating promo banner.** `BANNER_SLIDES` is a 3-entry array
+(`Season 1: Dawnbreak`, `Roster: 17 Demigods`, a gameplay tip),
+auto-advancing every 5s via `setInterval` and reflected in the dot
+row. Purely decorative flavor text — there's no season-pass or news
+system behind any of it — and every slide routes to the same
+ComingSoon (Battle Pass) screen on click, same as a single static
+banner would have.
+
+**Ambient particles + floating crystals.** Ten small glowing dots and
+three rotated-square "crystals" with slow drift/float keyframe
+animations, CSS-only (no animation library), positioned via
+`nth-child` for varied timing — the brief's "background particles"
+and "floating crystals" asks.
+
+**Removed: the daily-reward bar.** The brief's own section list
+(Top Bar / Main Banner / Logo / Main Buttons / Sidebar-now-sheet /
+Bottom Navigation) has no daily-reward entry, and "remove visual
+clutter" is explicit — dropped rather than carried forward
+unexamined.
+
+**Two real layout bugs found during this pass, both variants of a
+now-familiar lesson:**
+1. `.menu-topbar-v2` used `grid-template-columns: 1fr auto 1fr` — a
+   bare `1fr` track has an *implicit content-based minimum*, the Grid
+   equivalent of the flex `min-width: auto` gotcha this project has
+   hit repeatedly (§9.20, §9.22, §9.26). The middle currency column's
+   content-based demand pushed the player-card column narrower than
+   its own content wanted, and since `overflow` wasn't set on the
+   name/level text, it visibly bled into the currency pills instead of
+   clipping. Fixed both ends: `minmax(0, 1fr)` on the side columns so
+   they can actually shrink, plus `overflow: hidden; text-overflow:
+   ellipsis` on the player name/level text as a second line of
+   defense.
+2. Covered in the sidebar/sheet section above — the sheet trigger's
+   floating-corner-button placement colliding with scrollable content.
+
+Verified via Playwright at 640/844/900px: no console errors, no
+overlap anywhere in the top bar (measured precisely — player card,
+currency stack, and icon cluster all clear each other with margin to
+spare), the sheet opens/closes (via an item tap, which also navigates,
+and via backdrop tap), all 5 sheet items and Custom Match and Battle
+Pass route correctly, and the banner slide advances after 5s. Full
+pipeline (`tsc -b`, `oxlint`, 82-test Vitest suite, `vite build`)
+passes.

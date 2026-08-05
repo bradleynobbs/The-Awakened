@@ -1122,13 +1122,15 @@ button {
   z-index: 45;
 }
 
-/* ---------- Main menu (§9.25) ----------
- * Rebuilt from a much more detailed reference mockup — a full mobile-
- * game home-screen shell (side nav rail, top currency/profile bar, a
- * season banner, 3 mode buttons, a daily-reward bar, bottom tabs)
- * replacing the simpler single-column menu from §9.21-9.24. See the
- * per-block comments below and DESIGN.md §9.25 for what's real vs.
- * purely cosmetic dressing. */
+/* ---------- Main menu (§9.25-§9.27) ----------
+ * §9.25 built a full mobile-game home-screen shell from a reference
+ * mockup. §9.26 fixed off-center content, made the bottom tabs a
+ * persistent app-wide sibling, and restored real hero art + the
+ * actual emblem image. §9.27 is a full premium-polish pass: the
+ * persistent left sidebar is gone (replaced by MenuSheet.tsx, a
+ * bottom sheet), hero art fades to ambient background dressing,
+ * glassmorphism panels, a blue-for-ranked/purple+gold-elsewhere
+ * palette, a rotating promo banner, and CSS-only ambient particles. */
 
 .menu-root-v2 {
   position: relative;
@@ -1136,16 +1138,12 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* §9.23 dropped the arena-plaza.jpg photo for a CSS gradient after
-   * "looks rubbish" feedback on its mismatched warm palette; §9.25's
-   * much busier reference has real structure to reproduce (a glowing
-   * plaza floor, banner pillars) that a flat gradient alone can't, so
-   * this builds that structure from CSS/SVG shapes below instead of
-   * reaching for another photo. */
+  /* Black-dominant per §9.27's palette spec (was more uniformly
+   * purple before) — violet stays as glow accents, not the base. */
   background:
-    radial-gradient(55% 30% at 50% 78%, rgba(155, 107, 255, 0.32) 0%, rgba(155, 107, 255, 0) 72%),
-    radial-gradient(42% 24% at 50% 28%, rgba(216, 196, 255, 0.4) 0%, rgba(216, 196, 255, 0) 100%),
-    linear-gradient(180deg, #201a38 0%, #120e1f 42%, #08060d 100%);
+    radial-gradient(55% 30% at 50% 78%, rgba(155, 107, 255, 0.24) 0%, rgba(155, 107, 255, 0) 72%),
+    radial-gradient(42% 24% at 50% 24%, rgba(216, 196, 255, 0.28) 0%, rgba(216, 196, 255, 0) 100%),
+    linear-gradient(180deg, #120e1c 0%, #0a0810 42%, #030204 100%);
 }
 
 .menu-plaza-floor {
@@ -1157,23 +1155,23 @@ button {
   height: 90px;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(155, 107, 255, 0.5), rgba(155, 107, 255, 0.16) 55%, rgba(155, 107, 255, 0) 80%);
-  box-shadow: 0 0 0 1px rgba(155, 107, 255, 0.3), 0 0 0 14px rgba(155, 107, 255, 0.09), 0 0 0 28px rgba(155, 107, 255, 0.05);
+  background: radial-gradient(closest-side, rgba(155, 107, 255, 0.4), rgba(155, 107, 255, 0.12) 55%, rgba(155, 107, 255, 0) 80%);
+  box-shadow: 0 0 0 1px rgba(155, 107, 255, 0.25), 0 0 0 14px rgba(155, 107, 255, 0.07), 0 0 0 28px rgba(155, 107, 255, 0.04);
   z-index: 0;
   pointer-events: none;
 }
 
-/* Real hero art (§9.21/9.24, dropped in §9.25's rebuild, restored in
- * §9.26 — its absence was a real complaint: "doesn't look like our
- * app," "needs some of our characters"). Sits behind everything else
- * (.menu-backdrop darkens it uniformly along with the plaza/banners),
- * showing through wherever the UI chrome above leaves negative space. */
+/* Real hero art — faded to ambient background dressing (§9.27's
+ * "20-30% opacity so it doesn't interfere with readability"), a
+ * direct reversal of §9.24's "brighter" fix now that the surrounding
+ * chrome is dense enough to need the contrast more than the art does. */
 .menu-flank {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 48%;
   z-index: 1;
+  opacity: 0.28;
   pointer-events: none;
 }
 .menu-flank-left {
@@ -1189,20 +1187,13 @@ button {
   width: auto;
   object-fit: contain;
   object-position: bottom;
-  /* Brightened + saturated on top of each element's glow color (set per
-   * variant below via --glow) — at full natural exposure these read as
-   * flat and muddy under .menu-backdrop's darkening overlay (§9.24). */
-  filter: brightness(1.5) saturate(1.25) drop-shadow(0 0 30px var(--glow, rgba(255, 255, 255, 0.4)))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.6));
+  filter: saturate(0.85) drop-shadow(0 0 24px var(--glow, rgba(255, 255, 255, 0.3)));
 }
 .menu-flank-left .menu-flank-hero {
   left: 0;
 }
 .menu-flank-right .menu-flank-hero {
   right: 0;
-  /* Real art faces right by default (its resting orientation as an ally
-   * sprite in battle, see HeroSprite.tsx) — mirrored here so both flanks
-   * face inward toward the logo instead of both facing the same way. */
   transform: scaleX(-1);
 }
 .menu-flank-hero:nth-child(1) {
@@ -1214,16 +1205,16 @@ button {
 }
 
 .menu-flank-hero-spark {
-  --glow: rgba(201, 161, 59, 0.7);
+  --glow: rgba(201, 161, 59, 0.5);
 }
 .menu-flank-hero-undead {
-  --glow: rgba(160, 130, 165, 0.65);
+  --glow: rgba(160, 130, 165, 0.45);
 }
 .menu-flank-hero-spirit {
-  --glow: rgba(126, 203, 196, 0.7);
+  --glow: rgba(126, 203, 196, 0.5);
 }
 .menu-flank-hero-water {
-  --glow: rgba(47, 143, 214, 0.7);
+  --glow: rgba(47, 143, 214, 0.5);
 }
 
 .menu-banner-pole {
@@ -1232,6 +1223,7 @@ button {
   width: 24px;
   height: 44%;
   z-index: 1;
+  opacity: 0.5;
   pointer-events: none;
 }
 .menu-banner-pole-left {
@@ -1259,7 +1251,134 @@ button {
   transform: translateX(-50%);
   background: linear-gradient(180deg, #5a3a90, #2a1a48);
   clip-path: polygon(0 0, 100% 0, 100% 84%, 50% 100%, 0 84%);
-  box-shadow: 0 0 16px rgba(155, 107, 255, 0.4);
+}
+
+/* ---------- Ambient particles + floating crystals (§9.27) ----------
+ * CSS-only decoration, no animation library — a handful of fixed
+ * elements, position/size/delay varied per nth-child below. */
+
+.menu-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.menu-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(216, 196, 255, 0.7);
+  box-shadow: 0 0 4px rgba(216, 196, 255, 0.8);
+  animation: menu-particle-drift 9s ease-in-out infinite;
+}
+.menu-particle:nth-child(1) {
+  left: 8%;
+  top: 20%;
+  animation-delay: 0s;
+}
+.menu-particle:nth-child(2) {
+  left: 22%;
+  top: 65%;
+  animation-delay: 1.1s;
+}
+.menu-particle:nth-child(3) {
+  left: 38%;
+  top: 12%;
+  animation-delay: 2.2s;
+}
+.menu-particle:nth-child(4) {
+  left: 55%;
+  top: 45%;
+  animation-delay: 0.6s;
+}
+.menu-particle:nth-child(5) {
+  left: 70%;
+  top: 78%;
+  animation-delay: 3.1s;
+}
+.menu-particle:nth-child(6) {
+  left: 85%;
+  top: 30%;
+  animation-delay: 1.8s;
+}
+.menu-particle:nth-child(7) {
+  left: 15%;
+  top: 85%;
+  animation-delay: 2.7s;
+}
+.menu-particle:nth-child(8) {
+  left: 92%;
+  top: 60%;
+  animation-delay: 0.3s;
+}
+.menu-particle:nth-child(9) {
+  left: 48%;
+  top: 90%;
+  animation-delay: 4s;
+}
+.menu-particle:nth-child(10) {
+  left: 62%;
+  top: 10%;
+  animation-delay: 1.4s;
+}
+@keyframes menu-particle-drift {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-18px) scale(1.4);
+    opacity: 0.8;
+  }
+}
+
+.menu-crystals {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.menu-crystal {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, rgba(216, 196, 255, 0.8), rgba(155, 107, 255, 0.3));
+  transform: rotate(45deg);
+  filter: drop-shadow(0 0 6px rgba(155, 107, 255, 0.6));
+  animation: menu-crystal-float 12s ease-in-out infinite;
+}
+.menu-crystal:nth-child(1) {
+  left: 12%;
+  top: 30%;
+  animation-delay: 0s;
+}
+.menu-crystal:nth-child(2) {
+  left: 80%;
+  top: 22%;
+  width: 7px;
+  height: 7px;
+  animation-delay: 4s;
+}
+.menu-crystal:nth-child(3) {
+  left: 68%;
+  top: 68%;
+  width: 8px;
+  height: 8px;
+  animation-delay: 8s;
+}
+@keyframes menu-crystal-float {
+  0%,
+  100% {
+    transform: rotate(45deg) translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: rotate(45deg) translateY(-24px);
+    opacity: 0.75;
+  }
 }
 
 .menu-backdrop {
@@ -1269,16 +1388,14 @@ button {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(8, 6, 13, 0.5) 0%,
-    rgba(8, 6, 13, 0.06) 20%,
-    rgba(8, 6, 13, 0.16) 55%,
-    rgba(8, 6, 13, 0.85) 100%
+    rgba(3, 2, 4, 0.55) 0%,
+    rgba(3, 2, 4, 0.1) 22%,
+    rgba(3, 2, 4, 0.2) 55%,
+    rgba(3, 2, 4, 0.88) 100%
   );
 }
 
-/* Small rotated-square "gem" used both for the player avatar (below)
- * and reused at a different size for the sidebar/other diamond accents
- * — kept from §9.21's original wordmark treatment. */
+/* Small rotated-square "gem" reused for the player avatar. */
 .menu-logo-diamond {
   position: absolute;
   left: 50%;
@@ -1299,36 +1416,52 @@ button {
   height: 20px;
 }
 
-/* ---------- Top bar: player card + currency + utility icons ----------
- * All cosmetic — this game has no leveling or currency system (Store
- * says so outright). Kept at neutral/zero placeholder values rather
- * than the mockup's specific large numbers. */
+/* ---------- Top bar (§9.27): glassmorphism, 3-column grid ----------
+ * grid instead of flex so the currency stack is centered on the *bar
+ * itself*, not just on whatever space is left after the player card —
+ * the same class of centering bug fixed for the sidebar in §9.26,
+ * avoided here from the start. All cosmetic — see MainMenu.tsx. */
 
 .menu-topbar-v2 {
   position: relative;
   z-index: 5;
   flex-shrink: 0;
+  display: grid;
+  /* A bare `1fr` track has an implicit content-based minimum (the
+   * grid version of the flex min-width:auto gotcha hit repeatedly
+   * this session) — minmax(0, 1fr) lets these side columns actually
+   * shrink below their content's natural width instead of the middle
+   * currency column pushing the player card into overlapping it. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px 10px;
+}
+
+.menu-topbar-left {
+  justify-self: start;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 12px 10px 8px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .menu-player-card {
   display: flex;
   align-items: center;
-  gap: 7px;
   min-width: 0;
+  gap: 6px;
+  background: rgba(18, 14, 26, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 5px 8px 5px 5px;
 }
 .menu-player-avatar-v2 {
   position: relative;
   width: 30px;
   height: 30px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(155, 107, 255, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1337,172 +1470,87 @@ button {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
 }
 .menu-player-name-v2 {
   font-size: 11px;
   font-weight: 700;
-  color: #f2eefc;
+  color: #f5f2fc;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .menu-player-level-v2 {
   font-size: 9.5px;
-  color: #a68fe0;
+  color: #b9a8e0;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu-currency-stack {
+  justify-self: center;
   display: flex;
-  flex-direction: column;
   gap: 3px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 .menu-currency-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  gap: 2px;
+  background: rgba(18, 14, 26, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 210, 74, 0.25);
   border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 10.5px;
+  padding: 4px 6px;
+  font-size: 9.5px;
   font-weight: 700;
-  color: #e8eaf5;
+  color: #f5f2fc;
   white-space: nowrap;
 }
 .menu-currency-row-icon {
-  font-size: 11px;
+  font-size: 10px;
 }
 .menu-currency-row-plus {
-  color: #7c84a8;
-  margin-left: 2px;
+  display: none;
 }
 
 .menu-topbar-icons {
+  justify-self: end;
   display: flex;
   gap: 4px;
-  flex-shrink: 0;
 }
 .menu-topbar-icon {
-  background: rgba(20, 16, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  width: 32px;
-  height: 32px;
+  background: rgba(18, 14, 26, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 30px;
+  height: 30px;
   font-size: 14px;
 }
 
-/* ---------- Sidebar + scrollable content share a flex row ----------
- * Sidebar width is a real layout reservation (flex-shrink: 0), not a
- * guessed absolute-position offset. Store/Missions map onto real
- * screens; Collection reuses the Deck Builder; Events/Leaderboard have
- * nothing behind them yet (see ComingSoon.tsx). */
+/* ---------- Body: content fills full width, sheet-trigger floats ---------- */
 
 .menu-body-row {
-  /* §9.26: no longer display: flex — the sidebar used to be a flex-row
-   * sibling of .menu-content-v2, which meant its centered content
-   * (season banner, logo, buttons) was actually centered in the
-   * *remaining* width after the sidebar, not the full screen — visibly
-   * shifted right, a real complaint. The sidebar is now absolutely
-   * positioned over the content instead, anchored to this element's
-   * own top:0/bottom:0 — safe (unlike an even earlier absolute attempt
-   * that used guessed pixel offsets) because this box is itself
-   * properly height-bounded via flex:1 + min-height:0. */
   position: relative;
   z-index: 4;
   flex: 1;
   min-height: 0;
 }
 
-.menu-sidebar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: 56px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 10px 0;
-  /* The nav itself doesn't capture clicks (only its item buttons do,
-   * see below) — otherwise an empty gap between icons would "eat" a
-   * click meant for whatever of .menu-content-v2's centered content
-   * peeks out from behind the sidebar's left-edge overlap zone. */
-  pointer-events: none;
-}
-.menu-sidebar-item {
-  pointer-events: auto;
-  background: none;
-  border: none;
-  color: #cfd4e6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 2px;
-  /* Fixed to the sidebar's own width, not sized to content — a long
-   * label ("Collection", "Leaderboard") would otherwise render wider
-   * than the 56px column and, centered against the screen's left
-   * edge, overflow off-canvas on the left with no way to scroll to it. */
-  width: 54px;
-}
-.menu-sidebar-icon {
-  position: relative;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-}
-.menu-sidebar-label {
-  /* Explicit width + word-break — without both, an unbreakable single
-   * word ("Leaderboard", "Collection") renders at its own natural
-   * width regardless of the parent button's width:54px and overflows
-   * past it rather than wrapping, which — centered against the
-   * screen's left edge — clipped off-canvas the same way the parent's
-   * missing width did just above. */
-  width: 54px;
-  word-break: break-word;
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #a8adc4;
-  text-align: center;
-  line-height: 1.1;
-}
-.menu-sidebar-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff4d4d;
-  box-shadow: 0 0 5px rgba(255, 77, 77, 0.85);
-}
-
 .menu-content-v2 {
-  /* Fills .menu-body-row exactly (which is itself already height-
-   * bounded via flex:1 + min-height:0 one level up) — full width, not
-   * reduced by the sidebar's width, since the sidebar now floats over
-   * this instead of sitting beside it as a flex-row sibling (§9.26). */
   position: absolute;
   inset: 0;
   z-index: 0;
   display: flex;
   flex-direction: column;
-  /* Same flex-start + margin-auto safety pattern as §9.20/§9.22 —
-   * degrades to top-anchored + scrollable instead of clipping
-   * unreachably if this ever overflows a short viewport. */
+  /* Same flex-start + margin-auto safety pattern established in
+   * §9.20/§9.22 — degrades to top-anchored + scrollable instead of
+   * clipping unreachably if this ever overflows a short viewport. */
   justify-content: flex-start;
   align-items: center;
-  gap: 10px;
-  padding: 4px 14px 14px;
+  gap: 16px;
+  padding: 8px 20px 20px;
   overflow-y: auto;
 }
 .menu-content-v2 > *:first-child {
@@ -1512,26 +1560,172 @@ button {
   margin-bottom: auto;
 }
 
-/* ---------- Season banner ----------
- * Purely decorative — not a real season/battle-pass system. The
- * countdown says "Coming soon" rather than a fabricated day count,
- * since a fake countdown implies a real deadline in a way a static 0
- * currency doesn't. */
+/* Compact hamburger trigger replaces the old persistent sidebar
+ * (§9.27) — freeing the screen's left edge for artwork/breathing room
+ * the rest of the time. Floats above the content, doesn't reserve
+ * layout space. */
+.menu-sheet-trigger {
+  /* Lives in the top bar, sized to match the other utility icons
+   * there — not floating over the scrollable button list below. Two
+   * earlier attempts at that (absolute within the scrollable
+   * container, then position: fixed at a screen corner) both put it
+   * at *some* fixed spot that, on a short viewport, ended up sitting
+   * on top of whichever full-width mode button happened to render
+   * there — an unavoidable conflict once a floating corner button and
+   * edge-to-edge buttons compete for the same few pixels. */
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(18, 14, 26, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(155, 107, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.menu-sheet-trigger-bar {
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: #d8c4ff;
+}
+
+/* ---------- Bottom sheet (MenuSheet.tsx, §9.27) ---------- */
+
+.menu-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(3, 2, 4, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  animation: menu-sheet-fade-in 0.18s ease-out;
+}
+@keyframes menu-sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.menu-sheet {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: rgba(16, 12, 24, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(155, 107, 255, 0.3);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: menu-sheet-slide-up 0.22s ease-out;
+}
+@keyframes menu-sheet-slide-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.menu-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+.menu-sheet-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #b9a8e0;
+  align-self: flex-start;
+  margin: 2px 0 0 4px;
+}
+.menu-sheet-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.menu-sheet-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5f2fc;
+  text-align: left;
+}
+.menu-sheet-item:active {
+  background: rgba(155, 107, 255, 0.12);
+}
+.menu-sheet-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(155, 107, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.menu-sheet-item-label {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+}
+.menu-sheet-item-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  box-shadow: 0 0 5px rgba(255, 77, 77, 0.85);
+  flex-shrink: 0;
+}
+.menu-sheet-item-chevron {
+  font-size: 18px;
+  color: #7c84a8;
+  flex-shrink: 0;
+}
+
+/* ---------- Promo banner (§9.27: larger, rotates every 5s) ---------- */
 
 .menu-season-banner {
   width: 100%;
-  max-width: 320px;
-  background: linear-gradient(120deg, rgba(45, 30, 75, 0.85), rgba(20, 16, 30, 0.85));
-  border: 1px solid rgba(255, 210, 74, 0.4);
-  border-radius: 14px;
-  padding: 10px 14px;
+  max-width: 340px;
+  background: rgba(30, 22, 45, 0.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 210, 74, 0.35);
+  border-radius: 20px;
+  padding: 14px 18px;
   text-align: left;
-  color: #e8eaf5;
+  color: #f5f2fc;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 .menu-season-copy {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 .menu-season-label {
   font-size: 10px;
@@ -1541,7 +1735,7 @@ button {
   color: #ffd24a;
 }
 .menu-season-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
 }
 .menu-season-timer {
@@ -1552,19 +1746,22 @@ button {
 
 .menu-carousel-dots {
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 .menu-carousel-dots .dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.25s, width 0.25s;
 }
 .menu-carousel-dots .dot.active {
   background: #ffd24a;
+  width: 14px;
+  border-radius: 3px;
 }
 
-/* ---------- Logo + wordmark ---------- */
+/* ---------- Logo + wordmark (§9.27: larger) ---------- */
 
 .menu-header-v2 {
   position: relative;
@@ -1574,126 +1771,133 @@ button {
   align-items: center;
   flex-shrink: 0;
   text-align: center;
-  padding: 6px 0 0;
 }
 
 .menu-emblem-wrap {
-  margin: 0 auto 2px;
+  margin: 0 auto 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .menu-emblem-image {
-  /* The actual game emblem, not a CSS approximation. Its source file
-   * had a near-black (not transparent) background — mix-blend-mode
-   * was tried first to fake transparency against it, but that only
-   * composites within its own stacking context, and this image's
-   * position:absolute ancestor (.menu-content-v2) isolates one; the
-   * result was a visible hard square edge where the blend couldn't
-   * reach the hero art behind it. Ran the image through the same kind
-   * of alpha-keying pass as the hero-art pipeline instead (a
-   * brightness-threshold ramp; its background is a uniform near-black,
-   * not a busy photo, so a simple ramp was enough) — real
-   * transparency, no blend-mode restrictions. */
-  width: 100px;
+  width: 128px;
   height: auto;
-  filter: drop-shadow(0 0 20px rgba(155, 107, 255, 0.6));
+  filter: drop-shadow(0 0 26px rgba(155, 107, 255, 0.65));
 }
 
 .menu-title-v2 {
   margin: 0;
-  font-size: 30px;
-  line-height: 1.05;
+  font-size: 36px;
+  line-height: 1.02;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #f5f2fc;
-  text-shadow: 0 0 22px rgba(155, 107, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 26px rgba(155, 107, 255, 0.65), 0 2px 10px rgba(0, 0, 0, 0.85);
 }
 .menu-tagline-v2 {
-  margin: 2px 0 0;
-  font-size: 10.5px;
+  margin: 4px 0 0;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 2.2px;
   color: #ffd24a;
 }
 
-/* ---------- Mode buttons (Find Match / Practice / Custom Match) ---------- */
+/* ---------- Mode buttons (§9.27: premium gradient + glow + pulse) ----------
+ * Blue reserved for ranked (Find Match) per the palette spec; Practice
+ * and Custom Match stay in the purple/gold family used everywhere else. */
 
 .menu-mode-list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 12px;
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
 }
 
 .menu-mode-button {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  padding: 11px 14px;
-  border-radius: 14px;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #e8eaf5;
+  padding: 15px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f5f2fc;
   text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: menu-mode-pulse 4s ease-in-out infinite;
+}
+.menu-mode-button:not(:disabled):active {
+  transform: scale(0.97);
 }
 .menu-mode-button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
+  animation: none;
 }
+@keyframes menu-mode-pulse {
+  0%,
+  100% {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 0 rgba(155, 107, 255, 0);
+  }
+  50% {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 18px 2px var(--pulse, rgba(155, 107, 255, 0.35));
+  }
+}
+
 .menu-mode-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 19px;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.22);
 }
 .menu-mode-copy {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   flex: 1;
   min-width: 0;
 }
 .menu-mode-title {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 16px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 .menu-mode-subtitle {
-  font-size: 10.5px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   opacity: 0.8;
 }
 .menu-mode-chevron {
-  font-size: 20px;
+  font-size: 22px;
   opacity: 0.7;
   flex-shrink: 0;
 }
 
-.menu-mode-teal {
-  background: linear-gradient(120deg, rgba(20, 45, 55, 0.9), rgba(12, 28, 36, 0.9));
-  border-color: rgba(94, 200, 220, 0.45);
+.menu-mode-blue {
+  background: linear-gradient(120deg, #1c3a52 0%, #12222f 100%);
+  border-color: rgba(61, 139, 255, 0.5);
+  --pulse: rgba(61, 139, 255, 0.4);
 }
-.menu-mode-teal .menu-mode-title {
-  color: #bdeefc;
+.menu-mode-blue .menu-mode-title {
+  color: #bfe0ff;
 }
-.menu-mode-teal .menu-mode-subtitle {
-  color: #7fd6ea;
+.menu-mode-blue .menu-mode-subtitle {
+  color: #6fb3ff;
 }
 
 .menu-mode-gold {
-  background: linear-gradient(120deg, rgba(55, 42, 16, 0.9), rgba(32, 24, 10, 0.9));
-  border-color: rgba(255, 210, 74, 0.45);
+  background: linear-gradient(120deg, #4a3714 0%, #241a08 100%);
+  border-color: rgba(255, 210, 74, 0.5);
+  --pulse: rgba(255, 210, 74, 0.4);
 }
 .menu-mode-gold .menu-mode-title {
   color: #ffe9b0;
@@ -1703,8 +1907,9 @@ button {
 }
 
 .menu-mode-purple {
-  background: linear-gradient(120deg, rgba(40, 26, 60, 0.9), rgba(24, 16, 36, 0.9));
-  border-color: rgba(155, 107, 255, 0.45);
+  background: linear-gradient(120deg, #3a2258 0%, #1e1230 100%);
+  border-color: rgba(155, 107, 255, 0.5);
+  --pulse: rgba(155, 107, 255, 0.4);
 }
 .menu-mode-purple .menu-mode-title {
   color: #e4d4ff;
@@ -1713,73 +1918,19 @@ button {
   color: #b794f6;
 }
 
-/* ---------- Daily reward bar ---------- */
-
-.menu-daily-reward-bar {
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(14, 12, 22, 0.72);
-  border: 1px solid rgba(255, 210, 74, 0.35);
-  border-radius: 14px;
-  padding: 9px 12px;
-}
-.menu-daily-reward-bar-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-.menu-daily-reward-bar-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.menu-daily-reward-bar-label {
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #ffd24a;
-  font-weight: 700;
-}
-.menu-daily-reward-bar-count {
-  font-size: 11px;
-  color: #e8eaf5;
-  font-variant-numeric: tabular-nums;
-}
-.menu-daily-reward-bar-track {
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-}
-.menu-daily-reward-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ffd24a, #ffe9b0);
-}
-.menu-claim-button {
-  flex-shrink: 0;
-  background: #ffd24a;
-  color: #1a1400;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-/* ---------- Bottom tabs ---------- */
+/* ---------- Bottom tabs (§9.27: floating pill, was a flush bar) ---------- */
 
 .menu-bottom-tabs {
   position: relative;
   z-index: 5;
   flex-shrink: 0;
   display: flex;
-  background: rgba(10, 8, 15, 0.85);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0 14px 14px;
+  border-radius: 22px;
+  background: rgba(16, 12, 24, 0.72);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 .menu-tab-button {
   flex: 1;
@@ -1790,7 +1941,8 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 8px 2px 10px;
+  padding: 10px 2px 12px;
+  transition: color 0.15s ease;
 }
 .menu-tab-icon {
   font-size: 17px;

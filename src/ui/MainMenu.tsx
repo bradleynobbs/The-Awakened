@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { getObjectives } from "../state/objectives";
+import { MenuSheet } from "./MenuSheet";
 import zeraSprite from "../assets/heroes/zera-sprite.png";
 import mournSprite from "../assets/heroes/mourn-sprite.png";
 import orinSprite from "../assets/heroes/orin-sprite.png";
@@ -18,20 +20,33 @@ interface MainMenuProps {
   onBattlePass: () => void;
 }
 
+/** Purely decorative promo slides (§9.27) — this game has no season
+ * pass or news system, so these are flavor text, not real content.
+ * All route to the same ComingSoon screen on click regardless of which
+ * slide is showing, same as a single static banner would have. */
+const BANNER_SLIDES = [
+  { label: "Season 1", title: "Dawnbreak", note: "Coming soon" },
+  { label: "Roster", title: "17 Demigods", note: "Every element, doubled" },
+  { label: "Tip", title: "Match your elements", note: "Water beats Spark, Spark beats Earth…" },
+] as const;
+
+const BANNER_ROTATE_MS = 5000;
+
 /** §9.25 rebuilt this from a much more detailed reference mockup — a
- * full mobile-game home-screen shell. §9.26 then fixed three follow-up
- * complaints: the bottom tabs are now a persistent, app-wide sibling
- * (BottomTabs.tsx, rendered by App.tsx) instead of owned by this
- * screen alone; the sidebar floats over the content instead of
- * pushing it rightward off-center; and real hero art + the actual
- * emblem image are back (both were dropped in §9.25's rebuild, and
- * their absence is exactly why this stopped looking like this game's
- * own app). Almost none of the systems this chrome implies exist yet
- * (no leveling, currency, seasons, clans, or a battle pass — see the
- * per-element notes below and DESIGN.md §9.25/§9.26), so every number
- * here is a static, neutral placeholder and every nav target with no
- * real screen behind it goes to the shared ComingSoon component
- * instead of a silent dead click. */
+ * full mobile-game home-screen shell. §9.26 fixed off-center content,
+ * made the bottom tabs a persistent app-wide sibling, and restored
+ * real hero art + the actual emblem image. §9.27 is a full premium-
+ * polish pass: the left sidebar is gone (see MenuSheet.tsx — its 5
+ * items now live in a bottom sheet instead of a permanent 56px column
+ * eating into every screen), hero art fades to ~25% opacity as ambient
+ * dressing rather than competing for attention, glassmorphism panels,
+ * a blue-for-ranked/purple+gold-for-everything-else palette, a
+ * rotating promo banner, and CSS-only ambient particles/floating
+ * crystals. Almost none of the systems this chrome implies exist yet
+ * (no leveling, currency, seasons, clans, or a battle pass), so every
+ * number here is a static, neutral placeholder and every nav target
+ * with no real screen behind it goes to the shared ComingSoon
+ * component instead of a silent dead click. */
 export function MainMenu({
   online,
   onFindMatch,
@@ -46,15 +61,23 @@ export function MainMenu({
 }: MainMenuProps) {
   const { daily, weekly } = getObjectives();
   const hasIncomplete = [...daily, ...weekly].some((o) => !o.completed);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % BANNER_SLIDES.length), BANNER_ROTATE_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const activeSlide = BANNER_SLIDES[slide];
 
   return (
     <div className="menu-root-v2">
-      {/* Real hero art, brought back from §9.21/9.24 (dropped in §9.25's
-       * rebuild) — behind all the new chrome, showing through wherever
-       * there's negative space, same as the reference mockups' own
-       * layered composition. Picked for a wide (not narrow-crop)
-       * silhouette at this size — see §9.21's note on Inferna/Kairo's
-       * too-slender art. Right pair mirrored so both flanks face inward. */}
+      {/* Real hero art — faded to ~25% opacity (§9.27) so it reads as
+       * ambient dressing behind the UI rather than competing with it
+       * for attention (a direct reversal of §9.24's "brighter" fix,
+       * now that the surrounding chrome is busier and needs the
+       * contrast more than the art does). */}
       <div className="menu-flank menu-flank-left" aria-hidden="true">
         <img src={zeraSprite} className="menu-flank-hero menu-flank-hero-spark" />
         <img src={mournSprite} className="menu-flank-hero menu-flank-hero-undead" />
@@ -64,9 +87,6 @@ export function MainMenu({
         <img src={tydraSprite} className="menu-flank-hero menu-flank-hero-water" />
       </div>
 
-      {/* Castle-plaza dressing built from CSS/SVG shapes — no image-
-       * generation tool exists in this project, and the one background
-       * photo in the repo got "looks rubbish" feedback in §9.23. */}
       <div className="menu-plaza-floor" aria-hidden="true" />
       <div className="menu-banner-pole menu-banner-pole-left" aria-hidden="true">
         <span className="menu-banner-flag" />
@@ -74,26 +94,60 @@ export function MainMenu({
       <div className="menu-banner-pole menu-banner-pole-right" aria-hidden="true">
         <span className="menu-banner-flag" />
       </div>
+
+      {/* Ambient particles + floating crystals (§9.27) — fixed,
+       * lightweight CSS-only decoration (no animation library), a
+       * handful of absolutely-positioned elements styled per
+       * nth-child in App.css for varied position/size/delay. */}
+      <div className="menu-particles" aria-hidden="true">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} className="menu-particle" />
+        ))}
+      </div>
+      <div className="menu-crystals" aria-hidden="true">
+        <span className="menu-crystal" />
+        <span className="menu-crystal" />
+        <span className="menu-crystal" />
+      </div>
+
       <div className="menu-backdrop" aria-hidden="true" />
 
-      {/* Player card, currency stack, and utility icons below are all
-       * cosmetic — this game has no leveling or currency system (Store
-       * says so outright). Kept at neutral/zero starter values rather
-       * than the mockup's specific large numbers, since copying those
-       * would read as real earned progress instead of empty chrome. */}
+      {/* Player card, currencies, and utility icons are all cosmetic —
+       * this game has no leveling or currency system (Store says so
+       * outright). Kept at neutral/zero starter values rather than
+       * the mockup's specific large numbers, since copying those
+       * would read as real earned progress instead of empty chrome.
+       * Glassmorphism (semi-transparent + backdrop-blur) per §9.27. */}
       <div className="menu-topbar-v2">
-        <div className="menu-player-card">
-          <span className="menu-player-avatar-v2" aria-hidden="true">
-            <span className="menu-logo-diamond menu-logo-diamond-outer avatar-diamond" />
-          </span>
-          <div className="menu-player-card-info">
-            <span className="menu-player-name-v2">Player</span>
-            <span className="menu-player-level-v2">Level 1</span>
+        <div className="menu-topbar-left">
+          {/* Replaces the old persistent left sidebar (§9.25/9.26) —
+           * opens MenuSheet, a bottom sheet holding the same 5 items.
+           * Lives in the top bar rather than floating over the
+           * scrollable button list below: an earlier attempt at the
+           * latter put it at a fixed screen position that, on short
+           * viewports, ended up sitting on top of whichever mode
+           * button happened to land there — a real, unavoidable
+           * conflict once full-width buttons and a floating corner
+           * button compete for the same few pixels. */}
+          <button className="menu-sheet-trigger" onClick={() => setSheetOpen(true)} aria-label="Menu">
+            <span className="menu-sheet-trigger-bar" />
+            <span className="menu-sheet-trigger-bar" />
+            <span className="menu-sheet-trigger-bar" />
+          </button>
+          <div className="menu-player-card">
+            <span className="menu-player-avatar-v2" aria-hidden="true">
+              <span className="menu-logo-diamond menu-logo-diamond-outer avatar-diamond" />
+            </span>
+            <div className="menu-player-card-info">
+              <span className="menu-player-name-v2">Player</span>
+              <span className="menu-player-level-v2">Level 1</span>
+            </div>
           </div>
         </div>
         <div className="menu-currency-stack">
           <CurrencyRow icon="🪙" value="0" />
-          <CurrencyRow icon="💠" value="0" />
+          <CurrencyRow icon="💎" value="0" />
+          <CurrencyRow icon="🔮" value="0" />
         </div>
         <div className="menu-topbar-icons">
           <button className="icon-button menu-topbar-icon" aria-label="Friends">
@@ -108,39 +162,25 @@ export function MainMenu({
         </div>
       </div>
 
-      {/* Sidebar floats (position: absolute) over the content instead
-       * of taking a flex-row share of its width — the earlier flex-row
-       * split pushed the centered content rightward by roughly half the
-       * sidebar's width, a real complaint after §9.25 shipped. This is
-       * safe now (unlike an even earlier absolute-positioned attempt
-       * that relied on guessed pixel offsets) because .menu-body-row is
-       * itself properly height-bounded via flex:1 + min-height:0, so
-       * the sidebar's top:0/bottom:0 anchors to a real box, not a guess. */}
       <div className="menu-body-row">
         <div className="menu-content-v2">
-          {/* Season banner: purely decorative dressing, not a real season/
-           * battle-pass system — its countdown says "Coming soon" rather
-           * than a fabricated day count, since a fake countdown implies a
-           * real deadline in a way a static 0 currency doesn't. */}
+          {/* Rotating promo banner (§9.27) — purely decorative, cycles
+           * every 5s through flavor slides; whichever is showing still
+           * opens the same ComingSoon screen on click. */}
           <button className="menu-season-banner" onClick={onBattlePass}>
             <div className="menu-season-copy">
-              <span className="menu-season-label">Season 1</span>
-              <span className="menu-season-title">Dawnbreak</span>
-              <span className="menu-season-timer">⏱ Coming soon</span>
+              <span className="menu-season-label">{activeSlide.label}</span>
+              <span className="menu-season-title">{activeSlide.title}</span>
+              <span className="menu-season-timer">{activeSlide.note}</span>
             </div>
           </button>
           <div className="menu-carousel-dots" aria-hidden="true">
-            <span className="dot active" />
-            <span className="dot" />
-            <span className="dot" />
+            {BANNER_SLIDES.map((s, i) => (
+              <span key={s.title} className={`dot${i === slide ? " active" : ""}`} />
+            ))}
           </div>
 
           <div className="menu-header-v2">
-            {/* The actual game emblem (not a CSS approximation) — a
-             * near-black background with no alpha channel, so
-             * mix-blend-mode: screen (see App.css) makes the black
-             * disappear against a matching glow instead of needing a
-             * real alpha-keying pass for a flat-color background. */}
             <div className="menu-emblem-wrap" aria-hidden="true">
               <img src={awakenedEmblem} className="menu-emblem-image" alt="" />
             </div>
@@ -152,9 +192,12 @@ export function MainMenu({
             <p className="menu-tagline-v2">Demi Gods. Limitless Power.</p>
           </div>
 
+          {/* Blue is reserved for ranked (Find Match) per the palette
+           * spec — Practice and Custom Match stay in the purple/gold
+           * family used everywhere else. */}
           <nav className="menu-mode-list">
             <ModeButton
-              tone="teal"
+              tone="blue"
               icon="⚔"
               title="Find Match"
               subtitle={online ? "Ranked 1v1" : "Not configured yet"}
@@ -164,57 +207,20 @@ export function MainMenu({
             <ModeButton tone="gold" icon="🧑‍🤝‍🧑" title="Practice" subtitle="Train & Improve" onClick={onPracticeMatch} />
             <ModeButton tone="purple" icon="🛡" title="Custom Match" subtitle="Play Your Way" onClick={onCustomMatch} />
           </nav>
-
-          <div className="menu-daily-reward-bar">
-            <span className="menu-daily-reward-bar-icon" aria-hidden="true">
-              🎁
-            </span>
-            <div className="menu-daily-reward-bar-info">
-              <span className="menu-daily-reward-bar-label">Daily Reward</span>
-              <span className="menu-daily-reward-bar-count">0 / 5</span>
-              <div className="menu-daily-reward-bar-track">
-                <div className="menu-daily-reward-bar-fill" style={{ width: "0%" }} />
-              </div>
-            </div>
-            <button className="menu-claim-button">Claim</button>
-          </div>
         </div>
-
-        {/* Store and Missions map onto real screens (Store, Objectives);
-         * Collection reuses the Deck Builder (it's already "browse
-         * every hero's full card text"); Events and Leaderboard have no
-         * system behind them yet. */}
-        <nav className="menu-sidebar">
-          <SidebarItem icon="🛒" label="Store" onClick={onStore} />
-          <SidebarItem icon="🃏" label="Collection" onClick={onDeckBuilder} />
-          <SidebarItem icon="🎯" label="Missions" badge={hasIncomplete} onClick={onObjectives} />
-          <SidebarItem icon="📅" label="Events" onClick={onEvents} />
-          <SidebarItem icon="🏆" label="Leaderboard" onClick={onLeaderboard} />
-        </nav>
       </div>
-    </div>
-  );
-}
 
-function SidebarItem({
-  icon,
-  label,
-  badge,
-  onClick,
-}: {
-  icon: string;
-  label: string;
-  badge?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button className="menu-sidebar-item" onClick={onClick}>
-      <span className="menu-sidebar-icon">
-        {icon}
-        {badge && <span className="menu-sidebar-badge" aria-hidden="true" />}
-      </span>
-      <span className="menu-sidebar-label">{label}</span>
-    </button>
+      <MenuSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        hasIncompleteMissions={hasIncomplete}
+        onStore={onStore}
+        onCollection={onDeckBuilder}
+        onMissions={onObjectives}
+        onEvents={onEvents}
+        onLeaderboard={onLeaderboard}
+      />
+    </div>
   );
 }
 
@@ -230,7 +236,7 @@ function CurrencyRow({ icon, value }: { icon: string; value: string }) {
   );
 }
 
-type ModeTone = "teal" | "gold" | "purple";
+type ModeTone = "blue" | "gold" | "purple";
 
 function ModeButton({
   tone,

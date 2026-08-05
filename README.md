@@ -132,19 +132,23 @@ you rename it, re-run `npx cap sync` and update the `applicationId` /
 ## How to play
 
 The main menu went through several rounds of redesign against
-reference mockups (`DESIGN.md` §9.21-§9.26) and is now a full
-mobile-game home-screen shell — real hero art and the actual game
-emblem layered behind a side nav rail, a top bar, a season banner, 3
-mode buttons, a daily-reward bar, and a 5-tab bottom nav that's
-persistent across every meta/menu screen (not just the menu itself —
-`BottomTabs.tsx`, rendered by `App.tsx`), hidden only during the
-actual match flow. Almost none of the systems that chrome implies
-exist (no leveling, currency, seasons, clans, or a battle pass — this
-prototype is explicitly skill-decides-matches, not pay-to-win), so
-every number on it is a static, neutral placeholder, and anything
-with no real screen behind it opens a shared "Coming Soon" screen
-(`ComingSoon.tsx`)
-instead of a silent dead click. What's actually real:
+reference mockups and a detailed design brief (`DESIGN.md` §9.21-§9.27)
+and is now a full mobile-game home-screen shell — real hero art (faded
+to ~28% opacity as ambient dressing) and the actual game emblem
+layered behind glassmorphism panels, a top bar, a rotating promo
+banner, 3 mode buttons, and a 5-tab bottom nav that's persistent across
+every meta/menu screen (not just the menu itself — `BottomTabs.tsx`,
+rendered by `App.tsx`), hidden only during the actual match flow.
+Secondary navigation (Store, Collection, Missions, Events,
+Leaderboard) lives in a bottom sheet (`MenuSheet.tsx`, opened from a
+top-bar trigger) rather than a permanent sidebar, freeing the main
+screen for artwork and the 3 mode buttons. Almost none of the systems
+this chrome implies exist (no leveling, currency, seasons, clans, or a
+battle pass — this prototype is explicitly skill-decides-matches, not
+pay-to-win), so every number on it is a static, neutral placeholder,
+and anything with no real screen behind it opens a shared "Coming
+Soon" screen (`ComingSoon.tsx`) instead of a silent dead click. What's
+actually real:
 - **Find Match** — real online matchmaking (needs Supabase configured; see
   above). Disabled with an explanation if it isn't.
 - **Practice** — a local, offline match against a simple bot
@@ -153,24 +157,24 @@ instead of a silent dead click. What's actually real:
   without needing a second device. The bot plays a random affordable,
   legal card each turn and never uses Team-Ups — it's a punching bag, not
   a serious AI.
-- **Store** (sidebar) — honest "coming soon" placeholder. No currency or
-  purchases exist in this prototype by design.
-- **Collection** (sidebar) and **Decks** (bottom tab) — both open the
-  Deck Builder: browse every hero's full card text and save a
+- **Store** (menu sheet) — honest "coming soon" placeholder. No
+  currency or purchases exist in this prototype by design.
+- **Collection** (menu sheet) and **Decks** (bottom tab) — both open
+  the Deck Builder: browse every hero's full card text and save a
   preferred 3-hero loadout (stored locally), which pre-fills team
   selection in both modes above. The engine's decks are fixed per hero
   (3 copies each of their Attack, Ability, and Support card) — there's
   no separate card-picking mechanic yet, so this is really "choose your
   team," just with full card details up front.
-- **Missions** (sidebar) — opens the Objectives screen: a Daily/Weekly
-  summary (matches played/won, tracked locally, reset at local
-  midnight / Monday) — no rewards wired up yet, just progress
+- **Missions** (menu sheet) — opens the Objectives screen: a
+  Daily/Weekly summary (matches played/won, tracked locally, reset at
+  local midnight / Monday) — no rewards wired up yet, just progress
   visibility. Shows a small red dot while anything on either list is
   still incomplete.
 - Everything else on the menu — **Custom Match**, **Events**,
   **Leaderboard**, **Battle Pass**, **Clan**, **Profile**, the friends/
-  mail icons, the season banner, and the daily-reward Claim button —
-  is cosmetic or opens "Coming Soon."
+  mail icons, and the rotating promo banner — is cosmetic or opens
+  "Coming Soon."
 
 1. **Find Match.** Tap **Find Match** on the main menu. You're paired
    with the next other player who's also looking (public queue — see
@@ -382,11 +386,12 @@ src/scene/         Flat 2D side-on battlefield (DESIGN.md §9), no 3D
                      regardless of engine player id), useEventQueue
                      (steps engine events into per-event animation cues
                      one at a time)
-src/ui/             MainMenu (full home-screen shell, §9.25-§9.26),
-                     BottomTabs (persistent app-wide nav, rendered by
-                     App.tsx, not owned by MainMenu), DeckBuilder,
-                     Store, Objectives, ComingSoon (shared placeholder
-                     for unbuilt nav targets), Matchmaking,
+src/ui/             MainMenu (full home-screen shell, §9.25-§9.27),
+                     MenuSheet (bottom sheet replacing the old sidebar,
+                     §9.27), BottomTabs (persistent app-wide nav,
+                     rendered by App.tsx, not owned by MainMenu),
+                     DeckBuilder, Store, Objectives, ComingSoon (shared
+                     placeholder for unbuilt nav targets), Matchmaking,
                      OnlineHeroSelection (shared by online + practice),
                      Battle (TopBar, CardHand, TeamUpBar, CombatLog
                      sheet, LatestEventToast), VictoryScreen, DebugPanel

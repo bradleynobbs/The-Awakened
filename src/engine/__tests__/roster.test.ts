@@ -21,7 +21,8 @@ describe("hero roster composition", () => {
     for (const role of roles) {
       expect(["Mage", "Brawler", "Tank", "Speedster", "Ranger", "Support"]).toContain(role);
     }
-    // Every role has at least one hero (Mage is used twice, by design).
+    // Every role has at least one hero, but roles aren't evenly spread —
+    // e.g. Brawler alone covers Inferna, Kairo, and Sorrow.
     expect(roles.size).toBe(6);
   });
 

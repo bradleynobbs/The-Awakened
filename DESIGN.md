@@ -2819,3 +2819,48 @@ mixed-role team; zero console errors. Full pipeline (`tsc -b`,
 `oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
 passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
 after use.
+
+### 9.42 Canonical role/element reference — two roles corrected
+
+The user posted the full 14-hero role/element list as a single
+reference to check the game against. Diffed it against
+`HERO_DEFINITIONS`: 12 of 14 already matched exactly; Inferna (was
+Mage) and Kairo (was Ranger) both needed their role changed to
+Brawler. Elements were untouched for every hero, including these two —
+Inferna stays Fire, Kairo stays Charm.
+
+Pure reclassification, not a kit rebalance: only the `role` field
+changed for these two heroes. Their cards, stats, and passives are
+exactly as they were — the user's list assigns identity/flavor
+categories, not a request to redesign either hero's kit around a new
+role archetype.
+
+Mage now has a single hero (Orin) where it used to have two — checked
+`roster.test.ts` first since it has a "roles.size === 6" assertion:
+unaffected, since it only checks that all 6 roles are used *somewhere*
+across the roster, never a minimum count per role (unlike the
+per-*element* ≥2 check next to it, which elements are untouched by
+this change anyway). The one thing that did need fixing was a stale
+comment on that same assertion — "Mage is used twice, by design" — no
+longer true once Mage dropped to one; replaced with an accurate note
+about Brawler now being the crowded one (Inferna, Kairo, Sorrow).
+
+Updated README's current-state hero table and both `CHARACTER_CONCEPTS.md`
+headers (`## Inferna — Fire · Mage` → `· Brawler`, same for Kairo) for
+consistency — left DESIGN.md's own §2 balance table and historical §9.x
+narrative untouched, since those describe the original-7 prototype and
+past design decisions as they actually happened, not current state.
+
+The SVG chassis's `RoleGear` component has a `heroId === "charm-gunslinger"`
+special case sitting inside its `"Ranger"` branch (adding Kairo's visor
+detail on top of the generic pistol) — this was already fully
+unreachable before this change (both of the roster's Ranger-role heroes,
+Zera and Erosalina, have real art and never touch the SVG chassis) and
+remains exactly as unreachable now that Kairo isn't Ranger either; left
+alone as pre-existing dead code outside this change's scope, not
+something newly broken by it.
+
+Verified via Playwright: both Inferna's and Kairo's Deck Builder cards
+show the Brawler fist badge in the corner instead of their previous
+role icon; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
+75-test Vitest suite, `vite build`, `cap sync android`) passes.

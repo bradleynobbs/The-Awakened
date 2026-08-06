@@ -237,10 +237,10 @@ adding one more hero per element so every element still fields exactly 2:
 
 | Hero | Role | Element | HP | Passive |
 |---|---|---|---|---|
-| Inferna | Mage | Fire | 18 | +1 damage to targets already Burning |
+| Inferna | Brawler | Fire | 18 | +1 damage to targets already Burning |
 | Tydra | Support | Water | 20 | First heal each match restores +1 HP |
 | Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
-| Kairo | Ranger | Charm | 17 | +1 damage to targets already Charmed |
+| Kairo | Brawler | Charm | 17 | +1 damage to targets already Charmed |
 | Torrent | Tank | Water | 26 | Starts the match with 5 Shield |
 | Zera | Ranger | Spark | 18 | Extremely high Accuracy/Crit vs. Wet targets |
 | Orin | Mage | Spirit | 17 | This hero's healing is 10% stronger |

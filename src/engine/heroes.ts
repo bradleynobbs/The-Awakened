@@ -711,7 +711,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "fire-mage": {
     id: "fire-mage",
     name: "Inferna",
-    role: "Mage",
+    role: "Brawler",
     element: "fire",
     maxHp: 18,
     startingShield: 0,
@@ -795,7 +795,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
   "charm-gunslinger": {
     id: "charm-gunslinger",
     name: "Kairo",
-    role: "Ranger",
+    role: "Brawler",
     element: "charm",
     maxHp: 17,
     startingShield: 0,

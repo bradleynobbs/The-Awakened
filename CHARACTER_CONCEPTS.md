@@ -29,7 +29,7 @@ concept art and the in-game version read as the same character.
 
 ---
 
-## Inferna — Fire · Mage
+## Inferna — Fire · Brawler
 
 **Personality:** Quick-tempered but controlled; treats her power like
 a craft, not a tantrum. Confident, a little smug when she lands a hit.
@@ -165,7 +165,7 @@ mid-swing.
 
 ---
 
-## Kairo — Charm · Ranger
+## Kairo — Charm · Brawler
 
 **Personality:** Flirty, self-assured, treats every duel like she's
 already won it.

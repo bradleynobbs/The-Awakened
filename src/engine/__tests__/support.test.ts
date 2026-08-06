@@ -4,7 +4,7 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putInHand, readyBoth } from "./helpers";
 
-const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "zera", "water-healer"];
 
 describe("Empower (damage-boost support buff)", () => {
   it("adds bonus damage to the empowered hero's next hit, then is consumed", () => {
@@ -12,7 +12,7 @@ describe("Empower (damage-boost support buff)", () => {
     // its buff resolves *before* Fire Bolt tries to consume it, under the
     // new speed-sorted order (DESIGN.md §8.5) — Tydra (speed 7)
     // would now be too slow for this same-round setup.
-    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "undead-assassin", "earth-guardian"];
+    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "undead-assassin", "cragor"];
     let state = createMatch(P1, P2, createSeededRng(1));
 
     const supportId = putInHand(state, "player1", "marked-opening");
@@ -43,7 +43,7 @@ describe("Empower (damage-boost support buff)", () => {
   });
 
   it("persists across rounds, unconsumed, until the empowered hero actually deals damage", () => {
-    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "earth-guardian"];
+    const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "cragor"];
     let state = createMatch(P1, P2, createSeededRng(1));
 
     const supportId = putInHand(state, "player1", "encouraging-current");
@@ -57,17 +57,17 @@ describe("Empower (damage-boost support buff)", () => {
 
     const boltId = putInHand(state, "player1", "fire-bolt");
     state = queueCard(state, "player1", boltId, {
-      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
+      primaryTargetId: heroInstanceId("player2", "zera"),
     });
     state = readyBoth(state); // round 2: the buff finally gets consumed
 
     fireMage = getHeroFrom(state, "player1", "fire-mage");
     expect(fireMage.statuses.some((s) => s.type === "empower")).toBe(false);
-    const target = getHeroFrom(state, "player2", "spark-duelist");
+    const target = getHeroFrom(state, "player2", "zera");
     // (5 base + 4 Empower + 2 Attack) × 1.25 (Fire beats Spark, §8.3) =
-    // 13.75 -> 14, minus 1 Defense = 13, then Burn ticks once immediately
-    // on the round-3 transition (DESIGN.md 5.3): 13 + 3 = 16.
-    expect(target.currentHp).toBe(target.maxHp - 13 - 3);
+    // 13.75 -> 14, minus 0 Defense = 14, then Burn ticks once immediately
+    // on the round-3 transition (DESIGN.md 5.3): 14 + 3 = 17.
+    expect(target.currentHp).toBe(target.maxHp - 14 - 3);
   });
 
   it("overwrites rather than stacks when re-applied before being consumed", () => {
@@ -97,65 +97,32 @@ describe("Empower (damage-boost support buff)", () => {
   });
 });
 
-describe("Static Charge (Spark support, Wet-aware Empower)", () => {
-  const P1: [HeroId, HeroId, HeroId] = ["spark-duelist", "fire-mage", "water-healer"];
-
-  it("grants only the base bonus when the ally isn't Wet", () => {
-    let state = createMatch(P1, P2, createSeededRng(1));
-    const cardId = putInHand(state, "player1", "static-charge");
-    state = queueCard(state, "player1", cardId, {
-      primaryTargetId: heroInstanceId("player1", "fire-mage"),
-    });
-    state = readyBoth(state);
-
-    const target = getHeroFrom(state, "player1", "fire-mage");
-    const empower = target.statuses.find((s) => s.type === "empower");
-    expect(empower && empower.type === "empower" ? empower.bonusDamage : null).toBe(4);
-  });
-
-  it("grants the boosted bonus and cleanses Wet when the ally is Wet", () => {
-    let state = createMatch(P1, P2, createSeededRng(1));
-    getHeroFrom(state, "player1", "fire-mage").statuses.push({ type: "wet" });
-
-    const cardId = putInHand(state, "player1", "static-charge");
-    state = queueCard(state, "player1", cardId, {
-      primaryTargetId: heroInstanceId("player1", "fire-mage"),
-    });
-    state = readyBoth(state);
-
-    const target = getHeroFrom(state, "player1", "fire-mage");
-    expect(target.statuses.some((s) => s.type === "wet")).toBe(false);
-    const empower = target.statuses.find((s) => s.type === "empower");
-    expect(empower && empower.type === "empower" ? empower.bonusDamage : null).toBe(7);
-  });
-});
-
-describe("Guardian's Watch (allAllies support)", () => {
-  const P1: [HeroId, HeroId, HeroId] = ["earth-guardian", "fire-mage", "water-healer"];
+describe("Mountain's Resolve (allAllies support)", () => {
+  const P1: [HeroId, HeroId, HeroId] = ["cragor", "fire-mage", "water-healer"];
 
   it("grants Shield to every living allied hero", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
-    const cardId = putInHand(state, "player1", "guardians-watch");
+    const cardId = putInHand(state, "player1", "mountains-resolve");
     state = queueCard(state, "player1", cardId, {});
     state = readyBoth(state);
 
-    // Earth Guardian starts with 4 Shield from its passive. Guardian's
-    // Watch's 3 Shield is scaled by the caster's (Earth Guardian's) 125%
-    // Shield Strength stat: round(3 × 1.25) = 4, so every ally gets +4.
-    expect(getHeroFrom(state, "player1", "earth-guardian").shield).toBe(8);
-    expect(getHeroFrom(state, "player1", "fire-mage").shield).toBe(4);
-    expect(getHeroFrom(state, "player1", "water-healer").shield).toBe(4);
+    // Cragor starts with 6 Shield from its passive. Mountain's Resolve's
+    // 4 Shield is scaled by the caster's (Cragor's) 135% Shield Strength
+    // stat: round(4 × 1.35) = 5, so every ally gets +5.
+    expect(getHeroFrom(state, "player1", "cragor").shield).toBe(11);
+    expect(getHeroFrom(state, "player1", "fire-mage").shield).toBe(5);
+    expect(getHeroFrom(state, "player1", "water-healer").shield).toBe(5);
   });
 
   it("skips defeated allies", () => {
     let state = createMatch(P1, P2, createSeededRng(1));
     getHeroFrom(state, "player1", "fire-mage").isDefeated = true;
 
-    const cardId = putInHand(state, "player1", "guardians-watch");
+    const cardId = putInHand(state, "player1", "mountains-resolve");
     state = queueCard(state, "player1", cardId, {});
     state = readyBoth(state);
 
     expect(getHeroFrom(state, "player1", "fire-mage").shield).toBe(0);
-    expect(getHeroFrom(state, "player1", "water-healer").shield).toBe(4);
+    expect(getHeroFrom(state, "player1", "water-healer").shield).toBe(5);
   });
 });

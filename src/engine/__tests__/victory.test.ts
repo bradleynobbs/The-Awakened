@@ -4,8 +4,8 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 import { getHeroFrom, heroInstanceId, putCopyInHand, putInHand, readyBoth } from "./helpers";
 
-const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
+const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "cragor", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["zera", "undead-assassin", "fire-mage"];
 
 describe("defeated heroes", () => {
   it("cannot act once defeated", () => {
@@ -33,7 +33,7 @@ describe("victory detection", () => {
     // Queue a lethal Stone Strike (3 distinct copies) against each enemy —
     // nothing resolves yet, we're still just planning.
     P2.forEach((heroId, i) => {
-      const cardId = putCopyInHand(state, "player1", "stone-strike", i);
+      const cardId = putCopyInHand(state, "player1", "boulder-toss", i);
       state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", heroId) });
     });
     expect(state.isMatchOver).toBe(false);
@@ -51,7 +51,7 @@ describe("victory detection", () => {
       getHeroFrom(state, "player2", heroId).currentHp = 1;
     }
     P2.forEach((heroId, i) => {
-      const cardId = putCopyInHand(state, "player1", "stone-strike", i);
+      const cardId = putCopyInHand(state, "player1", "boulder-toss", i);
       state = queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", heroId) });
     });
     state = readyBoth(state);
@@ -59,9 +59,9 @@ describe("victory detection", () => {
 
     expect(() => setReady(state, "player2", createSeededRng(2))).toThrow(/already ended/i);
 
-    const cardId = putInHand(state, "player1", "stone-strike");
+    const cardId = putInHand(state, "player1", "boulder-toss");
     expect(() =>
-      queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player1", "earth-guardian") }),
+      queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player1", "cragor") }),
     ).toThrow(/already ended/i);
   });
 });

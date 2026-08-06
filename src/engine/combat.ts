@@ -156,14 +156,7 @@ export function dealDamage(
   target.shield -= shieldAbsorbed;
   const remaining = total - shieldAbsorbed;
 
-  const wouldBeLethal = remaining >= target.currentHp;
-  const cheatedDeath = wouldBeLethal && target.heroId === "spirit-mage" && !target.hasCheatedDeath;
-  if (cheatedDeath) {
-    target.currentHp = 1;
-    target.hasCheatedDeath = true;
-  } else {
-    target.currentHp = Math.max(0, target.currentHp - remaining);
-  }
+  target.currentHp = Math.max(0, target.currentHp - remaining);
 
   if (shieldAbsorbed > 0) {
     events.push({
@@ -194,9 +187,6 @@ export function dealDamage(
   }
   if (charmReduction > 0 && sourceHeroInstanceId) {
     events.push({ type: "STATUS_REMOVED", targetId: sourceHeroInstanceId, status: "charm" });
-  }
-  if (cheatedDeath) {
-    events.push({ type: "SURVIVED_LETHAL", targetId });
   }
 
   if (target.currentHp === 0 && !target.isDefeated) {
@@ -311,11 +301,7 @@ function removeWet(ctx: CardResolveContext, targetId: HeroInstanceId): boolean {
   return true;
 }
 
-/**
- * Deals base damage to a target, adding the Spark bonus and consuming
- * Wet if present. When `triggerPassive` is set and the hit is Wet-boosted,
- * the Spark Duelist source gains its passive shield.
- */
+/** Deals base damage to a target, adding the Spark bonus and consuming Wet if present. */
 export function dealSparkDamage(
   ctx: CardResolveContext,
   {
@@ -323,30 +309,19 @@ export function dealSparkDamage(
     baseDamage,
     bonusDamage,
     sourceHeroInstanceId,
-    triggerPassive,
   }: {
     targetId: HeroInstanceId;
     baseDamage: number;
     bonusDamage: number;
     sourceHeroInstanceId?: HeroInstanceId;
-    triggerPassive: boolean;
   },
 ): void {
-  const { state } = ctx;
-  const target = getHero(state, targetId);
+  const target = getHero(ctx.state, targetId);
   if (target.isDefeated) return;
   const isWet = target.statuses.some((s) => s.type === "wet");
   const amount = baseDamage + (isWet ? bonusDamage : 0);
   dealDamage(ctx, { targetId, amount, sourceHeroInstanceId });
-  if (isWet) {
-    removeWet(ctx, targetId);
-    if (triggerPassive && sourceHeroInstanceId) {
-      const source = getHero(state, sourceHeroInstanceId);
-      if (source.heroId === "spark-duelist" && !source.isDefeated) {
-        addShield(ctx, sourceHeroInstanceId, 2);
-      }
-    }
-  }
+  if (isWet) removeWet(ctx, targetId);
 }
 
 /** Team-Up variant: removes Wet from every hit target without triggering hero passives. */

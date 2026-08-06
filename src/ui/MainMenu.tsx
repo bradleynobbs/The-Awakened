@@ -16,7 +16,6 @@ interface MainMenuProps {
   onObjectives: () => void;
   onEvents: () => void;
   onLeaderboard: () => void;
-  onBattlePass: () => void;
 }
 
 /** Purely decorative promo slides (§9.27) — this game has no season
@@ -55,7 +54,6 @@ export function MainMenu({
   onObjectives,
   onEvents,
   onLeaderboard,
-  onBattlePass,
 }: MainMenuProps) {
   const { daily, weekly } = getObjectives();
   const hasIncomplete = [...daily, ...weekly].some((o) => !o.completed);
@@ -164,8 +162,11 @@ export function MainMenu({
         <div className="menu-content-v2">
           {/* Rotating promo banner (§9.27) — purely decorative, cycles
            * every 5s through flavor slides; whichever is showing still
-           * opens the same ComingSoon screen on click. */}
-          <button className="menu-season-banner" onClick={onBattlePass}>
+           * routes to the same place on click — the Store (§9.32; used
+           * to be a Battle Pass ComingSoon screen, dropped along with
+           * the Battle Pass tab since this prototype has no season
+           * pass for a banner about one to lead anywhere real). */}
+          <button className="menu-season-banner" onClick={onStore}>
             <div className="menu-season-copy">
               <span className="menu-season-label">{activeSlide.label}</span>
               <span className="menu-season-title">{activeSlide.title}</span>

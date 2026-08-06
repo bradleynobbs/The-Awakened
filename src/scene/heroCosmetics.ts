@@ -20,23 +20,11 @@ export const HERO_COSMETICS: Record<HeroId, HeroCosmetics> = {
     hair: "#2a1712",
     feature: "ember-freckle",
   },
-  "earth-guardian": {
-    skin: "#8a5a3a",
-    eye: "#4a6a3a",
-    hair: "#3a2f1a",
-    feature: "stone-chip",
-  },
   "water-healer": {
     skin: "#d0b090",
     eye: "#3ab8c9",
     hair: "#1a4a6a",
     feature: "teardrop-mark",
-  },
-  "spark-duelist": {
-    skin: "#c99060",
-    eye: "#f0e060",
-    hair: "#e8d84a",
-    feature: "lightning-scar",
   },
   "undead-assassin": {
     skin: "#a8a0a8",
@@ -49,12 +37,6 @@ export const HERO_COSMETICS: Record<HeroId, HeroCosmetics> = {
     eye: "#c2489e",
     hair: "#ff5fc0",
     feature: "visor",
-  },
-  "spirit-mage": {
-    skin: "#d8c8d8",
-    eye: "#a86ae0",
-    hair: "#e8e8f0",
-    feature: "forehead-rune",
   },
   // The ten heroes below all ship with real illustrated art (see REAL_ART
   // in HeroSprite.tsx) from day one, so the SVG chassis these cosmetics

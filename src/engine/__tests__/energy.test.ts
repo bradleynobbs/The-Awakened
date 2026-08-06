@@ -4,8 +4,8 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 import { heroInstanceId, putInHand, readyBoth } from "./helpers";
 
-const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
+const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "cragor", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["zera", "undead-assassin", "fire-mage"];
 
 describe("energy management", () => {
   // P1's Inferna has the Energy stat (+1), so the round budget is 3 base

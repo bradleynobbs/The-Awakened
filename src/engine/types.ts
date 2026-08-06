@@ -7,12 +7,9 @@ export type PlayerId = "player1" | "player2";
 
 export type HeroId =
   | "fire-mage"
-  | "earth-guardian"
   | "water-healer"
-  | "spark-duelist"
   | "undead-assassin"
   | "charm-gunslinger"
-  | "spirit-mage"
   | "torrent"
   | "zera"
   | "orin"
@@ -160,8 +157,6 @@ export interface HeroInstance {
   isDefeated: boolean;
   /** Mourn's/Amp's passive: has this hero already taken its first reduced hit? */
   hasTakenFirstHit: boolean;
-  /** Spirit Mage passive: has this hero already survived a lethal hit at 1 HP this match? */
-  hasCheatedDeath: boolean;
 }
 
 export interface CardInstance {
@@ -226,7 +221,6 @@ export type GameEventType =
   | "STATUS_REMOVED"
   | "STATUS_TRIGGERED"
   | "HERO_DEFEATED"
-  | "SURVIVED_LETHAL"
   | "TEAM_UP_AVAILABLE"
   | "TEAM_UP_TRIGGERED"
   | "ROUND_RESOLVED"

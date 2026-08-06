@@ -183,7 +183,7 @@ actually real:
    with the next other player who's also looking (public queue — see
    `DESIGN.md` §4.1). (Or tap **Practice vs Bot** to skip matchmaking
    entirely.)
-2. **Hero Selection.** Pick exactly 3 of your 17 offered heroes and lock
+2. **Hero Selection.** Pick exactly 3 of your 14 offered heroes and lock
    in. You see only your own picks; once both players have locked in,
    both teams' full rosters become visible on the battlefield. A locked
    team cannot change for the rest of the match.
@@ -230,20 +230,17 @@ The 📜 icon opens the full battle log; the latest event also shows as a
 small banner on the battlefield. The 🐞 icon (bottom-right, low-key on
 purpose) opens a raw state inspector for debugging.
 
-## The 17 heroes (prototype names — easy to reskin later)
+## The 14 heroes (prototype names — easy to reskin later)
 
-The original 7, plus a second wave (§9.20) adding one more hero per
-element so every element now fields exactly 2:
+The original 7 (minus 3 retired — see below), plus a second wave (§9.20)
+adding one more hero per element so every element still fields exactly 2:
 
 | Hero | Role | Element | HP | Passive |
 |---|---|---|---|---|
 | Inferna | Mage | Fire | 18 | +1 damage to targets already Burning |
-| Earth Guardian | Tank | Earth | 24 | Starts the match with 4 Shield |
 | Tydra | Support | Water | 20 | First heal each match restores +1 HP |
-| Spark Duelist | Brawler | Spark | 20 | +2 Shield after a Water+Spark interaction |
 | Mourn | Speedster | Undead | 16 | First hit taken each match is reduced by 3 (min 1) |
 | Kairo | Ranger | Charm | 17 | +1 damage to targets already Charmed |
-| Spirit Mage | Mage | Spirit | 16 | Survives the first lethal hit each match at 1 HP |
 | Torrent | Tank | Water | 26 | Starts the match with 5 Shield |
 | Zera | Ranger | Spark | 18 | Extremely high Accuracy/Crit vs. Wet targets |
 | Orin | Mage | Spirit | 17 | This hero's healing is 10% stronger |
@@ -260,6 +257,13 @@ on the shared vector chassis for a while (§9.20 in `DESIGN.md`) until
 fresh source art resolved the keying issue that had blocked them; see
 §9.31 for the fix.
 
+Earth Guardian, Spark Duelist, and Spirit Mage — the 3 original-7 heroes
+that never got a real name or illustrated identity like everyone else on
+this list — were retired outright (§9.32 in `DESIGN.md`) rather than
+left as permanent generic placeholders; Earth, Spark, and Spirit still
+each field exactly 2 heroes without them (Sorrow/Cragor, Zera/Amp,
+Orin/Rune).
+
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
 Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing
 Power, Shield Strength) — see "Stats" below and `DESIGN.md` §8 for
@@ -274,10 +278,12 @@ Support card (2 energy — heals, shields, or Empowers an ally, see
 `DESIGN.md` §6), and one passive. Full card text and numbers are in
 `DESIGN.md` §2.
 
-**Team-Ups:** *Steam Surge* (Inferna + Tydra) and *Thunder Tide*
-(Tydra + Spark Duelist) — 3 energy, once per match, with a
-fixed resolution order shown in the card's description. Kairo
-and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
+**Team-Ups:** *Steam Surge* (Inferna + Tydra) — 3 energy, once per
+match, with a fixed resolution order shown in the card's description.
+*Thunder Tide* (Tydra + Spark Duelist) existed until §9.32 retired
+Spark Duelist along with it; no replacement Team-Up has been added for
+the remaining Spark heroes. Most heroes don't have a Team-Up yet — more
+are intentionally out of scope for this pass (see `DESIGN.md` §7.2).
 
 ## Elements
 
@@ -291,8 +297,8 @@ and Spirit Mage don't have one yet (see `DESIGN.md` §7.2).
   of Empower (see `DESIGN.md` §6.1, §7.3) — a debuff on an enemy
   instead of a buff on an ally, using the same mechanism.
 - **Spirit** → no shared status of its own; expressed instead through
-  lifesteal cards (deal damage, heal the caster) and Spirit Mage's
-  "survive one lethal hit" passive (`DESIGN.md` §7.4).
+  lifesteal cards (deal damage, heal the caster) like Orin's Verdant
+  Bolt (`DESIGN.md` §7.4).
 - **Undead** → no shared status either; currently just Undead
   Assassin's flavor plus its existing first-hit-reduction passive.
 
@@ -328,7 +334,7 @@ predictable" rule from the top of this README applies to stats too:
 Roles lean into different stats — Tanks run high Health/Defense,
 Supports run high Healing Power, Rangers run high Accuracy/Critical
 Chance, and so on — but nothing is enforced; a hero's actual numbers
-are what matter, the same way Spirit Mage already bends "Mage" away
+are what matter, the same way Orin already bends "Mage" away
 from Inferna's burst-damage template.
 
 ## Architecture
@@ -433,7 +439,7 @@ without touching damage, targeting, or status-effect code.
 
 ## What's deliberately out of scope (see DESIGN.md §3 and §4.3)
 
-Ultimates and more than 2 Team-Ups (Kairo and Spirit Mage
+Ultimates and more than 2 Team-Ups (most heroes
 don't have one yet). Online multiplayer is intentionally simple: no accounts, no
 server-side move validation (each client trusts the other's broadcast
 state), and no reconnect/resume — a disconnect ends the match. Fine for

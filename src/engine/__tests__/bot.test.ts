@@ -6,8 +6,8 @@ import { createSeededRng } from "../rng";
 import type { HeroId } from "../types";
 import { getHeroFrom, putInHand } from "./helpers";
 
-const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "earth-guardian", "water-healer"];
-const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "fire-mage"];
+const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "cragor", "water-healer"];
+const P2: [HeroId, HeroId, HeroId] = ["zera", "undead-assassin", "fire-mage"];
 
 describe("chooseBotAction", () => {
   it("picks an affordable card with a living, correctly-sided target", () => {
@@ -40,17 +40,17 @@ describe("chooseBotAction", () => {
 
   it("omits the secondary target for a two-enemy card once only one enemy remains", () => {
     const state = createMatch(
-      ["water-healer", "spark-duelist", "undead-assassin"],
+      ["water-healer", "zera", "undead-assassin"],
       P1,
       createSeededRng(1),
     );
-    getHeroFrom(state, "player2", "earth-guardian").isDefeated = true;
+    getHeroFrom(state, "player2", "cragor").isDefeated = true;
     getHeroFrom(state, "player2", "water-healer").isDefeated = true;
-    // Clear the hand so chain-spark (an enemy-targeting card) is the only
+    // Clear the hand so twin-volt (an enemy-targeting card) is the only
     // option — otherwise the bot could shuffle into an ally-targeting
     // support card instead, which this test isn't about.
     state.players.player1.hand = [];
-    putInHand(state, "player1", "chain-spark");
+    putInHand(state, "player1", "twin-volt");
 
     const action = chooseBotAction(state, "player1", createSeededRng(2));
     expect(action).not.toBeNull();

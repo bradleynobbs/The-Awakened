@@ -6,37 +6,37 @@ import { getHeroFrom, heroInstanceId, putCopyInHand, putInHand, readyBoth } from
 
 describe("Charm (damage-reduction debuff)", () => {
   const P1: [HeroId, HeroId, HeroId] = ["charm-gunslinger", "water-healer", "fire-mage"];
-  const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "earth-guardian", "spark-duelist"];
+  const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "cragor", "erosalina"];
 
   it("reduces the charmed hero's next hit, then clears", () => {
     // Kairo (speed 11) needs to out-pace whoever it charms so
-    // the debuff lands *before* that hero's own attack, under the new
-    // speed-sorted order (DESIGN.md §8.5) — Mourn (speed 13)
-    // would now be too fast for that, so Spark Duelist (speed 10) is the
-    // target here instead.
+    // the debuff lands *before* that hero's own attack, under the
+    // speed-sorted order (DESIGN.md §8.5) — Mourn (speed 13) would be
+    // too fast for that, and both remaining Spark heroes (Zera 12, Amp
+    // 14) now are too, so Erosalina (speed 10) is the target here instead.
     let state = createMatch(P1, P2, createSeededRng(1));
 
     const calledShotId = putInHand(state, "player1", "called-shot");
     state = queueCard(state, "player1", calledShotId, {
-      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
+      primaryTargetId: heroInstanceId("player2", "erosalina"),
     });
-    const slashId = putInHand(state, "player2", "charged-slash");
-    state = queueCard(state, "player2", slashId, {
+    const heartpiercerId = putInHand(state, "player2", "heartpiercer");
+    state = queueCard(state, "player2", heartpiercerId, {
       primaryTargetId: heroInstanceId("player1", "water-healer"),
     });
 
     state = readyBoth(state);
 
-    // Called Shot: (4 base + 1 Attack) = 5, neutral Charm-vs-Spark
-    // matchup (×1), minus 1 Defense = 4.
-    const duelist = getHeroFrom(state, "player2", "spark-duelist");
-    expect(duelist.currentHp).toBe(duelist.maxHp - 4);
-    expect(duelist.statuses.some((s) => s.type === "charm")).toBe(false);
+    // Called Shot: (4 base + 1 Attack) = 5, neutral Charm-vs-Charm
+    // matchup (×1), minus 0 Defense = 5.
+    const target = getHeroFrom(state, "player2", "erosalina");
+    expect(target.currentHp).toBe(target.maxHp - 5);
+    expect(target.statuses.some((s) => s.type === "charm")).toBe(false);
 
-    // Charged Slash: 5 base, minus Charm's -3 = 2, + 2 Attack = 4,
-    // × 1.25 (Spark beats Water, §8.3) = 5, minus 1 Defense = 4.
+    // Heartpiercer: 5 base, minus Charm's -3 = 2, + 1 Attack = 3,
+    // × 1 (Charm-vs-Water is neutral, §8.3), minus 1 Defense = 2.
     const healer = getHeroFrom(state, "player1", "water-healer");
-    expect(healer.currentHp).toBe(healer.maxHp - 4);
+    expect(healer.currentHp).toBe(healer.maxHp - 2);
 
     expect(state.log.some((e) => e.type === "STATUS_APPLIED" && e.status === "charm")).toBe(true);
     expect(state.log.some((e) => e.type === "STATUS_REMOVED" && e.status === "charm")).toBe(true);
@@ -49,15 +49,15 @@ describe("Charm (damage-reduction debuff)", () => {
     const shotA = putCopyInHand(state, "player1", "called-shot", 0);
     const shotB = putCopyInHand(state, "player1", "called-shot", 1);
     state = queueCard(state, "player1", shotA, {
-      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
+      primaryTargetId: heroInstanceId("player2", "erosalina"),
     });
     state = queueCard(state, "player1", shotB, {
-      primaryTargetId: heroInstanceId("player2", "spark-duelist"),
+      primaryTargetId: heroInstanceId("player2", "erosalina"),
     });
 
     state = readyBoth(state);
 
-    const target = getHeroFrom(state, "player2", "spark-duelist");
+    const target = getHeroFrom(state, "player2", "erosalina");
     const charmStatuses = target.statuses.filter((s) => s.type === "charm");
     expect(charmStatuses).toHaveLength(1);
     const charm = charmStatuses[0];

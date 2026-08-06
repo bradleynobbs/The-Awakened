@@ -2306,3 +2306,113 @@ the SVG chassis; zero console errors throughout. Full pipeline
 this image work only, as always — installed with `--no-save` and
 uninstalled again once the assets were final; `package.json` and
 `package-lock.json` carry no trace of it.
+
+### 9.32 Swapping the Battle Pass bottom tab for Store
+
+Battle Pass sat in the bottom tab bar's most prominent 3rd-of-5 slot
+(§9.26) leading to a ComingSoon screen — this prototype has no season
+pass, no currency, and no purchases of any kind (Store already says so
+outright), so that tab could never lead anywhere real. Store, by
+contrast, already has its own honest "Coming Soon" screen (`Store.tsx`,
+predates the §9.25 menu redesign) but was only reachable through the
+MenuSheet — a secondary-navigation drawer one tap deeper than the
+bottom tabs. Swapped the two: Store now occupies the bottom tab, Battle
+Pass is gone entirely (not just hidden — `BottomTabs`' tab union,
+`App.tsx`'s `COMING_SOON_SCREENS` map, and the `battlepass` screen
+state are all removed, not disabled) since nothing else pointed to it.
+
+The rotating promo banner (§9.27) used to open Battle Pass on click,
+purely incidentally — it's decorative flavor text with no real
+connection to any specific screen. Repointed it at Store instead of
+leaving it dangling or inventing a new destination; a promo banner
+leading to the store is if anything a more standard pattern than one
+leading to a season pass. `MenuSheet` still has its own separate Store
+entry (unchanged) — the same duplicate-access pattern this project
+already has for Decks/Collection, not a new inconsistency.
+
+Verified via Playwright: the bottom tab bar now reads Home/Decks/
+Store/Clan/Profile, tapping Store opens the real `Store.tsx` screen and
+highlights the tab as active, the promo banner also opens Store, and
+Battle Pass is unreachable from anywhere in the app. Full pipeline
+(`tsc -b`, `oxlint`, test suite, `vite build`) passes.
+
+### 9.33 Retiring the three unnamed original heroes
+
+Earth Guardian, Spark Duelist, and Spirit Mage were 3 of the original 7
+heroes (§1-§2) — built before every other hero on the roster got a real
+name, a distinct illustrated identity, and a spot in `HERO_CARD_ART`.
+By the time the roster reached 17 (§9.20's second wave, one more hero
+per element), each of their elements already had a same-role-or-close
+illustrated replacement sitting right next to them: Cragor duplicates
+Earth Guardian's Tank/Earth slot almost exactly (and now has real art
+and a name), Zera and Amp both cover Spark better than Spark Duelist
+ever did, and Orin/Rune cover Spirit. The user asked to cut the three
+that "don't have real names and character to them" outright rather
+than eventually reskin them — a straight deletion, not a rename, since
+unlike every other rename in this project's history (Fire Mage →
+Inferna, Undead Assassin → Mourn, etc.) these three had no illustrated
+art commissioned for them to carry the identity over to.
+
+**Deleted, not disabled** — consistent with how this project has
+always treated cut content (Custom Match §9.28, the numeric stat grid
+§9.30): removed from `HeroId` (`types.ts`), their 9 card definitions
+and 3 `HERO_DEFINITIONS` entries (`heroes.ts`), their chassis hair
+silhouettes (`HeroSprite.tsx`) and cosmetics entries
+(`heroCosmetics.ts`). Two passives died with their heroes rather than
+surviving as dead code: Spirit Mage's "Lingering Spirit" (survive one
+lethal hit at 1 HP) — removed `hasCheatedDeath` off `HeroInstance` and
+the `SURVIVED_LETHAL` event entirely, since no other hero has ever had
+this passive — and Spark Duelist's "Storm Reflex" (+2 Shield after a
+Spark hit consumes Wet) — simplified `dealSparkDamage` back down to
+just the damage-and-cleanse mechanic every Spark hero still uses
+(Zera's Static Snipe/Twin Volt), dropping the `triggerPassive`
+parameter that only ever gated Spark Duelist's own passive.
+
+**Thunder Tide (Tydra + Spark Duelist) had no path to survive the
+cut** — it's a Team-Up defined entirely around Spark Duelist by name,
+and no other Spark hero was retrofitted into it (that would be
+inventing new content, not removing old content). Removed the
+definition and its entry in `TEAM_UP_DEFINITIONS` outright; Steam Surge
+(Inferna + Tydra) is the only Team-Up left.
+
+**The test suite lost real coverage along with the mechanics it was
+testing**, not just find-and-replaced hero names. `spirit.test.ts`
+tested nothing but Spirit Bolt/Soul Siphon/Spirit Ward and the
+Lingering Spirit passive — all gone — so the whole file was deleted
+rather than repurposed. The "Static Charge" describe block in
+`support.test.ts` tested a Wet-aware Empower mechanic unique to Spark
+Duelist that no other hero replicates — deleted rather than forced onto
+a hero that doesn't have it. "Guardian's Watch," by contrast, tested a
+mechanic (allAllies Shield support, scaled by the caster's Shield
+Strength) that very much still exists — rewritten against Cragor's
+Mountain's Resolve instead of deleted, recomputing every number against
+Cragor's actual stats (startingShield 6, Shield Strength 135% vs. Earth
+Guardian's 4/125%) rather than reusing the old numbers by coincidence.
+Every other affected test (`combat`, `charm`, `energy`, `planning`,
+`stats`, `status`, `targeting`, `teamup`, `victory`, `bot`,
+`selection`) kept its actual assertions and just swapped which
+remaining hero fills the "generic teammate" or "generic target" role —
+recomputed by hand against the replacement hero's real stats wherever
+the original numbers depended on Attack/Defense/element (e.g. Zera's
+lower Defense than Spark Duelist's meant several damage numbers went up
+by exactly the difference), not copied over unchanged. One test
+(`Inferna passive`, in `status.test.ts`) needed a different target
+entirely rather than just a stat recompute — Zera's and Amp's lower Max
+HP than Spark Duelist's meant the second Fire Bolt in that test would
+now overkill mid-sequence and clamp to 0 before the test's cumulative
+subtraction could apply, so it targets the enemy's own Inferna (a
+mirror match) instead.
+
+`roster.test.ts`'s composition check now expects 14 heroes instead of
+17, with each element still fielding at least 2 (Earth: Sorrow/Cragor,
+Spark: Zera/Amp, Spirit: Orin/Rune — none of the three cut heroes was
+the *only* hero for its element, which is exactly why the cut was safe
+to make).
+
+Verified via Playwright: the Deck Builder and hero-select grids show
+exactly 14 cards, none of them Earth Guardian/Spark Duelist/Spirit
+Mage; a practice match locks in and plays through normally with the
+remaining roster; zero console errors. Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite — down from 82, accounted for entirely
+by the deleted spirit/Thunder-Tide/Static-Charge tests above — and
+`vite build`) passes.

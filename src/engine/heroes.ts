@@ -11,7 +11,6 @@ import {
   healHero,
   livingHeroes,
   otherPlayer,
-  removeWetPublic,
 } from "./combat";
 
 const fireBolt: CardDefinition = {
@@ -47,38 +46,6 @@ const flameWave: CardDefinition = {
   },
 };
 
-const stoneStrike: CardDefinition = {
-  id: "stone-strike",
-  heroId: "earth-guardian",
-  kind: "attack",
-  name: "Stone Strike",
-  cost: 1,
-  targetType: "singleEnemy",
-  element: "earth",
-  description: "Deal 5 damage to one enemy.",
-  resolve: (ctx) => {
-    dealDamage(ctx, {
-      targetId: ctx.targets.primaryTargetId!,
-      amount: 5,
-      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-    });
-  },
-};
-
-const fortify: CardDefinition = {
-  id: "fortify",
-  heroId: "earth-guardian",
-  kind: "ability",
-  name: "Fortify",
-  cost: 2,
-  targetType: "singleAlly",
-  element: "earth",
-  description: "Grant 6 Shield to one allied hero.",
-  resolve: (ctx) => {
-    addShield(ctx, ctx.targets.primaryTargetId!, 6);
-  },
-};
-
 const tidalShot: CardDefinition = {
   id: "tidal-shot",
   heroId: "water-healer",
@@ -109,56 +76,6 @@ const restoringCurrent: CardDefinition = {
     const amount = player.hasUsedFirstHeal ? 6 : 7;
     healHero(ctx, ctx.targets.primaryTargetId!, amount);
     player.hasUsedFirstHeal = true;
-  },
-};
-
-const chargedSlash: CardDefinition = {
-  id: "charged-slash",
-  heroId: "spark-duelist",
-  kind: "attack",
-  name: "Charged Slash",
-  cost: 1,
-  targetType: "singleEnemy",
-  element: "spark",
-  description: "Deal 5 damage; +3 and remove Wet if the target is Wet.",
-  resolve: (ctx) => {
-    dealSparkDamage(ctx, {
-      targetId: ctx.targets.primaryTargetId!,
-      baseDamage: 5,
-      bonusDamage: 3,
-      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-      triggerPassive: true,
-    });
-  },
-};
-
-const chainSpark: CardDefinition = {
-  id: "chain-spark",
-  heroId: "spark-duelist",
-  kind: "ability",
-  name: "Chain Spark",
-  cost: 2,
-  targetType: "twoEnemies",
-  element: "spark",
-  description:
-    "Deal 4 damage to one enemy and 2 to another; each gets +3 and loses Wet if Wet.",
-  resolve: (ctx) => {
-    dealSparkDamage(ctx, {
-      targetId: ctx.targets.primaryTargetId!,
-      baseDamage: 4,
-      bonusDamage: 3,
-      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-      triggerPassive: true,
-    });
-    if (ctx.targets.secondaryTargetId) {
-      dealSparkDamage(ctx, {
-        targetId: ctx.targets.secondaryTargetId,
-        baseDamage: 2,
-        bonusDamage: 3,
-        sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-        triggerPassive: true,
-      });
-    }
   },
 };
 
@@ -215,22 +132,6 @@ const kindleSpirit: CardDefinition = {
   },
 };
 
-const guardiansWatch: CardDefinition = {
-  id: "guardians-watch",
-  heroId: "earth-guardian",
-  kind: "support",
-  name: "Guardian's Watch",
-  cost: 2,
-  targetType: "allAllies",
-  element: "earth",
-  description: "Grant 3 Shield to every allied hero.",
-  resolve: (ctx) => {
-    for (const hero of livingHeroes(ctx.state, ctx.playerId)) {
-      addShield(ctx, hero.instanceId, 3);
-    }
-  },
-};
-
 const encouragingCurrent: CardDefinition = {
   id: "encouraging-current",
   heroId: "water-healer",
@@ -242,24 +143,6 @@ const encouragingCurrent: CardDefinition = {
   description: "Empower one ally: their next damage-dealing action deals +4 damage.",
   resolve: (ctx) => {
     applyEmpower(ctx, ctx.targets.primaryTargetId!, 4);
-  },
-};
-
-const staticCharge: CardDefinition = {
-  id: "static-charge",
-  heroId: "spark-duelist",
-  kind: "support",
-  name: "Static Charge",
-  cost: 2,
-  targetType: "singleAlly",
-  element: "spark",
-  description: "Empower one ally for +4 damage (+7 total and cleanses Wet, if they're currently Wet).",
-  resolve: (ctx) => {
-    const targetId = ctx.targets.primaryTargetId!;
-    const target = getHero(ctx.state, targetId);
-    const isWet = target.statuses.some((s) => s.type === "wet");
-    applyEmpower(ctx, targetId, isWet ? 7 : 4);
-    if (isWet) removeWetPublic(ctx, targetId);
   },
 };
 
@@ -322,58 +205,6 @@ const coverFire: CardDefinition = {
   description: "Empower one ally: their next damage-dealing action deals +5 damage.",
   resolve: (ctx) => {
     applyEmpower(ctx, ctx.targets.primaryTargetId!, 5);
-  },
-};
-
-const spiritBolt: CardDefinition = {
-  id: "spirit-bolt",
-  heroId: "spirit-mage",
-  kind: "attack",
-  name: "Spirit Bolt",
-  cost: 1,
-  targetType: "singleEnemy",
-  element: "spirit",
-  description: "Deal 4 damage to one enemy and heal this hero for 2.",
-  resolve: (ctx) => {
-    dealDamage(ctx, {
-      targetId: ctx.targets.primaryTargetId!,
-      amount: 4,
-      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-    });
-    if (ctx.sourceHeroInstanceId) healHero(ctx, ctx.sourceHeroInstanceId, 2);
-  },
-};
-
-const soulSiphon: CardDefinition = {
-  id: "soul-siphon",
-  heroId: "spirit-mage",
-  kind: "ability",
-  name: "Soul Siphon",
-  cost: 2,
-  targetType: "singleEnemy",
-  element: "spirit",
-  description: "Deal 6 damage to one enemy and heal this hero for 4.",
-  resolve: (ctx) => {
-    dealDamage(ctx, {
-      targetId: ctx.targets.primaryTargetId!,
-      amount: 6,
-      sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-    });
-    if (ctx.sourceHeroInstanceId) healHero(ctx, ctx.sourceHeroInstanceId, 4);
-  },
-};
-
-const spiritWard: CardDefinition = {
-  id: "spirit-ward",
-  heroId: "spirit-mage",
-  kind: "support",
-  name: "Spirit Ward",
-  cost: 2,
-  targetType: "singleAlly",
-  element: "spirit",
-  description: "Heal one ally for 5.",
-  resolve: (ctx) => {
-    healHero(ctx, ctx.targets.primaryTargetId!, 5);
   },
 };
 
@@ -440,7 +271,6 @@ const staticSnipe: CardDefinition = {
       baseDamage: 5,
       bonusDamage: 3,
       sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-      triggerPassive: true,
     });
   },
 };
@@ -460,7 +290,6 @@ const twinVolt: CardDefinition = {
       baseDamage: 4,
       bonusDamage: 3,
       sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-      triggerPassive: true,
     });
     if (ctx.targets.secondaryTargetId) {
       dealSparkDamage(ctx, {
@@ -468,7 +297,6 @@ const twinVolt: CardDefinition = {
         baseDamage: 2,
         bonusDamage: 3,
         sourceHeroInstanceId: ctx.sourceHeroInstanceId,
-        triggerPassive: true,
       });
     }
   },
@@ -908,34 +736,6 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
       description: "This hero deals +1 damage to targets that already have Burn.",
     },
   },
-  "earth-guardian": {
-    id: "earth-guardian",
-    name: "Earth Guardian",
-    role: "Tank",
-    element: "earth",
-    maxHp: 24,
-    startingShield: 4,
-    stats: {
-      attack: 0,
-      defense: 3,
-      speed: 4,
-      accuracy: 100,
-      evasion: 0,
-      criticalChance: 0,
-      criticalDamage: 100,
-      energy: 0,
-      cooldownReduction: 0,
-      healingPower: 100,
-      shieldStrength: 125,
-    },
-    attack: stoneStrike,
-    ability: fortify,
-    support: guardiansWatch,
-    passive: {
-      name: "Bulwark",
-      description: "Begins the match with 4 Shield.",
-    },
-  },
   "water-healer": {
     id: "water-healer",
     name: "Tydra",
@@ -962,34 +762,6 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     passive: {
       name: "First Tide",
       description: "This player's first healing card each match restores 1 additional HP.",
-    },
-  },
-  "spark-duelist": {
-    id: "spark-duelist",
-    name: "Spark Duelist",
-    role: "Brawler",
-    element: "spark",
-    maxHp: 20,
-    startingShield: 0,
-    stats: {
-      attack: 2,
-      defense: 1,
-      speed: 10,
-      accuracy: 100,
-      evasion: 10,
-      criticalChance: 15,
-      criticalDamage: 110,
-      energy: 0,
-      cooldownReduction: 0,
-      healingPower: 100,
-      shieldStrength: 100,
-    },
-    attack: chargedSlash,
-    ability: chainSpark,
-    support: staticCharge,
-    passive: {
-      name: "Storm Reflex",
-      description: "Gains 2 Shield after triggering a Water + Spark interaction.",
     },
   },
   "undead-assassin": {
@@ -1046,34 +818,6 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     passive: {
       name: "Steady Aim",
       description: "This hero deals +1 damage to targets that are currently Charmed.",
-    },
-  },
-  "spirit-mage": {
-    id: "spirit-mage",
-    name: "Spirit Mage",
-    role: "Mage",
-    element: "spirit",
-    maxHp: 16,
-    startingShield: 0,
-    stats: {
-      attack: 2,
-      defense: 0,
-      speed: 8,
-      accuracy: 100,
-      evasion: 8,
-      criticalChance: 5,
-      criticalDamage: 100,
-      energy: 1,
-      cooldownReduction: 0,
-      healingPower: 110,
-      shieldStrength: 100,
-    },
-    attack: spiritBolt,
-    ability: soulSiphon,
-    support: spiritWard,
-    passive: {
-      name: "Lingering Spirit",
-      description: "The first time this hero would be defeated each match, they survive with 1 HP instead.",
     },
   },
   // ---------- Second wave: one more hero per element (§9.20) ----------

@@ -4,29 +4,29 @@ import type { HeroId } from "../types";
 
 const OFFERED: HeroId[] = [
   "fire-mage",
-  "earth-guardian",
+  "cragor",
   "water-healer",
-  "spark-duelist",
+  "zera",
   "undead-assassin",
   "charm-gunslinger",
-  "spirit-mage",
+  "orin",
 ];
 
 describe("hero selection", () => {
   it("selects exactly 3 of the 7 offered heroes", () => {
     let state = createTeamSelection("player1", OFFERED);
     state = toggleHero(state, "fire-mage");
-    state = toggleHero(state, "earth-guardian");
+    state = toggleHero(state, "cragor");
     state = toggleHero(state, "water-healer");
-    expect(state.selected).toEqual(["fire-mage", "earth-guardian", "water-healer"]);
+    expect(state.selected).toEqual(["fire-mage", "cragor", "water-healer"]);
   });
 
   it("rejects a 4th selection", () => {
     let state = createTeamSelection("player1", OFFERED);
     state = toggleHero(state, "fire-mage");
-    state = toggleHero(state, "earth-guardian");
+    state = toggleHero(state, "cragor");
     state = toggleHero(state, "water-healer");
-    expect(() => toggleHero(state, "spark-duelist")).toThrow(/Only 3 heroes/);
+    expect(() => toggleHero(state, "zera")).toThrow(/Only 3 heroes/);
   });
 
   it("allows deselecting before locking", () => {
@@ -45,7 +45,7 @@ describe("hero selection", () => {
   it("prevents team changes after the selection is locked", () => {
     let state = createTeamSelection("player1", OFFERED);
     state = toggleHero(state, "fire-mage");
-    state = toggleHero(state, "earth-guardian");
+    state = toggleHero(state, "cragor");
     state = toggleHero(state, "water-healer");
     state = lockSelection(state);
     expect(state.isLocked).toBe(true);

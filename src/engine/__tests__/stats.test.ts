@@ -52,14 +52,14 @@ describe("effectiveCardCost (Cooldown Reduction, DESIGN.md §8.2)", () => {
   });
 
   it("leaves cost unchanged for heroes with no Cooldown Reduction", () => {
-    const fortify = getCardDefinition("fortify"); // Earth Guardian ability, cost 2, CDR 0
-    expect(effectiveCardCost(fortify, "earth-guardian")).toBe(2);
+    const fortressStance = getCardDefinition("fortress-stance"); // Cragor ability, cost 2, CDR 0
+    expect(effectiveCardCost(fortressStance, "cragor")).toBe(2);
   });
 });
 
 describe("Cooldown Reduction end-to-end", () => {
-  const P1: [HeroId, HeroId, HeroId] = ["water-healer", "fire-mage", "earth-guardian"];
-  const P2: [HeroId, HeroId, HeroId] = ["spark-duelist", "undead-assassin", "charm-gunslinger"];
+  const P1: [HeroId, HeroId, HeroId] = ["water-healer", "fire-mage", "cragor"];
+  const P2: [HeroId, HeroId, HeroId] = ["zera", "undead-assassin", "charm-gunslinger"];
 
   it("queuing a discounted card only spends the discounted amount", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
@@ -73,8 +73,8 @@ describe("Cooldown Reduction end-to-end", () => {
 });
 
 describe("Accuracy vs. Evasion and Critical Chance thresholds", () => {
-  const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "earth-guardian"];
-  const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "spark-duelist", "charm-gunslinger"];
+  const P1: [HeroId, HeroId, HeroId] = ["fire-mage", "water-healer", "cragor"];
+  const P2: [HeroId, HeroId, HeroId] = ["undead-assassin", "zera", "charm-gunslinger"];
 
   afterEach(() => {
     // Base hero kits never cross the graze/crit thresholds on their own
@@ -103,7 +103,7 @@ describe("Accuracy vs. Evasion and Critical Chance thresholds", () => {
     const state = createMatch(P1, P2, createSeededRng(1));
     const cardId = putInHand(state, "player1", "fire-bolt");
     const next = readyBoth(
-      queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "spark-duelist") }),
+      queueCard(state, "player1", cardId, { primaryTargetId: heroInstanceId("player2", "zera") }),
     );
 
     const hitEvent = next.log.find((e) => e.type === "DAMAGE_DEALT" && e.sourceHeroInstanceId);

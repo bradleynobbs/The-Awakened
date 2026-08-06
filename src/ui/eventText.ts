@@ -65,8 +65,6 @@ export function describeEvent(state: MatchState, event: GameEvent, myRole: Playe
       return `${heroName(state, e.targetId as string)} takes ${e.amount} Burn damage.`;
     case "HERO_DEFEATED":
       return `${heroName(state, e.heroInstanceId as string)} has been defeated!`;
-    case "SURVIVED_LETHAL":
-      return `${heroName(state, e.targetId as string)}'s spirit lingers — they survive at 1 HP!`;
     case "TEAM_UP_TRIGGERED":
       return `Team-Up! ${e.teamUpName}.`;
     case "ACTION_FIZZLED": {

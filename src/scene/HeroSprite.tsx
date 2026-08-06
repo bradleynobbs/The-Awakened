@@ -143,16 +143,6 @@ function Hair({ heroId, c }: { heroId: HeroId; c: Chassis }) {
           <circle cx={c.headCx - 22} cy={c.headCy - 14} r={11} fill={hair} stroke={OUTLINE} strokeWidth={OUTLINE_W} />
         </>
       );
-    case "earth-guardian":
-      return (
-        <path
-          d={`M ${c.headCx - 22} ${c.headCy - 2} Q ${c.headCx} ${c.headCy - 32} ${c.headCx + 22} ${c.headCy - 4} Q ${c.headCx} ${c.headCy - 16} ${c.headCx - 22} ${c.headCy - 2} Z`}
-          fill={hair}
-          stroke={OUTLINE}
-          strokeWidth={OUTLINE_W}
-          strokeLinejoin="round"
-        />
-      );
     case "water-healer":
       return (
         <path
@@ -164,21 +154,6 @@ function Hair({ heroId, c }: { heroId: HeroId; c: Chassis }) {
           strokeWidth={OUTLINE_W}
           strokeLinejoin="round"
         />
-      );
-    case "spark-duelist":
-      return (
-        <>
-          {[-1, 0, 1].map((i) => (
-            <path
-              key={i}
-              d={`M ${c.headCx + i * 9 - 5} ${c.headCy - 12} L ${c.headCx + i * 9} ${c.headCy - 30 + Math.abs(i) * 8} L ${c.headCx + i * 9 + 5} ${c.headCy - 12} Z`}
-              fill={hair}
-              stroke={OUTLINE}
-              strokeWidth={OUTLINE_W}
-              strokeLinejoin="round"
-            />
-          ))}
-        </>
       );
     case "undead-assassin":
       // Mostly covered by the hood (RoleGear); just a dark sliver at the hairline.
@@ -209,19 +184,6 @@ function Hair({ heroId, c }: { heroId: HeroId; c: Chassis }) {
             strokeLinejoin="round"
           />
         </>
-      );
-    case "spirit-mage":
-      return (
-        <path
-          d={`M ${c.headCx - 24} ${c.headCy - 12} Q ${c.headCx} ${c.headCy - 36} ${c.headCx + 20} ${c.headCy - 12}
-              Q ${c.headCx + 4} ${c.headCy + 30} ${c.headCx - 10} ${c.headCy + 64}
-              Q ${c.headCx - 32} ${c.headCy + 24} ${c.headCx - 24} ${c.headCy - 12} Z`}
-          fill={hair}
-          stroke={OUTLINE}
-          strokeWidth={OUTLINE_W}
-          strokeLinejoin="round"
-          opacity={0.95}
-        />
       );
     default:
       return null;

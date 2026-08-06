@@ -1,7 +1,7 @@
 import { getCardDefinition } from "../engine/cards";
 import { effectiveCardCost, HERO_DEFINITIONS } from "../engine/heroes";
 import type { CardInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL } from "./heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_ICON } from "./heroVisuals";
 
 const TARGET_LABEL: Record<string, string> = {
   singleEnemy: "1 Enemy",
@@ -45,7 +45,7 @@ export function CardHand({ state, playerId, canAct, armedCardId, onCardClick }: 
             <div className="hand-card-top">
               <span className="hand-card-cost">{cost}⚡</span>
               <span className="hand-card-element">
-                {heroDef ? ELEMENT_SYMBOL[heroDef.element] : ""}
+                {heroDef && <img src={ELEMENT_ICON[heroDef.element]} alt={heroDef.element} />}
               </span>
             </div>
             <div className="hand-card-name">{cardDef.name}</div>

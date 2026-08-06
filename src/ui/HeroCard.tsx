@@ -1,5 +1,5 @@
 import type { HeroDefinition } from "../engine/types";
-import { ELEMENT_SYMBOL, HERO_CARD_ART, ROLE_ICON } from "./heroVisuals";
+import { ELEMENT_ICON, HERO_CARD_ART, ROLE_ICON } from "./heroVisuals";
 
 interface HeroCardProps {
   hero: HeroDefinition;
@@ -34,7 +34,9 @@ export function HeroCard({ hero }: HeroCardProps) {
         <span className="hero-card-badge hero-card-badge-role">
           <img src={ROLE_ICON[hero.role]} alt={hero.role} />
         </span>
-        <span className="hero-card-badge hero-card-badge-element">{ELEMENT_SYMBOL[hero.element]}</span>
+        <span className="hero-card-badge hero-card-badge-element">
+          <img src={ELEMENT_ICON[hero.element]} alt={hero.element} />
+        </span>
       </div>
 
       <div className="hero-card-name-plate">

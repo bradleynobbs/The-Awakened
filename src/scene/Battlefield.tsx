@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { HERO_DEFINITIONS } from "../engine/heroes";
 import type { GameEvent, HeroInstanceId, MatchState, PlayerId } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_SYMBOL, HERO_PORTRAIT, ROLE_ICON } from "../ui/heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_ICON, HERO_PORTRAIT, ROLE_ICON } from "../ui/heroVisuals";
 import { HeroSprite, type AnimCue } from "./HeroSprite";
 import arenaBackground from "../assets/backgrounds/arena-plaza.jpg";
 
@@ -156,7 +156,7 @@ function TeamRoster({
                     <img className="roster-role-icon" src={ROLE_ICON[def.role]} alt={def.role} />
                   </span>
                   <span className="roster-emblem-badge" title={def.element}>
-                    <span className="roster-element-icon">{ELEMENT_SYMBOL[def.element]}</span>
+                    <img className="roster-element-icon" src={ELEMENT_ICON[def.element]} alt={def.element} />
                   </span>
                 </span>
               </div>

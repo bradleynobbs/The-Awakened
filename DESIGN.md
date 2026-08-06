@@ -2731,3 +2731,52 @@ mirrored correctly) reads as fully solid and richly colored; zero
 console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
 suite, `vite build`, `cap sync android`) passes. `sharp` was a
 temporary `--no-save` dev dependency, uninstalled after use.
+
+### 9.40 Illustrated element emblems, replacing `ELEMENT_SYMBOL`'s emoji
+
+`ROLE_ICON` (an earlier session) already replaced the emoji role icons
+with illustrated metallic target-ring frames; `ELEMENT_SYMBOL` was the
+one remaining place still showing plain emoji (🔥💧⚡🪨💀💗👻) instead
+of real art. The user supplied a matched set of 7 circular medallion
+emblems — one per element, each a black-background illustration with
+a consistent frame (double ring + 4 corner diamond studs) and a
+distinct central motif (a flame for Fire, a water-drop with sea
+creatures for Water, a lightning bolt for Spark, a crystal formation
+for Earth, a skull for Undead, a heart for Charm, a tree-of-life with
+forest animals for Spirit).
+
+Keyed with the same black-background pipeline used throughout this
+project (brightness-from-black alpha ramp, color decontamination,
+double erosion) — checked decontamination against a test composite
+first per the §9.36 lesson, and it came out clean on all 7 (these are
+crisp illustrated shapes, not soft diffuse glow, so no blowout risk).
+Trimmed to each medallion's own content bounding box (generous padding
+so the corner diamond studs, which poke slightly outside the main
+ring, never clip) and resized to 128×128 with alpha preserved, matching
+`ROLE_ICON`'s own asset convention exactly (`src/assets/roles/*.png`
+are also 128×128) — a new `src/assets/elements/` directory mirrors
+`src/assets/roles/`.
+
+Added `ELEMENT_ICON: Record<Element, string>` to `heroVisuals.ts`
+alongside `ROLE_ICON`, and removed `ELEMENT_SYMBOL` outright rather
+than leaving it as unused dead code — grepped first to confirm exactly
+3 call sites, all straightforward `<span>{emoji}</span>` → `<img
+src={ELEMENT_ICON[...]} />` swaps: the hero card's element badge
+(`HeroCard.tsx`, sibling to the existing role-icon badge — the shared
+`.hero-card-badge img` rule already styles it identically, so only the
+now-dead emoji-specific `font-size`/`filter` rules on
+`.hero-card-badge-element` needed removing), the battlefield roster
+panel's element badge (`Battlefield.tsx`, same treatment as its
+existing `.roster-role-icon` sibling), and each action card's element
+indicator in hand (`CardHand.tsx`, which needed a new small
+`.hand-card-element img` sizing rule since the emoji version had only
+ever inherited font-size from its flex parent).
+
+Verified via Playwright: Deck Builder hero cards show the correct
+illustrated element badge per hero, the battlefield roster panel's
+element badges render correctly for a full mix of elements across
+both teams, and each hand card's element icon renders correctly next
+to its cost; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
+75-test Vitest suite, `vite build`, `cap sync android`) passes.
+`sharp` was a temporary `--no-save` dev dependency, uninstalled after
+use.

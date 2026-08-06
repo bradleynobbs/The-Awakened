@@ -313,8 +313,6 @@ button {
 }
 .hero-card-badge-element {
   right: 6px;
-  font-size: 13px;
-  filter: drop-shadow(0 0 3px rgba(230, 235, 245, 0.7));
 }
 
 /* Name plate overlaps the portrait's bottom edge slightly, per the
@@ -1021,8 +1019,10 @@ button {
   filter: drop-shadow(0 0 3px rgba(255, 190, 60, 0.9));
 }
 .roster-element-icon {
-  font-size: 14px;
-  line-height: 1;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
 }
 .roster-hpbar {
@@ -1228,6 +1228,12 @@ button {
 .hand-card-cost {
   font-weight: 800;
   color: #ffd24a;
+}
+.hand-card-element img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
 }
 .hand-card-name {
   font-weight: 700;

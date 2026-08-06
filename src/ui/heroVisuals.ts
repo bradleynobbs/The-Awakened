@@ -5,6 +5,13 @@ import tankIcon from "../assets/roles/tank.png";
 import speedsterIcon from "../assets/roles/speedster.png";
 import rangerIcon from "../assets/roles/ranger.png";
 import supportIcon from "../assets/roles/support.png";
+import fireElementIcon from "../assets/elements/fire.png";
+import waterElementIcon from "../assets/elements/water.png";
+import sparkElementIcon from "../assets/elements/spark.png";
+import earthElementIcon from "../assets/elements/earth.png";
+import undeadElementIcon from "../assets/elements/undead.png";
+import charmElementIcon from "../assets/elements/charm.png";
+import spiritElementIcon from "../assets/elements/spirit.png";
 import infernaPortrait from "../assets/heroes/inferna-portrait.png";
 import mournPortrait from "../assets/heroes/mourn-portrait.png";
 import kairoPortrait from "../assets/heroes/kairo-portrait.png";
@@ -104,12 +111,15 @@ export const ELEMENT_COLOR: Record<Element, string> = {
   spirit: "#7ecbc4",
 };
 
-export const ELEMENT_SYMBOL: Record<Element, string> = {
-  fire: "\u{1F525}",
-  water: "\u{1F4A7}",
-  spark: "⚡",
-  earth: "\u{1FAA8}",
-  undead: "\u{1F480}",
-  charm: "\u{1F498}",
-  spirit: "\u{1F47B}",
+/** Illustrated element emblems (replacing the earlier emoji placeholders,
+ * same as ROLE_ICON did for roles) — matching circular medallion frames
+ * with corner diamond studs, one motif per element. */
+export const ELEMENT_ICON: Record<Element, string> = {
+  fire: fireElementIcon,
+  water: waterElementIcon,
+  spark: sparkElementIcon,
+  earth: earthElementIcon,
+  undead: undeadElementIcon,
+  charm: charmElementIcon,
+  spirit: spiritElementIcon,
 };

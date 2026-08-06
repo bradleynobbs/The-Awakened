@@ -2665,3 +2665,40 @@ and purple glow are both still intact; zero console errors. Full
 pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
 `cap sync android`) passes. `sharp` was a temporary `--no-save` dev
 dependency, uninstalled after use.
+
+### 9.38 Zera gets the same wholesale re-shoot as Kharos
+
+Following §9.36's Kharos precedent, the user supplied a fresh, much
+higher-fidelity reference image for Zera too (1166×1349, clean white
+background, dynamic pointing pose with her Spark-attack lightning
+effect) and asked for the same treatment rather than another alpha
+patch on the old low-res sprite this project had been repeatedly
+re-fixing since §9.34.
+
+Keyed with the white-background pipeline (distance-from-white ramp,
+same as Sorrow/Cragor/§9.37's Kharos re-key). Tested color
+decontamination against both black and white backgrounds first, same
+as always since §9.36's glow-blowout bug — unlike Kharos, Zera's gold
+spark effects are mostly hard-edged shapes rather than soft diffuse
+glow, and decontamination came out clean on both test backgrounds, so
+kept it this time (recovers richer, more saturated color than the raw
+alpha would). Applied on top of it the same hard alpha snap (≥30 →
+fully opaque) already proven on Kharos/Orin, so the "still see-through"
+failure mode from §9.35-9.36 couldn't recur here either.
+
+No flip needed — unlike Kharos's ambiguous static pose, Zera's whole
+body is dynamically oriented toward her own outstretched pointing hand
+(gaze, torso, front foot, and hair all lean the same direction), an
+unambiguous "facing right" already in the source art.
+
+This is now the fourth hero (after Sorrow, Cragor, Kharos) with a fully
+re-shot sprite/portrait/card-art trio rather than a patched original —
+each time because the user supplied real replacement art, never
+speculatively.
+
+Verified via Playwright in a practice match against the real
+battlefield background: both the ally and mirrored-enemy copy of Zera
+read as fully solid and richly colored, not translucent; zero console
+errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite,
+`vite build`, `cap sync android`) passes. `sharp` was a temporary
+`--no-save` dev dependency, uninstalled after use.

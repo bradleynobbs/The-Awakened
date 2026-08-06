@@ -320,6 +320,7 @@ export function HeroSprite({ hero, facing, cue, isTargetable, isSelectedTarget, 
   const wrapClasses = [
     "hero-sprite-wrap",
     realArtSrc ? "real-art" : "",
+    def.role === "Tank" ? "role-tank" : "",
     isDefeated ? "defeated" : "",
     isTargetable ? "targetable" : "",
     isSelectedTarget ? "selected-target" : "",

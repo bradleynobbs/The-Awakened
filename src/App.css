@@ -794,6 +794,17 @@ button {
   width: 84px;
   height: 105px;
 }
+/* Tanks read as bulkier/more imposing than the rest of the roster —
+ * the shared SVG chassis already does this via a wider torso (see
+ * TORSO_WIDTH/HEIGHT by role above), but real-art sprites all share
+ * one fixed box regardless of role. Scale that box up ~19% for Tanks
+ * specifically (keeping the same 4:5 aspect ratio) so Cragor, Kharos,
+ * and Torrent get the same size advantage real-art gave up when it
+ * replaced the chassis. */
+.hero-sprite-wrap.real-art.role-tank {
+  width: 100px;
+  height: 125px;
+}
 
 .hero-sprite-ground {
   position: absolute;

@@ -2416,3 +2416,101 @@ remaining roster; zero console errors. Full pipeline (`tsc -b`,
 `oxlint`, 75-test Vitest suite — down from 82, accounted for entirely
 by the deleted spirit/Thunder-Tide/Static-Charge tests above — and
 `vite build`) passes.
+
+### 9.34 Card-art recrops (Flint, Mourn) + battlefield fixes (Torrent, Zera, Kharos)
+
+Five separate visual complaints against the existing real art, none of
+which needed new source images — every fix here is a different crop,
+transform, or per-pixel correction of assets already in the repo.
+
+**Flint's card art was cropping the fox's own head off-center.** The
+old crop took the sprite's full width from the top, but Flint's fox
+leans left in its own pose — the top-of-sprite content bbox sat at
+x:0-400 out of a 502px-wide sprite, so a full-width crop put a large
+empty margin on the right instead of framing the fox. Fixing this
+properly meant abandoning the "always take the full sprite width" rule
+for this one hero: cropped a roughly square 260×260 region instead,
+sized and positioned around the fox's actual head/neck content rather
+than the sprite's width. The `.hero-card-portrait-wrap` container still
+enforces a fixed 1.43:1 aspect via `object-fit: cover` +
+`object-position: top center`, so a squarer source just means the
+browser crops a bit off the bottom to fit — exactly the vertical trim
+this crop wanted anyway, achieved for free rather than computed by
+hand.
+
+**Mourn's card art showed hood-to-hip — too much body for a "chest and
+shoulders" card.** Profiled the sprite's per-row silhouette width to
+find where the shoulders actually peak (~y=225) versus where the old
+crop cut off (y=351, well into the torso/midriff). Re-cropped to
+y:0-240, narrowed to the hood/shoulders' own horizontal extent (x:84-
+427) instead of the full sprite width, landing much closer to how
+every other hero's card art frames "head and shoulders."
+
+**Torrent was facing backward.** Ally sprites render at `facing={1}`
+("drawn as-is," per `HeroSprite.tsx`'s own convention — see §9.9-era
+comments) meaning the source art itself has to already face right for
+that to look correct. Torrent's raised, clearly-defined claw-arm sat on
+the *left* side of the sprite — the trailing side once mirrored for an
+ally facing right, when an about-to-strike limb reads correctly on the
+side closest to the enemy team instead. Flipped the sprite (and its
+already-derived portrait/card-art, `sharp().flop()`) horizontally to
+put that arm on the right.
+
+**Torrent needed to be bigger — Tanks read as bulkier on the shared SVG
+chassis** (wider/taller torso per role, from the original 7-hero build)
+**but real-art sprites all share one fixed box regardless of role**,
+losing that size language once a hero gets real art. Rather than
+special-case Torrent alone, added a systemic `role === "Tank"` check in
+`HeroSprite.tsx` (`role-tank` class) with a matching CSS rule scaling
+the real-art box up ~19% (84×105 → 100×125, same aspect) — Cragor and
+Kharos get the same boost, since they're Tanks too and the same
+argument applies to them without the user having singled them out.
+
+**Zera and Kharos read as "faded"/washed out against the dark
+battlefield — not an edge-fringe issue, a bulk one.** Sampled every
+visible pixel's alpha channel across several heroes for comparison:
+Flint and Sorrow sit at ~4-8% of pixels below alpha 100 (normal
+edge-antialiasing volume); Zera and Kharos sat at 33.5% and 35.9%
+respectively — roughly a third of each character's own body reading as
+translucent, not just its silhouette edge. Both are light-costumed
+(Zera's white/gold robes, Kharos's pale bone) against what was
+presumably also a light/white original background, the same class of
+problem as the Sorrow/Cragor black-on-black keying conflict (§9.9,
+§9.31) but the lighter-value mirror of it — except here there was no
+fresh source art to re-shoot from, only the existing already-exported
+PNGs to repair in place.
+
+Fixed with the same two-part transform used on the newer heroes'
+white-background pipeline, applied to already-exported art instead of
+a fresh key: (1) color-decontaminate every non-fully-opaque pixel
+against an assumed white backdrop, using that pixel's *own* current
+alpha as the blend fraction — recovers the true underlying color a
+partial-alpha pixel was diluted toward white by; verified this
+recovers real color and isn't inventing one, by flattening the result
+against pure black *and* pure white and confirming both read as a
+plausible costume (dark trim + gold accents for Zera, purple magic
+accents for Kharos) rather than a color that only "made sense" against
+one particular test backdrop. (2) A gamma<1 curve on alpha
+(`255 * (alpha/255)^gamma`, gamma 0.55 for Zera / 0.45 for Kharos —
+Kharos needed the stronger push, matching "so faded" vs. "a bit
+faded") that hardens mid/low translucent pixels toward opaque without
+moving true 0 (background) or true 255 (already-solid) pixels.
+
+Applied directly to each hero's sprite and portrait (both still carry
+an alpha channel); their card art had already been flattened onto the
+dark card background at crop time using the *old* faded alpha, baking
+the fade permanently into its RGB with no alpha left to fix — so
+instead of patching that file, regenerated it fresh from the corrected
+sprite through the exact same crop box the §9.30 formula already used
+for each (full sprite width, height per the width-dependent formula),
+re-flattened onto the card background.
+
+Verified via Playwright in an actual practice match: Torrent renders
+noticeably larger than Zera/Kharos (Tank-role box), its claw-arm on the
+correct side; Kharos (both the ally and enemy copy) and Zera read as
+solid/opaque, not washed out; Flint and Mourn's Deck Builder cards show
+a centered fox and a tight head-and-shoulders hood respectively; zero
+console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
+suite, `vite build`, `cap sync android`) passes. `sharp` was a
+temporary `--no-save` dev dependency for this image work only,
+uninstalled after use.

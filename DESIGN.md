@@ -2939,3 +2939,29 @@ unaffected, still their natural per-element hue; the `.selected`
 purple ring still reads correctly against the reverted gray base;
 zero console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test
 Vitest suite, `vite build`, `cap sync android`) passes.
+
+### 9.45 Deck Builder card badges: bigger emblems
+
+The user's screenshot showed both corner badges on the Deck Builder
+cards with a lot of unused dark padding around a small icon —
+`.hero-card-badge img` was sized at 16px inside a 26px circle (~62%
+fill), leaving a visible ring of the badge's own background between
+the icon art and its border. Bumped that shared rule to 23px (~88%
+fill against the circle's ~24px inner diameter once its 1px border is
+accounted for), close enough to the edge to read as "the emblem fills
+the badge" without clipping past the border itself. One rule change
+covers both badges, since `.hero-card-badge img` is the shared
+selector `.hero-card-badge-role img`'s gold tint (§9.44) and the
+plain element badge both build on — no separate sizing needed per
+badge.
+
+Left the roster panel's own badges (`.roster-role-icon` /
+`.roster-element-icon`, 16px icon in a 20px circle, ~80% fill already)
+untouched — the user's screenshot was specifically the Deck Builder
+card view, and that pairing was already close to full.
+
+Verified via Playwright, zoomed captures of both corner badges on the
+Deck Builder grid: the fist (role) and flame (element) medallions now
+fill their circles convincingly, no clipping past the metal border on
+either; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
+75-test Vitest suite, `vite build`, `cap sync android`) passes.

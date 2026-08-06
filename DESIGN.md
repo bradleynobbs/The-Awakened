@@ -2564,3 +2564,67 @@ and enemy copies); zero console errors. Full pipeline (`tsc -b`,
 `oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
 passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
 after use.
+
+### 9.36 A wholesale Kharos re-shoot, a much harder alpha snap, and a decontamination bug caught in the act
+
+Even §9.35's ×4.5 alpha boost wasn't enough — the user's own in-game
+screenshot showed Zera and Kharos still visibly translucent. Kharos
+also had a second, unrelated problem: the version in the game was
+missing the cape/cloak visible in a much higher-fidelity reference
+image the user supplied (1120×1404, clean pure-black background,
+`official-concept-art` quality — chains, a spiked mace, the works).
+Given a real replacement source existed for Kharos specifically, this
+called for the full art-integration pipeline this project already has
+(§9.9, §9.20, §9.31), not another alpha patch on a lower-fidelity
+sprite that never had the cape to begin with.
+
+**Keying it surfaced a bug in the color-decontamination step itself.**
+The standard black-background formula (`true = observed / alphaFraction`)
+undoes background bleed correctly for ordinary antialiased edges, but
+Kharos's design is full of purple *emissive* energy glow — soft alpha
+by artistic intent, not background dilution. Dividing those pixels by
+their own small alpha inflated them toward white, blowing the glow out
+almost entirely. Caught this by compositing the keyed result against
+*both* pure black and pure white test backgrounds (the same technique
+§9.34 used to confirm Zera's recovered color wasn't a backdrop
+artifact) — the decontaminated version came out visibly wrong on both,
+while skipping decontamination entirely matched the reference art
+almost exactly. Landed on: key normally (brightness-from-black alpha
+ramp + erosion), but skip the color-decontamination step for this
+character — the minor dark-edge bleed it would have fixed is invisible
+anyway against this game's uniformly dark presentation, so there was
+nothing worth trading the glow away for.
+
+Flipped the result — the mace-arm, Kharos's prominent weapon limb, sat
+on the left in the source, the same "wrong side for an ally facing
+right" issue §9.34 fixed on Torrent's claw-arm. Trimmed, resized to the
+standard height:700, and re-derived the portrait/card-art crops fresh
+from the new art via the established formulas, fully replacing the old
+sprite/portrait/card-art trio.
+
+**Zera and Orin needed a harder push than §9.35's multiply.** Switched
+from a multiply-and-clamp to a hard snap: any pixel at alpha ≥30
+becomes fully opaque (255), with only the truly-faint sub-30 range kept
+as a short ramp — deliberately blunt, prioritizing "reads as solid"
+over preserving a smooth falloff, since a smooth falloff was exactly
+what kept reading as "still see-through" through two previous, gentler
+attempts. Re-derived both from their true pre-§9.34 originals (via git
+history) again, for the same reason as before: stacking corrections on
+already-corrected files compounds rather than fixes.
+
+**Orin was also facing backward** — his staff (the same kind of
+prominent asymmetric weapon-limb tell as Torrent's claw and this
+section's Kharos mace) sat on the left in the source; flipped for the
+same reason.
+
+Verified via Playwright in a practice match against the real
+battlefield background: Kharos now shows his cape and reads fully
+opaque with no see-through; Zera reads solid; zero console errors
+(Orin's flip/opacity fix was verified directly against the source
+files and a synthetic battlefield composite — the practice-match
+screenshot in this pass happened not to include him in the locked
+roster, but the underlying fix is identical to Torrent's and Kharos's,
+already verified end-to-end in-game). Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
+passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
+after use.

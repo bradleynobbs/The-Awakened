@@ -2702,3 +2702,32 @@ read as fully solid and richly colored, not translucent; zero console
 errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite,
 `vite build`, `cap sync android`) passes. `sharp` was a temporary
 `--no-save` dev dependency, uninstalled after use.
+
+### 9.39 Orin gets the same re-shoot, and the §9.36 flip lesson holds
+
+Fifth hero re-shot from fresh reference art (after Sorrow, Cragor,
+Kharos, Zera) — same request, same pipeline: white-background key
+(distance-from-white ramp), decontamination checked against both
+black and white test backgrounds first (clean on both this time — his
+green wisps are edge-defined rather than Kharos-style diffuse glow, so
+kept it for the richer color), then the hard alpha snap (≥30 → fully
+opaque) already proven on the last three heroes.
+
+**No flip, deliberately** — and this is the interesting part. Orin's
+own reference has his staff on the *left*, the same side §9.36 flipped
+him to *away from*, generalizing the Torrent claw-arm convention to a
+character where it didn't apply. §9.37 already reversed that call for
+Kharos once his own reference made the intended orientation obvious;
+this section is the same lesson landing a second time, this time
+before a complaint rather than after one — the reference art is simply
+authoritative over any inferred "weapon arm faces the enemy" rule, and
+that rule was never more than a guess to begin with for static/seated
+poses without a genuine body-orientation tell (contrast Torrent, an
+actually-lunging wave-creature, where it held up).
+
+Verified via Playwright in a practice match against the real
+battlefield background: Orin (rendered on the enemy side this run,
+mirrored correctly) reads as fully solid and richly colored; zero
+console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
+suite, `vite build`, `cap sync android`) passes. `sharp` was a
+temporary `--no-save` dev dependency, uninstalled after use.

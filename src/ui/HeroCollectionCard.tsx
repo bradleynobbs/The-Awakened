@@ -50,7 +50,6 @@ export function HeroCollectionCard({ hero, selected, onSelect, onInfo }: HeroCol
           <img src={ELEMENT_ICON[hero.element]} alt={hero.element} />
         </span>
         <span className="collection-card-role-label">{hero.role}</span>
-        {selected && <span className="collection-card-tick">✓</span>}
       </div>
       <div className="collection-card-footer">
         <span className="collection-card-name">{hero.name}</span>

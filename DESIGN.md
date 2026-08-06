@@ -3231,3 +3231,26 @@ console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
 suite, `vite build`, `cap sync android`) passes. `sharp` installed
 temporarily for the crop, confirmed removed afterward
 (`git status --short package.json package-lock.json` clean).
+
+### 9.49 Removed the selection checkmark from every card
+
+Direct feedback on a Battle Preparation screenshot: drop the gold "✓"
+tick §9.47 added to mark a card as filled/selected/picked. Removed it
+from both places it appeared — `DeckSlotCard` (unconditional on every
+filled deck-row/reveal-row slot) and `HeroCollectionCard` (only on a
+card currently in the deck) — along with the now-dead
+`.deck-slot-tick`/`.collection-card-tick` CSS. Neither card loses its
+only indicator: a filled `DeckSlotCard` still reads clearly off its
+element-colored border alone, "picked" in Battle Preparation's draft
+step still gets a brighter glow + scale-up (unpicked siblings dim),
+and a selected `HeroCollectionCard` keeps its own brighter glow +
+scale-up too — the tick was always additional confirmation layered on
+top of an already-sufficient signal, never the only one.
+
+Verified via Playwright across all three places a tick used to show
+(Deck Builder's own deck row, the collection grid, and Battle
+Preparation's reveal/draft rows): no checkmarks anywhere, and the
+remaining border-glow/scale/dim treatment still clearly distinguishes
+filled-from-empty and picked-from-unpicked. Zero console errors. Full
+pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
+`cap sync android`) passes.

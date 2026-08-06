@@ -3181,3 +3181,53 @@ underlying logic fires correctly; this is a test-tooling gap, not an
 app bug). Zero console errors throughout. Full pipeline (`tsc -b`,
 `oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
 passes.
+
+### 9.48 Zera's Deck Builder card: full body + her cloud, both visible
+
+The user flagged Zera's collection-card art as barely showing her at
+all — a real regression from §9.47's own redesign, not a pre-existing
+issue with the art itself. `HERO_CARD_ART`'s existing crop for every
+hero (including Zera's) was hand-composed back in §9.30 for that
+design's landscape 1.43:1 "upper half of the card" box. §9.47 reused
+the same images for the new collection grid, whose portrait box is a
+much taller 3:4 — for most heroes' crops that's close enough that
+`object-fit: cover` only nudges the fit, but Zera's specific crop
+(500×308, a wide chest-up shot) is proportioned so differently from
+3:4 that `cover` had to crop most of its *width* to fill the taller
+box, leaving mostly just her reaching arm and part of her spirit-cloud
+companion on screen — exactly the "she's barely in it" complaint.
+
+The user supplied a second reference image (a different hero's card,
+"Luxa") purely as a pose/composition example — full body, dynamic
+stance, a companion effect floating beside the hand — and was explicit
+that Zera's own name, identity, and design should not change, just her
+crop. There's no image-generation tool in this project (see
+`CHARACTER_CONCEPTS.md`), so this isn't a re-render: `zera-sprite.png`
+(the full, uncropped source already used for her battlefield rig) already
+contains her whole body and the cloud with almost no existing margin
+(`sharp().trim()` found real content extends to within ~2px of every
+edge) — the fix is a new crop straight from that same source, not new
+art. Padded (not cropped) the canvas top and bottom with transparent
+pixels out to exactly 616×821 (3:4) so `object-fit: cover` in the
+collection card needs to crop virtually nothing — her whole body and
+the whole cloud both stay fully in frame.
+
+Deliberately did **not** just replace the shared `zera-card-art.png`
+in place: that file is also used by the older, wide 1.43:1 `HeroCard`
+component (still live in the full-screen detail panel, reached via
+long-press) — swapping the same asset for a tall crop there would
+have traded one bad crop for another, cutting off her legs/boots
+instead of her body. Added a new `HERO_COLLECTION_ART` override map in
+`heroVisuals.ts` instead (falls back to `HERO_CARD_ART` for every
+other hero, all of which already work fine at both ratios) so only
+the Deck Builder grid picks up the new full-body crop, while the
+detail panel keeps the original, unaffected.
+
+Verified via Playwright: Zera's collection card now shows her full
+body and the whole cloud with the same colored-border/tick treatment
+as every other hero's card; the detail panel (long-press) still shows
+the original chest-up crop, confirming no regression there. Zero
+console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
+suite, `vite build`, `cap sync android`) passes. `sharp` installed
+temporarily for the crop, confirmed removed afterward
+(`git status --short package.json package-lock.json` clean).

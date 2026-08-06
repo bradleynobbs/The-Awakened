@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { HeroDefinition } from "../engine/types";
-import { ELEMENT_COLOR, ELEMENT_ICON, HERO_CARD_ART, ROLE_ICON } from "./heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_ICON, HERO_CARD_ART, HERO_COLLECTION_ART, ROLE_ICON } from "./heroVisuals";
 import { useLongPress } from "./useLongPress";
 
 interface HeroCollectionCardProps {
@@ -25,7 +25,7 @@ interface HeroCollectionCardProps {
  * toggles the hero in/out of the deck directly and a long-press opens
  * the detail panel instead (see useLongPress). */
 export function HeroCollectionCard({ hero, selected, onSelect, onInfo }: HeroCollectionCardProps) {
-  const art = HERO_CARD_ART[hero.id];
+  const art = HERO_COLLECTION_ART[hero.id] ?? HERO_CARD_ART[hero.id];
   const { handlers, consumeIfLongPress } = useLongPress(onInfo);
 
   return (

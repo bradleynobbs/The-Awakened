@@ -32,6 +32,7 @@ import kairoCardArt from "../assets/heroes/kairo-card-art.png";
 import tydraCardArt from "../assets/heroes/tydra-card-art.png";
 import torrentCardArt from "../assets/heroes/torrent-card-art.png";
 import zeraCardArt from "../assets/heroes/zera-card-art.png";
+import zeraCollectionArt from "../assets/heroes/zera-collection-art.png";
 import orinCardArt from "../assets/heroes/orin-card-art.png";
 import kharosCardArt from "../assets/heroes/kharos-card-art.png";
 import flintCardArt from "../assets/heroes/flint-card-art.png";
@@ -72,7 +73,9 @@ export const HERO_PORTRAIT: Partial<Record<HeroId, string>> = {
  * each hero needs only a little further cropping via object-fit:
  * cover rather than a drastic zoom. Same 12 heroes as HERO_PORTRAIT;
  * heroes without dedicated art keep the same role-icon-on-disc
- * fallback. */
+ * fallback. See HERO_COLLECTION_ART below for the one hero (so far)
+ * whose crop here doesn't also work at the Deck Builder grid's own,
+ * taller 3:4 ratio. */
 export const HERO_CARD_ART: Partial<Record<HeroId, string>> = {
   "fire-mage": infernaCardArt,
   "undead-assassin": mournCardArt,
@@ -88,6 +91,19 @@ export const HERO_CARD_ART: Partial<Record<HeroId, string>> = {
   amp: ampCardArt,
   sorrow: sorrowCardArt,
   cragor: cragorCardArt,
+};
+
+/** Per-hero overrides for the Deck Builder's "Choose Your Demigods" grid
+ * (§9.48 — see DESIGN.md), which crops portraits to a taller 3:4 box
+ * than HERO_CARD_ART's own 1.43:1 landscape crop was ever composed
+ * for. Zera's original card art (a chest-up crop meant for that wide
+ * ratio) put most of her body and her spirit cloud outside the frame
+ * once forced into a portrait box — this is the same full-body sprite
+ * padded (not cropped) to exactly 3:4 so nothing gets cut off. Falls
+ * back to HERO_CARD_ART for every hero without an entry here, since
+ * their existing crops already work fine at both ratios. */
+export const HERO_COLLECTION_ART: Partial<Record<HeroId, string>> = {
+  zera: zeraCollectionArt,
 };
 
 /** Illustrated role emblems (replacing the earlier emoji placeholders) —

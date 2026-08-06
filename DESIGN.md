@@ -2864,3 +2864,26 @@ Verified via Playwright: both Inferna's and Kairo's Deck Builder cards
 show the Brawler fist badge in the corner instead of their previous
 role icon; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
 75-test Vitest suite, `vite build`, `cap sync android`) passes.
+
+### 9.43 Hero card border: gunmetal → gold
+
+Follow-up on §9.42's role fix — the user felt the card frame itself
+read as a bit dull afterward. §9.30's brief had explicitly banned a
+colored border ("NO coloured borders around the whole card," in favor
+of neutral gunmetal), but that instruction is superseded here by a
+direct, current ask from the user, who owns the final call on the
+game's own look. Changed `.hero-select-card`'s border from gunmetal
+(`#5a5d66`) to gold (`#c9a13b` — already the `spark` element's own
+color in `ELEMENT_COLOR`, so this isn't a new hue introduced to the
+palette) and added a faint matching outer glow alongside the existing
+bevel box-shadow, so the frame reads as a warm metal material rather
+than a flat gray outline. Left the `.selected` state's purple ring
+untouched — it already reads as a distinct "this one's picked" signal
+against the new gold base, no reason to change what wasn't the
+complaint.
+
+Verified via Playwright: every hero card in the Deck Builder grid now
+shows the gold border + glow, unselected and selected states both
+still read clearly distinct from each other; zero console errors.
+Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
+`cap sync android`) passes.

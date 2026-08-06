@@ -3254,3 +3254,68 @@ remaining border-glow/scale/dim treatment still clearly distinguishes
 filled-from-empty and picked-from-unpicked. Zero console errors. Full
 pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
 `cap sync android`) passes.
+
+### 9.50 Facing audit: 4 heroes found backward, 2 of them regressions
+
+The user asked, generically, to double-check every hero's facing —
+not in response to a specific screenshot, just wanting the whole
+roster verified against §9.3's "every hero, vector or real-art, is
+authored/stored facing right" rule.
+
+Eyeballing the 14 raw sprite files directly (unmirrored — exactly
+how each renders for an ally) rather than trusting the historical
+record: built a throwaway local HTML page (`file://`, never committed)
+showing each hero twice, once as-is and once `scaleX(-1)`, to make the
+"is the weapon-arm/gaze on the correct side" call side by side rather
+than from memory of a single static image. Two results were genuinely
+surprising:
+
+**Orin and Kharos were both backward again**, despite §9.35's own
+narrative saying both had already been flipped for exactly this
+reason (staff and mace sitting on the left). Root cause, reconstructed
+from the surrounding entries: §9.35's opacity hard-snap fix explicitly
+re-derived both heroes fresh from their **pre-§9.34 originals** ("via
+git history... stacking corrections on already-corrected files
+compounds rather than fixes") to avoid compounding the opacity
+transform on top of the flip transform — but that pre-§9.34 baseline
+was the version from *before* the facing flip ever happened, and the
+flip was never reapplied afterward. The opacity fix landed correctly;
+the facing fix it was built on top of silently didn't survive the
+rebase. A real lesson for future "re-derive from an earlier baseline"
+fixes: re-list every transform the current file carries that the
+baseline doesn't, not just the one motivating the re-derivation.
+
+**Flint's fox and Tydra were newly found, not regressions** — neither
+had a documented facing fix at all before now. Flint's fox had its
+head/front turned toward image-left; Tydra's gaze (the same kind of
+tell §9.3 used for Inferna, and §9.9 for Mourn's cloth-flow) turned
+left as well.
+
+Fixed all four the established way — `sharp().flop()` on each hero's
+sprite, portrait, *and* card-art together, for the same reason §9.34
+gave: keeping a character's canonical facing consistent across every
+view of them, not just the one that actually gets CSS-mirrored by
+team. No code changes; this was purely 12 image files (4 heroes × 3
+assets each).
+
+The other 10 heroes were checked the same way and left alone: Amp,
+Rune, Torrent, Erosalina, Inferna, Mourn, and Zera all have a clear
+weapon/gaze/companion tell already on the correct (right) side; Sorrow
+and Cragor are frontal/symmetric designs with no directional tell to
+get wrong in the first place, so nothing to flip even in principle.
+Kairo is the one honest "couldn't tell" — a mostly frontal pose with
+no visible weapon and no strong 3/4 turn either way — left unflipped
+rather than guessing, since flipping something that's actually fine is
+exactly as much of a regression as missing something that's actually
+backward.
+
+Verified two ways: the same side-by-side static comparison (confirmed
+all four now read correctly both as-is and mirrored) and a live
+practice match with Orin, Kharos, Flint, and a 4th deck slot, drafted
+into the actual battle — screenshotted mid-round, every one of them
+visibly oriented toward the enemy across the rift, including the
+bot's own (mirrored) Orin correctly facing the opposite way. Zero
+console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
+suite, `vite build`, `cap sync android`) passes. `sharp` installed
+temporarily for the flips, confirmed removed afterward
+(`git status --short package.json package-lock.json` clean).

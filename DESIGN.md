@@ -2887,3 +2887,55 @@ shows the gold border + glow, unselected and selected states both
 still read clearly distinct from each other; zero console errors.
 Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
 `cap sync android`) passes.
+
+### 9.44 Gold border → gold role emblems
+
+§9.43's gold border didn't land the way the user hoped, so this
+swaps the treatment rather than tuning it further: reverted
+`.hero-select-card`'s border and box-shadow back to the gunmetal
+version from before §9.43 (`#5a5d66`, no gold-tinted inset highlight
+or outer glow), and moved the gold treatment onto the role emblem
+icons themselves instead of the card frame.
+
+The role icons (§9.41's silver/gunmetal illustrated art) are re-tinted
+gold with a CSS filter chain — `sepia(1) saturate(4) hue-rotate(10deg)
+brightness(0.95)` — rather than regenerating the PNGs, since a neutral
+grayscale/silver source image responds predictably to this recipe: the
+sepia pass converts it to a warm brown/tan base, saturate intensifies
+it, and the hue-rotate nudges the resulting tan toward gold. Applied
+to all four places `ROLE_ICON` renders as an `<img>`:
+
+- `.hero-card-badge-role img` — new selector, more specific than the
+  shared `.hero-card-badge img` rule both role and element badges use,
+  so it layers the tint on top of just the role badge without
+  affecting the element badge sitting right next to it. CSS `filter`
+  doesn't merge across selectors of different specificity — a more
+  specific rule's `filter` fully replaces a less specific one's,
+  rather than adding to it — so this new rule explicitly re-declares
+  the shared rule's white `drop-shadow` alongside the new tint
+  functions, rather than losing that glow to the override.
+- `.roster-role-icon` (battlefield roster panel) — same reasoning,
+  keeping its existing gold-tinted `drop-shadow` (added back in §9.14
+  for visibility against the dark banner) alongside the new tint. That
+  glow was already gold, but the icon artwork underneath it was still
+  silver until now.
+- `.hero-card-fallback-icon` and `.roster-avatar-fallback-icon` — the
+  two `ROLE_ICON` fallback sites (only reachable for a hero missing
+  `HERO_CARD_ART`/`HERO_PORTRAIT`, so dead in practice since all 14
+  heroes have real art) got the same tint added for consistency, in
+  case that ever changes.
+
+Element icons (`ELEMENT_ICON`, sharing the same badge/roster
+component patterns) were left untouched throughout — `.hero-card-badge
+img`'s shared rule and `.roster-element-icon` keep their original
+filters, so element badges still show their own per-element color
+rather than picking up gold.
+
+Verified via Playwright: hero-select cards show the gunmetal border
+again with no gold glow; role badges (left side of each card, and the
+matching roster-panel badges in a live practice match) now render a
+clearly gold fist/etc. icon; element badges (right side) are
+unaffected, still their natural per-element hue; the `.selected`
+purple ring still reads correctly against the reverted gray base;
+zero console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test
+Vitest suite, `vite build`, `cap sync android`) passes.

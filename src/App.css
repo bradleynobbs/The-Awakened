@@ -176,7 +176,7 @@ button {
 .hero-select-card {
   position: relative;
   background: #0a0a0d;
-  border: 2px solid #c9a13b;
+  border: 2px solid #5a5d66;
   border-radius: 14px;
   padding: 0;
   overflow: hidden;
@@ -186,14 +186,14 @@ button {
   color: #e8eaf0;
   text-align: left;
   /* Inner highlight + outer dark ring approximates a beveled metal
-   * edge without needing a real material/lighting render. A gold
-   * border (was gunmetal) plus a faint matching glow so the frame
-   * itself reads as a premium card material, not just a flat outline. */
+   * edge without needing a real material/lighting render. Gunmetal
+   * border (a gold version didn't land well — the gold treatment now
+   * lives on the role emblem icons instead, see .hero-card-badge-role
+   * img below). */
   box-shadow:
-    inset 0 0 0 1px rgba(255, 210, 100, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
     0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 0 8px rgba(201, 161, 59, 0.35),
     0 6px 16px rgba(0, 0, 0, 0.5);
 }
 /* Subtle purple energy in the corners + small crystal accents — kept
@@ -279,13 +279,15 @@ button {
   width: 38%;
   height: 38%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6)) sepia(1) saturate(4) hue-rotate(10deg)
+    brightness(0.95);
 }
 
 /* Silver/gunmetal metallic badges, per the brief — both role and
- * element badges share the identical neutral-metal treatment (no
- * per-element tinting) so the only color signal on the whole card is
- * the small purple accents established above. */
+ * element badges share the identical neutral-metal disc treatment (no
+ * per-badge tinting on the frame itself) so the only color signal on
+ * the whole card is the small purple accents established above, plus
+ * the gold-tinted role icon (see .hero-card-badge-role img below). */
 .hero-card-badge {
   position: absolute;
   top: 6px;
@@ -304,11 +306,6 @@ button {
   width: 16px;
   height: 16px;
   object-fit: contain;
-  /* The role icons are already illustrated in their own metallic
-   * gold/bronze finish (see ROLE_ICON's own "matching metallic
-   * target-ring frames" note) — kept as-is rather than forced to
-   * silver, which would flatten their existing bevel/shading detail
-   * into a plain silhouette. */
   filter: drop-shadow(0 0 2px rgba(230, 235, 245, 0.6));
 }
 .hero-card-badge-role {
@@ -316,6 +313,16 @@ button {
 }
 .hero-card-badge-element {
   right: 6px;
+}
+/* Role icons are illustrated in a neutral silver/gunmetal finish (see
+ * ROLE_ICON) — a sepia+hue-rotate filter chain re-tints that grayscale
+ * art gold (replacing the card-border gold treatment that didn't read
+ * well, see DESIGN.md) without needing new art. Layered after the
+ * shared .hero-card-badge img rule above so its drop-shadow glow
+ * carries forward instead of being lost to the more specific filter. */
+.hero-card-badge-role img {
+  filter: drop-shadow(0 0 2px rgba(230, 235, 245, 0.6)) sepia(1) saturate(4) hue-rotate(10deg)
+    brightness(0.95);
 }
 
 /* Name plate overlaps the portrait's bottom edge slightly, per the
@@ -961,6 +968,7 @@ button {
   padding: 7px;
   box-sizing: border-box;
   display: block;
+  filter: sepia(1) saturate(4) hue-rotate(10deg) brightness(0.95);
 }
 
 .roster-banner {
@@ -1019,7 +1027,12 @@ button {
   height: 16px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 0 3px rgba(255, 190, 60, 0.9));
+  /* Silver/gunmetal role art re-tinted gold via filter chain (same
+   * recipe as .hero-card-badge-role img) — the drop-shadow was already
+   * gold-tinted for visibility against the dark banner (§9.14), but
+   * the icon artwork itself was still silver underneath it. */
+  filter: drop-shadow(0 0 3px rgba(255, 190, 60, 0.9)) sepia(1) saturate(4) hue-rotate(10deg)
+    brightness(0.95);
 }
 .roster-element-icon {
   width: 16px;

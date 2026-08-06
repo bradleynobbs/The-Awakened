@@ -101,6 +101,10 @@ export interface HeroDefinition {
   name: string;
   role: Role;
   element: Element;
+  /** One-line flavor text for the Deck Builder's Card Details panel — not
+   * used by the engine itself, just carried alongside the rest of a
+   * hero's identity so UI code has a single source for it. */
+  lore: string;
   maxHp: number;
   startingShield: number;
   stats: HeroStats;

@@ -23,13 +23,25 @@ export type PracticePhase = "selecting" | "battle";
 
 const BOT_ROLE = "player2";
 const ME_ROLE = "player1";
+const BOT_DECK_SIZE = 5;
 
-function randomBotTeam(): HeroTrio {
-  const shuffled = shuffle(
+/** The bot's 5-hero "deck" for Battle Preparation's reveal step (§9.46)
+ * — random, since there's no real second player with preferences of
+ * their own. Rerolled once per practice session (see leaveMatch) so
+ * back-to-back practice games don't always show the same 5. */
+function randomBotDeck(): HeroId[] {
+  return shuffle(
     HERO_LIST.map((h) => h.id),
     Math.random,
-  );
-  return shuffled.slice(0, 3) as HeroTrio;
+  ).slice(0, BOT_DECK_SIZE);
+}
+
+/** The bot's actual 3 fighters, drawn from its already-revealed 5 —
+ * decided at the same time as the deck itself (not lazily inside
+ * start()) so Battle Preparation's cinematic reveal always shows the
+ * same 3 heroes the match is about to actually use. */
+function randomTrioFrom(deck: HeroId[]): HeroTrio {
+  return shuffle(deck, Math.random).slice(0, 3) as HeroTrio;
 }
 
 /** Builds the bot's full plan for the current round in one pass, blind to the human's plan. */
@@ -53,6 +65,12 @@ export interface UsePracticeMatchApi {
   state: MatchState | null;
   pendingEvents: GameEvent[];
   error: string | null;
+  /** The bot's revealed 5-hero deck for Battle Preparation, and the 3
+   * fighters it's actually bringing (drawn from that same deck — see
+   * randomTrioFrom above). Both are known up front, unlike an online
+   * opponent's, since there's no real second player to wait on. */
+  botDeck: HeroId[];
+  botPick: HeroTrio;
   start: (myHeroes: HeroTrio) => void;
   queueCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
   queueTeamUp: (teamUpId: string) => void;
@@ -68,21 +86,26 @@ export function usePracticeMatch(): UsePracticeMatchApi {
   const [state, setState] = useState<MatchState | null>(null);
   const [pendingEvents, setPendingEvents] = useState<GameEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [botDeck, setBotDeck] = useState<HeroId[]>(() => randomBotDeck());
+  const [botPick, setBotPick] = useState<HeroTrio>(() => randomTrioFrom(botDeck));
   const stateRef = useRef<MatchState | null>(null);
   stateRef.current = state;
   const botPlannedRoundRef = useRef<number>(0);
 
-  const start = useCallback((myHeroes: HeroTrio) => {
-    const withMyTeam = createMatch(myHeroes, randomBotTeam());
-    const withBotPlan = botPlanRound(withMyTeam);
-    botPlannedRoundRef.current = withBotPlan.roundNumber;
-    setState(withBotPlan);
-    // The bot's opening plan is silent bookkeeping, not a fight to watch —
-    // there's nothing to animate yet until the human readies up too.
-    setPendingEvents([]);
-    setPhase("battle");
-    setError(null);
-  }, []);
+  const start = useCallback(
+    (myHeroes: HeroTrio) => {
+      const withMyTeam = createMatch(myHeroes, botPick);
+      const withBotPlan = botPlanRound(withMyTeam);
+      botPlannedRoundRef.current = withBotPlan.roundNumber;
+      setState(withBotPlan);
+      // The bot's opening plan is silent bookkeeping, not a fight to watch —
+      // there's nothing to animate yet until the human readies up too.
+      setPendingEvents([]);
+      setPhase("battle");
+      setError(null);
+    },
+    [botPick],
+  );
 
   const runAction = useCallback((fn: (s: MatchState) => MatchState) => {
     const current = stateRef.current;
@@ -131,6 +154,11 @@ export function usePracticeMatch(): UsePracticeMatchApi {
     setError(null);
     setPhase("selecting");
     botPlannedRoundRef.current = 0;
+    // Reroll the bot's deck+pick for next time — otherwise every practice
+    // session in a row would reveal the exact same 5 heroes.
+    const freshDeck = randomBotDeck();
+    setBotDeck(freshDeck);
+    setBotPick(randomTrioFrom(freshDeck));
   }, []);
 
   // Whenever a new round starts, the bot plans its whole round in one
@@ -155,6 +183,8 @@ export function usePracticeMatch(): UsePracticeMatchApi {
     state,
     pendingEvents,
     error,
+    botDeck,
+    botPick,
     start,
     queueCard,
     queueTeamUp,

@@ -41,8 +41,16 @@ export interface UseOnlineMatchApi {
   waitingOnOpponentSelection: boolean;
   /** True once I've readied up this round and I'm waiting on the opponent's. */
   waitingOnOpponentReady: boolean;
+  /** The opponent's full 5-hero deck, once their Battle Preparation
+   * reveal has arrived — null until then. */
+  opponentDeck: HeroId[] | null;
+  /** The opponent's secret 3-fighter draft pick, once it's arrived
+   * (guaranteed non-null by the time `state` exists). */
+  opponentPick: HeroTrio | null;
   findOpponent: () => void;
   cancelQueueing: () => void;
+  /** Broadcasts my full deck for the opponent's Battle Preparation reveal. */
+  submitDeck: (heroIds: HeroId[]) => void;
   submitHeroSelection: (heroIds: HeroTrio) => void;
   queueCard: (cardInstanceId: CardInstanceId, targets?: TargetSelection) => void;
   queueTeamUp: (teamUpId: string) => void;
@@ -61,6 +69,8 @@ export function useOnlineMatch(): UseOnlineMatchApi {
   const [error, setError] = useState<string | null>(null);
   const [waitingOnOpponentSelection, setWaitingOnOpponentSelection] = useState(false);
   const [waitingOnOpponentReady, setWaitingOnOpponentReady] = useState(false);
+  const [opponentDeck, setOpponentDeck] = useState<HeroId[] | null>(null);
+  const [opponentPick, setOpponentPick] = useState<HeroTrio | null>(null);
 
   const stateRef = useRef<MatchState | null>(null);
   stateRef.current = state;
@@ -124,8 +134,11 @@ export function useOnlineMatch(): UseOnlineMatchApi {
 
   const handleChannelMessage = useCallback(
     (message: MatchMessage) => {
-      if (message.type === "hero_selection") {
+      if (message.type === "deck_reveal") {
+        setOpponentDeck(message.heroIds);
+      } else if (message.type === "hero_selection") {
         opponentHeroesRef.current = message.heroIds as HeroTrio;
+        setOpponentPick(message.heroIds as HeroTrio);
         maybeStartMatch();
       } else if (message.type === "ready") {
         // Only the host (player1) ever resolves; player2 just waits for state_sync.
@@ -195,6 +208,11 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     const identity = getLocalIdentity();
     leaveQueue(identity).catch(() => {});
     setPhase("idle");
+  }, []);
+
+  const submitDeck = useCallback((heroIds: HeroId[]) => {
+    if (!myRoleRef.current) return;
+    channelRef.current?.send({ type: "deck_reveal", role: myRoleRef.current, heroIds });
   }, []);
 
   const submitHeroSelection = useCallback(
@@ -283,6 +301,8 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     setOpponentPresent(false);
     setWaitingOnOpponentSelection(false);
     setWaitingOnOpponentReady(false);
+    setOpponentDeck(null);
+    setOpponentPick(null);
     setError(null);
     setPhase("idle");
   }, []);
@@ -305,8 +325,11 @@ export function useOnlineMatch(): UseOnlineMatchApi {
     error,
     waitingOnOpponentSelection,
     waitingOnOpponentReady,
+    opponentDeck,
+    opponentPick,
     findOpponent,
     cancelQueueing,
+    submitDeck,
     submitHeroSelection,
     queueCard,
     queueTeamUp,

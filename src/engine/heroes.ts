@@ -713,6 +713,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Inferna",
     role: "Brawler",
     element: "fire",
+    lore: "She treats every fight like a craft — confident, controlled, and a little smug when the flame lands exactly where she wanted it.",
     maxHp: 18,
     startingShield: 0,
     stats: {
@@ -741,6 +742,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Tydra",
     role: "Support",
     element: "water",
+    lore: "The tide answers to her before it answers to the moon — and she'd rather heal a friend than win an argument.",
     maxHp: 20,
     startingShield: 0,
     stats: {
@@ -769,6 +771,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Mourn",
     role: "Speedster",
     element: "undead",
+    lore: "Faster than the grudge that made him — Mourn was gone before the first blow ever landed.",
     maxHp: 16,
     startingShield: 0,
     stats: {
@@ -797,6 +800,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Kairo",
     role: "Brawler",
     element: "charm",
+    lore: "Every shot is a promise: he never draws first, but he never misses either.",
     maxHp: 17,
     startingShield: 0,
     stats: {
@@ -826,6 +830,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Torrent",
     role: "Tank",
     element: "water",
+    lore: "A wall the sea itself agreed to lend him — patient, immovable, and always the last thing standing.",
     maxHp: 26,
     startingShield: 5,
     stats: {
@@ -854,6 +859,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Zera",
     role: "Ranger",
     element: "spark",
+    lore: "Lightning doesn't miss twice — and neither does she.",
     maxHp: 18,
     startingShield: 0,
     stats: {
@@ -882,6 +888,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Orin",
     role: "Mage",
     element: "spirit",
+    lore: "Roots older than the forest itself run through her — patient, deep, and quietly unbreakable.",
     maxHp: 17,
     startingShield: 0,
     stats: {
@@ -910,6 +917,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Sorrow",
     role: "Brawler",
     element: "earth",
+    lore: "He's cracked open mountains for less insult than this — Sorrow doesn't break easy, and neither do the things he hits.",
     maxHp: 22,
     startingShield: 0,
     stats: {
@@ -938,6 +946,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Kharos",
     role: "Tank",
     element: "undead",
+    lore: "Death asked him to lie down once. He said no, and the grave gave up arguing.",
     maxHp: 28,
     startingShield: 4,
     stats: {
@@ -966,6 +975,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Flint",
     role: "Support",
     element: "fire",
+    lore: "A hearth doesn't just warm a room — it keeps everyone in it alive till morning, and that's the only job Flint's ever wanted.",
     maxHp: 19,
     startingShield: 0,
     stats: {
@@ -994,6 +1004,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Erosalina",
     role: "Ranger",
     element: "charm",
+    lore: "She aims for the heart because it's the fastest way through — literally and otherwise.",
     maxHp: 17,
     startingShield: 0,
     stats: {
@@ -1022,6 +1033,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Rune",
     role: "Support",
     element: "spirit",
+    lore: "Where Rune goes, the wolf goes — and neither of them has ever left an ally to fight alone.",
     maxHp: 18,
     startingShield: 0,
     stats: {
@@ -1050,6 +1062,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Amp",
     role: "Speedster",
     element: "spark",
+    lore: "Amp doesn't dodge the hit — she's already three steps past where it landed.",
     maxHp: 15,
     startingShield: 0,
     stats: {
@@ -1078,6 +1091,7 @@ export const HERO_DEFINITIONS: Record<HeroDefinition["id"], HeroDefinition> = {
     name: "Cragor",
     role: "Tank",
     element: "earth",
+    lore: "Mountains don't flinch. Neither does Cragor — he just stands there until the storm gets bored.",
     maxHp: 27,
     startingShield: 6,
     stats: {

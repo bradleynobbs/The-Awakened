@@ -157,13 +157,6 @@ button {
   margin: 0;
 }
 
-.hero-select-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  width: 100%;
-}
-
 /* ---------- Hero card (§9.30): premium collectible-TCG redesign ----------
  * §9.29's first pass had a per-element colored border and a plain flat
  * card; this brief explicitly banned the colored border ("NO coloured
@@ -229,23 +222,6 @@ button {
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
     0 0 0 2px rgba(155, 107, 255, 0.7),
     0 6px 16px rgba(0, 0, 0, 0.5);
-}
-
-.pick-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-  background: #ffd24a;
-  color: #1a1400;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .hero-card-portrait-wrap {
@@ -2213,11 +2189,589 @@ button {
   font-size: 15px;
 }
 
-.deck-builder-body {
-  justify-content: flex-start;
-  padding-top: 20px;
-}
-
 .store-icon {
   font-size: 48px;
+}
+
+/* ---------- Deck Builder redesign (§9.46 — see DESIGN.md) ----------
+ * A persistent 5-hero deck (MY DECK row) built from a filterable,
+ * sortable collection of compact cards, with a full-screen detail
+ * panel for anything beyond a collection card's headline stats. Reuses
+ * .menu-particles/.menu-particle (§9.27) for the "soft particle
+ * effects" the brief asks for rather than inventing a second ambient
+ * system, and --font-display (see index.css) for its big headers —
+ * everything else stays on the system sans stack, since a serif
+ * display face reads badly at the small sizes most of this UI runs at. */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.deck-builder-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+.deck-builder-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 18px 16px 28px;
+}
+
+.screen-header-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.deck-builder-tool-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #2a3350;
+  color: #cfd4e6;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.deck-builder-tool-btn.active {
+  background: rgba(255, 210, 74, 0.16);
+  border-color: #ffd24a;
+  color: #ffd24a;
+}
+
+.deck-builder-section-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: #e8eaf0;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+/* ---------- Deck slots (MY DECK row + Battle Prep reveal rows) ---------- */
+
+.deck-slot-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.deck-slot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #0e0e13;
+  border: 2px solid #2a2d38;
+  border-radius: 10px;
+  padding: 0 0 5px;
+  overflow: hidden;
+  min-width: 0;
+}
+.deck-slot-card.empty {
+  aspect-ratio: 3 / 4;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-style: dashed;
+  border-color: #3a3d4a;
+  color: #565a6c;
+}
+.deck-slot-card.empty:disabled {
+  cursor: default;
+}
+.deck-slot-plus {
+  font-size: 20px;
+  line-height: 1;
+}
+.deck-slot-empty-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 4px;
+}
+.deck-slot-card.filled {
+  /* A colored border matching the hero's own element, per the brief —
+   * this is the one place in the whole app a per-element border shows
+   * up on purpose; §9.30's card frame elsewhere deliberately stays
+   * neutral gunmetal, but a deck slot's whole job is to read "this
+   * element, at a glance" across a row of 5. */
+  border-color: var(--element-color, #2a2d38);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.deck-slot-card.filled:disabled {
+  cursor: default;
+}
+.deck-slot-card.filled.picked {
+  border-color: #ffd24a;
+  box-shadow: 0 0 10px rgba(255, 210, 74, 0.6), 0 0 0 1px rgba(255, 210, 74, 0.4);
+  transform: scale(1.04);
+}
+.deck-slot-card.filled.draft-unpicked {
+  opacity: 0.55;
+}
+.deck-slot-portrait-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #16161d;
+}
+.deck-slot-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.deck-slot-fallback-icon {
+  object-fit: contain;
+  padding: 14%;
+  box-sizing: border-box;
+}
+.deck-slot-tick {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #35c46a;
+  color: #05130a;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.deck-slot-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: #e8eaf0;
+  margin-top: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 3px;
+}
+.deck-slot-badges {
+  display: flex;
+  gap: 3px;
+  margin-top: 2px;
+}
+.deck-slot-icon {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+.deck-slot-icon-role {
+  filter: drop-shadow(0 0 2px rgba(230, 235, 245, 0.6)) sepia(1) saturate(4) hue-rotate(10deg)
+    brightness(0.95);
+}
+
+.deck-builder-my-deck {
+  position: relative;
+}
+
+/* ---------- Filters ---------- */
+
+.deck-builder-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filter-chip-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.filter-chip {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a3350;
+  color: #9aa2c0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: rgba(155, 107, 255, 0.22);
+  border-color: #9b6bff;
+  color: #e0d4ff;
+}
+
+/* ---------- Hero collection grid ---------- */
+
+.hero-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.hero-collection-card {
+  position: relative;
+  border-radius: 12px;
+}
+.hero-collection-tap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #0e0e13;
+  border: 2px solid #3a3d4a;
+  border-radius: 12px;
+  padding: 0 0 6px;
+  overflow: hidden;
+  color: #e8eaf0;
+  text-align: left;
+}
+.hero-collection-card.selected .hero-collection-tap {
+  border-color: #ffd24a;
+  box-shadow: 0 0 10px rgba(255, 210, 74, 0.5);
+  transform: scale(1.03);
+}
+.hero-collection-portrait-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #16161d;
+}
+.hero-collection-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.hero-collection-portrait-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #2a2a30, #14141a);
+}
+.hero-collection-badge {
+  width: 20px;
+  height: 20px;
+  top: 4px;
+}
+.hero-collection-badge img {
+  width: 13px;
+  height: 13px;
+}
+.hero-collection-tick {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #35c46a;
+  color: #05130a;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.hero-collection-name {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 5px;
+  padding: 0 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-collection-stats {
+  display: flex;
+  gap: 6px;
+  padding: 3px 6px 0;
+}
+.hero-collection-stat {
+  font-size: 9px;
+  color: #9aa2c0;
+  font-weight: 600;
+}
+.hero-collection-abilities-pill {
+  align-self: flex-start;
+  margin: 4px 6px 0;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b8a6ff;
+  background: rgba(155, 107, 255, 0.14);
+  border: 1px solid rgba(155, 107, 255, 0.35);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.hero-collection-info-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(10, 10, 13, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #cfd4e6;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Hero detail panel (full-screen, opened from the ⓘ button) ---------- */
+
+.hero-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(4, 4, 7, 0.85);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 16px;
+}
+.hero-detail-panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: fit-content;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Clears room above the reused HeroCard frame — its own top-right
+   * element badge (see .hero-card-badge-element) sits at the exact
+   * spot a naive top:6px/right:6px close button would, so the close
+   * button lives in this padding strip above the frame instead of
+   * fighting the badge for the same corner. */
+  padding-top: 40px;
+}
+.hero-detail-close {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  z-index: 5;
+  background: rgba(10, 10, 13, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.hero-detail-card-frame {
+  cursor: default;
+}
+.hero-detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #2a2d38;
+  border-radius: 14px;
+  padding: 16px;
+}
+.hero-detail-section h3 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b8a6ff;
+  margin: 0 0 8px;
+}
+.hero-detail-section p {
+  margin: 0;
+  font-size: 13px;
+  color: #cfd4e6;
+  line-height: 1.5;
+}
+.hero-detail-lore {
+  font-style: italic;
+}
+.hero-detail-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.hero-detail-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 8px 4px;
+}
+.hero-detail-stat-label {
+  font-size: 10px;
+  color: #9aa2c0;
+  text-transform: uppercase;
+}
+.hero-detail-stat-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #e8eaf0;
+}
+.hero-detail-ability {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.hero-detail-ability:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.hero-detail-ability-cost {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffd24a;
+  background: rgba(255, 210, 74, 0.14);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.hero-detail-ability-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hero-detail-ability-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+.hero-detail-ability-desc {
+  font-size: 12px;
+  color: #9aa2c0;
+  line-height: 1.4;
+}
+.hero-detail-stub p {
+  color: #6a6f82;
+}
+.hero-detail-action {
+  width: 100%;
+}
+
+/* ---------- Replace picker (deck full, a 6th hero was tapped) ---------- */
+
+.replace-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(4, 4, 7, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.replace-picker-panel {
+  width: 100%;
+  max-width: 340px;
+  background: #14141c;
+  border: 1px solid #2a2d38;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.replace-picker-panel h3 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+.replace-picker-panel p {
+  margin: 0;
+  font-size: 13px;
+  color: #9aa2c0;
+}
+.replace-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.replace-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #2a3350;
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: #e8eaf0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.replace-picker-row:active {
+  background: rgba(255, 210, 74, 0.14);
+  border-color: #ffd24a;
+}
+.replace-picker-portrait {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  background: #2a2a30;
+  flex-shrink: 0;
+}
+
+/* ---------- Battle Preparation (§9.46): reveal 5 vs 5, draft 3, reveal picks ---------- */
+
+.battle-prep-screen h1 {
+  font-size: 26px;
+  color: #e8eaf0;
+  margin: 0;
+}
+.battle-prep-deck-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9aa2c0;
+  text-transform: uppercase;
+}
+.battle-prep-vs {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: #ffd24a;
+  text-shadow: 0 0 10px rgba(255, 210, 74, 0.5);
+}
+.battle-prep-deck-row,
+.battle-prep-draft-row {
+  max-width: 380px;
+}
+
+.battle-reveal-screen {
+  justify-content: center;
+}
+.battle-reveal-row {
+  max-width: 320px;
+}
+.battle-reveal-card {
+  opacity: 0;
+  transform: scale(0.6) translateY(10px);
+  animation: battle-reveal-in 0.5s ease-out forwards;
+}
+@keyframes battle-reveal-in {
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

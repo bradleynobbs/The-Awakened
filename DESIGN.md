@@ -2965,3 +2965,122 @@ Deck Builder grid: the fist (role) and flame (element) medallions now
 fill their circles convincingly, no clipping past the metal border on
 either; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
 75-test Vitest suite, `vite build`, `cap sync android`) passes.
+
+### 9.46 Deck Builder redesign + "build 5, reveal 5, choose 3" draft
+
+A detailed brief asked for a full premium-mobile-game Deck Builder
+redesign (glass panels, filters, a full-screen card detail view) built
+around a genuinely new mechanic: a permanent 5-hero deck, revealed in
+full to the opponent before every match, from which each player
+secretly drafts the 3 fighters that actually enter that battle. The
+user's own framing — "this could become one of the game's defining
+mechanics… meaningful mind games and replayability without making
+matches much longer" — is the real point of the feature, so the draft
+step got as much attention as the visual redesign itself.
+
+**The persistent deck.** `state/loadout.ts`'s old 3-hero "preferred
+loadout" (a pre-fill convenience, nothing more) is gone entirely,
+replaced by a real 5-hero `HeroId[]` (`DECK_SIZE = 5`) that
+auto-saves to localStorage on every change — no separate "Save"
+button, matching the brief's own mock, which shows a live
+"MY DECK (n/5)" counter and nothing else. Critically, the engine
+itself didn't need to change at all: `createMatch` already only ever
+takes a `HeroTrio` (exactly 3), so the 5-hero deck and the 3-hero
+draft are purely a pre-match layer sitting in front of the existing,
+untouched battle engine.
+
+**Deck Builder.** Rewritten around three new presentational pieces —
+`DeckSlotCard` (one slot in a 5-wide row: portrait, name, role/element
+icons, a border tinted to the hero's own element, and a tick;
+`selected` prop switches it into a dimmed/glowing draft-pick mode for
+Battle Preparation, see below), `HeroCollectionCard` (a compact card
+for the "Choose Your Demigods" grid — portrait, name, role/element
+badges, an HP/Attack/Defence row, and a "3 Abilities" pill; deliberately
+lighter than the full HeroCard trading-card design, which stays
+reserved for the detail panel and hero-select elsewhere), and
+`HeroDetailPanel` (a full-screen overlay reusing HeroCard as its
+header, appending lore, a full numeric stat block, all 3 abilities,
+Passive, and stub sections for Ultimate/Skins — both "not yet unlocked"
+rather than fabricated, since neither an unlock system nor a cosmetics
+system exists). Tapping a collection card's body toggles it in/out of
+the deck directly (glow, scale, tick, per the brief's "Selected Card
+Behaviour"); a separate small ⓘ button opens the detail panel — the
+brief asks for both "tap to select" and "tap to see everything" from
+what reads as the same card, and a single tap target can't sensibly do
+both, so this splits them onto two distinct hit areas rather than
+guessing wrong on which one "tap a card" meant. Tapping a 6th hero
+while the deck is already full opens a small replace-picker sheet
+(the brief's own resolution for that case) instead of silently doing
+nothing or bumping someone out automatically. Filters (7 elements +
+6 roles, both "All"-inclusive) and a 4-mode sort (Name/Role/
+Element/HP) sit behind a header toggle so the collection grid isn't
+permanently competing for space with them. Lore text is new — a
+one-line flavor blurb per hero, added to `HeroDefinition` alongside
+the stats that already existed (HP/Attack/Defence, already exactly
+what the brief's collection-card stat row needed) — and Cinzel (SIL
+OFL, self-hosted as a bundled `.ttf` rather than pulled from Google
+Fonts' CDN, since this app ships wrapped in Capacitor and needs to
+render with no network at all) is used sparingly, only on the big
+display headers ("MY DECK", "Battle Preparation," etc.) the brief's
+"premium fantasy fonts" ask calls for — everything else stays on the
+system sans stack, since a serif display face reads badly at the small
+sizes most of this UI's text runs at. "Soft particle effects" reuse
+the existing `.menu-particles` system from §9.27 rather than a second
+one.
+
+**Battle Preparation — the draft.** New `BattlePrep.tsx`, shared by
+both online and practice, replaces the old `OnlineHeroSelection`
+(deleted) entirely. Its "choose 3 of your 5" step reuses
+`engine/selection.ts`'s `TeamSelectionState`/`toggleHero`/
+`lockSelection` completely unchanged — that module was always a
+generic "pick exactly 3 from an offered list, then lock" state
+machine, previously offered the full roster for hero selection; now
+it's offered a 5-hero deck instead, and needed zero code changes to
+support that. Flow: both full 5-hero decks are revealed side by side
+(a spinner shows instead if the opponent's hasn't arrived yet — online
+only, practice's bot deck is generated up front) → each player
+secretly drafts 3, blind to the opponent's draft → once both picks are
+known, a short staggered reveal animation shows both chosen trios →
+the battle begins.
+
+**Wiring practice and online.** `usePracticeMatch` now generates a
+random bot "deck" of 5 *and* the bot's actual trio-of-3 pick from it
+together, up front (rerolled each session in `leaveMatch`) — deciding
+both at once, rather than a fresh random trio inside `start()`, keeps
+what Battle Preparation's reveal showed as "the opponent's pick"
+consistent with what the match actually uses. `useOnlineMatch` gained
+a `deck_reveal` broadcast message (distinct from the existing
+`hero_selection` message, which now carries the secret 3-of-5 draft
+pick rather than an immediate full-roster pick) plus `opponentDeck`/
+`opponentPick` state for the reveal UI. The trickiest part was timing
+the reveal cinematic online: `useOnlineMatch` already flips its phase
+straight to `"battle"` the instant both trios are known, with no pause
+of its own for an animation, and changing that internal resolution
+order felt too risky for a purely cosmetic flourish. Solved instead at
+the `App.tsx` level — `BattlePrep` takes a `matchReady` prop
+(`phase === "battle"`) rather than deciding anything about match
+timing itself, and `App.tsx` keeps rendering `BattlePrep` (not
+`Battle`) for a further ~1.6s after `matchReady` flips true, gated by
+a local `onlineRevealDone`/`practiceRevealDone` flag that `BattlePrep`
+sets once its own reveal animation finishes. Zero changes needed to
+either hook's actual resolution logic.
+
+**Entry gating.** Finding a match or starting a practice game with a
+deck of fewer than 5 heroes now shows a plain "Build Your Deck First"
+notice with a button straight to the Deck Builder, checked once at the
+top of `App.tsx` (`isDeckComplete`) rather than letting an incomplete
+deck reach Battle Preparation and fail confusingly partway through.
+
+Verified via Playwright: built a full 5-hero deck (colored per-element
+slot borders, gold ticks, live "5/5" counter); confirmed the replace
+picker on a 6th pick; opened the detail panel (lore/stats/abilities/
+Passive/locked-Ultimate/Skins-soon all render, and the close button no
+longer collides with the reused HeroCard's own top-right element
+badge — an actual bug caught and fixed mid-pass); filtered to Fire and
+got exactly Flint + Inferna; ran a full practice match end-to-end
+through Battle Preparation's reveal → draft → cinematic → battle with
+the drafted trio actually in play; confirmed the incomplete-deck gate
+on both Find Match and Practice. Zero console errors throughout. Full
+pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite — unchanged, since
+the engine itself never needed to change — `vite build`,
+`cap sync android`) passes.

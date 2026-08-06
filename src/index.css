@@ -1,6 +1,22 @@
+/* Cinzel (SIL Open Font License) — self-hosted rather than pulled from
+ * Google Fonts' CDN, since this app ships wrapped in Capacitor and
+ * needs to render correctly with no network at all. Used sparingly,
+ * only on the big display headers the Deck Builder redesign calls for
+ * ("premium fantasy fonts") — everything else stays on the system
+ * sans stack below, since a serif display face reads badly at the
+ * small sizes most of this UI's text runs at. */
+@font-face {
+  font-family: "Cinzel";
+  src: url("./assets/fonts/cinzel-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   font: 16px/1.4 system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Cinzel", Georgia, "Times New Roman", serif;
 }
 
 * {

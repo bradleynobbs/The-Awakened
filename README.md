@@ -164,12 +164,14 @@ actually real:
 - **Store** (menu sheet) — honest "coming soon" placeholder. No
   currency or purchases exist in this prototype by design.
 - **Collection** (menu sheet) and **Decks** (bottom tab) — both open
-  the Deck Builder: browse every hero's full card text and save a
-  preferred 3-hero loadout (stored locally), which pre-fills team
-  selection in both modes above. The engine's decks are fixed per hero
-  (3 copies each of their Attack, Ability, and Support card) — there's
-  no separate card-picking mechanic yet, so this is really "choose your
-  team," just with full card details up front.
+  the Deck Builder: browse every hero as a compact card (portrait,
+  role/element badges, HP/Attack/Defence, a ⓘ button opening a
+  full-screen panel with lore, full stats, all 3 abilities, and
+  Passive), with element/role filters and sort, and build a permanent
+  5-hero deck (stored locally). This deck isn't the 3 that actually
+  fight, though — see **Battle Preparation** below. The engine's decks
+  are fixed per hero (3 copies each of their Attack, Ability, and
+  Support card) — there's no separate card-picking mechanic yet.
 - **Missions** (menu sheet) — opens the Objectives screen: a
   Daily/Weekly summary (matches played/won, tracked locally, reset at
   local midnight / Monday) — no rewards wired up yet, just progress
@@ -183,16 +185,23 @@ actually real:
    with the next other player who's also looking (public queue — see
    `DESIGN.md` §4.1). (Or tap **Practice vs Bot** to skip matchmaking
    entirely.)
-2. **Hero Selection.** Pick exactly 3 of your 14 offered heroes and lock
-   in. You see only your own picks; once both players have locked in,
-   both teams' full rosters become visible on the battlefield. A locked
-   team cannot change for the rest of the match.
+2. **Battle Preparation.** Both players' full 5-hero decks are revealed
+   to each other up front — no secrets there. Then each player secretly
+   taps 3 of their own 5 to actually bring into this match, blind to
+   the opponent's pick, and confirms. Once both have picked, a short
+   reveal animation shows both players' chosen 3 before the battle
+   begins. The "build 5, reveal 5, choose 3" split (see `DESIGN.md` §9)
+   is what makes counter-picking possible even with a fixed personal
+   deck — you always know what your opponent *could* bring, never what
+   they actually will until the reveal. Your chosen 3 cannot change for
+   the rest of the match.
 3. **Battle.** Every round, both players plan simultaneously — there's
    no waiting for a turn. Each round you get a fresh hand of 5 cards
-   drawn from your personal deck (built from your 3 heroes' Attack,
-   Ability, and Support cards, 3 copies of each) and an energy budget of
-   3 plus each of your living heroes' Energy stat (shown per-hero in the
-   Deck Builder) — most heroes add 0, a couple add 1.
+   drawn from your personal deck (built from your 3 chosen fighters'
+   Attack, Ability, and Support cards, 3 copies of each) and an energy
+   budget of 3 plus each of your living heroes' Energy stat (shown
+   per-hero in the Deck Builder's detail panel) — most heroes add 0, a
+   couple add 1.
    - Tap a card in your hand to arm it, then tap a highlighted hero on
      the battlefield to target it. This queues the action (shown in
      your **Planned Actions** list) — nothing resolves yet, and your
@@ -267,11 +276,13 @@ Orin/Rune).
 Each hero also has a full stat block (Attack, Defense, Speed, Accuracy,
 Evasion, Critical Chance/Damage, Energy, Cooldown Reduction, Healing
 Power, Shield Strength) — see "Stats" below and `DESIGN.md` §8 for
-exactly how each one is used. The hero cards themselves (Deck Builder
-and hero-select, §9.30) deliberately don't show these numbers or a
-Passive row — just the Attack/Ability/Support text, by design, for a
-cleaner premium-card look; the full numeric breakdown lives in
-`DESIGN.md` §2/§8 instead.
+exactly how each one is used. The hero card itself (§9.30) deliberately
+doesn't show these numbers or a Passive row — just the
+Attack/Ability/Support text, by design, for a cleaner premium-card
+look. The Deck Builder's collection card shows HP/Attack/Defence up
+front, and its full-screen detail panel (§9.46) adds lore, every stat,
+and Passive on top of that — the full numeric breakdown otherwise
+lives in `DESIGN.md` §2/§8.
 
 Each hero has one Attack card (1 energy), one Ability card (2 energy), one
 Support card (2 energy — heals, shields, or Empowers an ally, see
@@ -354,7 +365,10 @@ src/engine/       Pure rules engine (unchanged whether local or online)
   elements.ts      The 7-element advantage web (elementalMultiplier()), see DESIGN.md §8.3
   teamups.ts       The 2 Team-Up card definitions
   cards.ts         Card-id → CardDefinition registry
-  selection.ts     Hero-pick validation (exactly 3 of 7, lock-in)
+  selection.ts     Generic "pick exactly 3 from an offered list, then
+                     lock" state machine — originally full-roster hero
+                     selection, now reused by BattlePrep's "choose 3 of
+                     your 5-hero deck" draft step (§9.46)
   deck.ts          Deck building, draw/discard/reshuffle
   combat.ts        Damage (Attack/Defense/elemental/Accuracy/Crit, DESIGN.md §8),
                      healing, shields, Burn/Wet/Empower/Charm primitives, victory check
@@ -377,16 +391,17 @@ src/net/          Supabase-backed networking (matchmaking + realtime sync)
   matchChannel.ts   Per-match Realtime Broadcast channel + presence
 
 src/state/
-  useOnlineMatch.ts   Drives the online flow: matchmaking → hero-selection
-                        sync → state-broadcast sync, exposing a small API
-                        (state, phase, myRole, queueCard/queueTeamUp/
-                        unqueueAction/setReady). Player 1 is the sole
-                        authoritative resolver once both players are ready.
+  useOnlineMatch.ts   Drives the online flow: matchmaking → deck-reveal sync
+                        → 3-fighter-pick sync → state-broadcast sync, exposing
+                        a small API (state, phase, myRole, opponentDeck/
+                        opponentPick, queueCard/queueTeamUp/unqueueAction/
+                        setReady). Player 1 is the sole authoritative resolver
+                        once both players are ready.
   usePracticeMatch.ts Local vs-bot flow with the same API shape, no network —
                         the bot plans its whole round up front each round via
                         chooseBotAction, then both players resolve together
-  loadout.ts          Preferred 3-hero loadout (localStorage), set by Deck
-                        Builder, read by both hero-selection screens
+  loadout.ts          Permanent 5-hero deck (localStorage), set by Deck
+                        Builder, read by Battle Preparation
   objectives.ts       Daily/weekly matches-played/won counters (localStorage,
                         date-keyed reset), recorded on every match end
 
@@ -408,14 +423,20 @@ src/ui/             MainMenu (full home-screen shell, §9.25-§9.28),
                      rendered by App.tsx, not owned by MainMenu),
                      HeroCard (premium collectible-card hero
                      presentation, §9.29-§9.30 — chest-up portrait
-                     filling the card's upper half, silver/gunmetal
-                     role+element badges, an overlapping name plate,
-                     and exactly 3 ability panels; shared by
-                     DeckBuilder and OnlineHeroSelection), DeckBuilder,
-                     Store,
+                     filling the card's upper half, gunmetal-framed
+                     with gold role/element badges, an overlapping name
+                     plate, and exactly 3 ability panels; reused as the
+                     header of HeroDetailPanel), DeckBuilder (§9.46 —
+                     a permanent 5-hero deck built from a filterable
+                     HeroCollectionCard grid, with DeckSlotCard for the
+                     deck row and HeroDetailPanel for the full-screen
+                     "everything about this hero" view), Store,
                      Objectives, ComingSoon (shared placeholder for
                      unbuilt nav targets), Matchmaking,
-                     OnlineHeroSelection (shared by online + practice),
+                     BattlePrep (§9.46 — shared by online + practice:
+                     reveal both players' 5-hero decks, each secretly
+                     drafts 3 via engine/selection.ts, then a short
+                     reveal cinematic before the battle begins),
                      Battle (TopBar, CardHand, TeamUpBar, CombatLog
                      sheet, LatestEventToast), VictoryScreen, DebugPanel
 ```

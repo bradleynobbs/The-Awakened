@@ -3,6 +3,11 @@ import { getSupabaseClient } from "./supabaseClient";
 import type { HeroId, MatchState, PlayerId, QueuedAction } from "../engine/types";
 
 export type MatchMessage =
+  /** Sent once, right on entering Battle Preparation, so each client can
+   *  show the opponent's full 5-hero deck in the reveal step (§9.46) —
+   *  distinct from "hero_selection" below, which is the secret 3-of-5
+   *  draft pick that follows it. */
+  | { type: "deck_reveal"; role: PlayerId; heroIds: HeroId[] }
   | { type: "hero_selection"; role: PlayerId; heroIds: HeroId[] }
   /** Sent once when a player readies up, carrying their full queued-actions
    *  list for that round so player1's client (the sole resolver — see

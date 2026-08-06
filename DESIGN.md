@@ -2514,3 +2514,53 @@ console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
 suite, `vite build`, `cap sync android`) passes. `sharp` was a
 temporary `--no-save` dev dependency for this image work only,
 uninstalled after use.
+
+### 9.35 §9.34's de-fade wasn't nearly strong enough — and Orin has the same defect
+
+§9.34's gamma-curve alpha boost (0.55/0.45) looked fixed against a flat
+dark preview background, but the user reported Zera and Kharos still
+read as "basically see through" in the actual game — against the
+busy, brightly-lit `arena-plaza.jpg` battlefield art, partial
+transparency is far more visible than against a flat swatch, and a
+gamma curve on alpha (`255 * af^gamma`) barely moves anything below
+~0.4 opacity: at gamma 0.55, a pixel starting at 30% alpha only reaches
+~49% — nowhere near opaque. Re-measured: even after §9.34's fix, Zera
+and Kharos still had ~40% of their own visible pixels under alpha 150,
+against ~5-12% for a normally-exported hero.
+
+Composited test crops directly onto the real `arena-plaza.jpg`
+background (not a flat swatch) this time, specifically to judge
+against what the user is actually seeing rather than a background that
+flatters partial transparency. A blunt linear multiply-and-clamp
+(`min(255, alpha × 4.5)`) — much more aggressive than a gamma curve —
+pushed the great majority of both characters' bodies to full opacity
+while composited-preview comparisons at ×3/×4/×5 showed diminishing
+returns past ×4, landing on ×4.5 for a safety margin. The thin wispy
+edges (hair strands, Orin's floating leaf/ember motes) staying
+slightly translucent is correct, not a residual bug — those elements
+read as intentionally ethereal on every other hero too.
+
+**Orin turned out to have the identical defect, unreported until this
+image was sent** — same ~40%-under-alpha-150 profile as Zera/Kharos
+pre-fix, presumably from the same "second wave" art export batch
+(§9.20). Since the symptom and root cause were identical, fixed with
+the same multiply-and-clamp pass rather than waiting for a separate
+report.
+
+**Re-derived from the true pre-§9.34 originals (via git history), not
+from §9.34's already-adjusted files on disk** — stacking a second
+decontamination pass on art that had already been decontaminated once
+would double-correct the color rather than compound the fix
+correctly. Applied directly to each hero's sprite and portrait (both
+still carry an alpha channel); card art was regenerated fresh from the
+newly-fixed sprite through the same crop box §9.30's formula already
+used for each hero, exactly as in §9.34, since it's flattened (no
+alpha left to patch) at crop time.
+
+Verified via Playwright in an actual practice match, screenshotted
+against the real battlefield background (not a synthetic preview):
+Zera and Kharos both read as solid on either side of the field (ally
+and enemy copies); zero console errors. Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
+passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
+after use.

@@ -2780,3 +2780,42 @@ to its cost; zero console errors. Full pipeline (`tsc -b`, `oxlint`,
 75-test Vitest suite, `vite build`, `cap sync android`) passes.
 `sharp` was a temporary `--no-save` dev dependency, uninstalled after
 use.
+
+### 9.41 Fresh illustrated role icons, replacing the originals in place
+
+Same request as §9.40, this time for `ROLE_ICON` itself: the user
+supplied a matched set of 6 new role emblems (black background, same
+double-ring + corner-diamond-stud frame as the new element set, one
+per role — a running figure for Speedster, an ornate crescent/staff
+motif for Mage, a clenched fist for Brawler, cupped hands cradling a
+healing star for Support, a bow and arrow for Ranger, a shield for
+Tank) rendered in a silver/gunmetal finish instead of the previous
+gold/bronze one.
+
+Unlike §9.40, there was no new map/wiring to add — `ROLE_ICON` already
+existed and every consumer already referenced
+`src/assets/roles/{mage,brawler,tank,speedster,ranger,support}.png`
+by path. Keyed with the same black-background pipeline and overwrote
+those 6 files in place; zero code changes needed anywhere.
+
+**One of the six needed a higher LOW threshold than the rest.** Sampling
+the border ring of each source image (a standard sanity check before
+keying, at this point) showed Brawler's "black" background wasn't
+actually flat — its outer 20px ring averaged brightness ~13 with a
+max of 31, a visible noise floor rather than true black, unlike the
+other five (and every previous black-background source this project
+has keyed) which sat at 0-2. Sampling the fist itself (130-160+
+brightness) confirmed a wide, safe gap above that noise floor still
+existed. Raised LOW from the usual 8 to 35 (and HIGH from 55 to 90,
+keeping the same proportional ramp width) for all 6 role icons rather
+than special-casing just Brawler — harmless for the other five, whose
+backgrounds were already near-zero, and it cleanly eliminated what
+would otherwise have been a faint gray halo around Brawler's fist.
+
+Verified via Playwright: Deck Builder hero cards show the new silver
+role badge in the corner, and the battlefield roster panel's role
+icons render correctly alongside the §9.40 element icons across a full
+mixed-role team; zero console errors. Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
+passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
+after use.

@@ -2628,3 +2628,40 @@ already verified end-to-end in-game). Full pipeline (`tsc -b`,
 `oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
 passes. `sharp` was a temporary `--no-save` dev dependency, uninstalled
 after use.
+
+### 9.37 §9.36's Kharos flip was wrong; hard-snapped his alpha instead of skipping decontamination
+
+Two follow-up complaints on §9.36's Kharos re-shoot: he was now facing
+backward, and he still wasn't opaque enough despite skipping
+decontamination there specifically to preserve his purple glow.
+
+**The flip was simply a bad call.** §9.36 mirrored Kharos so his
+mace-arm sat on the right, generalizing from Torrent's fix (§9.34,
+raised claw-arm on the wrong side). But there's no eyes-forward "look
+direction" to anchor that convention against on a skull-faced character
+holding a weapon in a static standing pose — unlike Torrent's
+wave-creature, where the raised claw read as a body genuinely oriented
+one way, Kharos's mace-hand is just which hand happens to hold it, and
+the user's own reference (sent twice now, both times with the mace on
+the *left*) makes clear that's the intended orientation. Reverted:
+no flip this time.
+
+**Opacity: skipping decontamination fixed the glow-blowout bug but
+apparently wasn't a big enough opacity win on its own.** The user
+supplied a fresh copy of the reference (same pose, this time on a white
+rather than black background) — re-keyed it with the white-background
+pipeline (distance-from-white ramp) instead of reusing the previous
+black-bg-keyed result, then applied the same hard alpha snap already
+proven on Zera/Orin (§9.36: anything ≥30 becomes fully opaque) *on top
+of* still skipping decontamination — the two fixes address different
+problems (opacity vs. color-blowout) and aren't in tension with each
+other; there was no reason the first round's "skip decontamination"
+choice should have also meant "keep a soft alpha ramp."
+
+Verified via Playwright in a practice match against the real
+battlefield background: Kharos's mace-arm is back on the left, he
+reads as solid/opaque against the busy background art, and his cape
+and purple glow are both still intact; zero console errors. Full
+pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite, `vite build`,
+`cap sync android`) passes. `sharp` was a temporary `--no-save` dev
+dependency, uninstalled after use.

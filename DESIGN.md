@@ -3084,3 +3084,100 @@ on both Find Match and Practice. Zero console errors throughout. Full
 pipeline (`tsc -b`, `oxlint`, 75-test Vitest suite — unchanged, since
 the engine itself never needed to change — `vite build`,
 `cap sync android`) passes.
+
+### 9.47 Deck Builder: pixel-matching a supplied mockup
+
+A follow-up brief supplied an actual mockup image and asked for a much
+closer visual match than §9.46's own redesign — "premium collectible
+card game," explicitly not Material Design — plus the user's own
+improvement on top of it: fold the mockup's 3-slot "MY DECK" strip and
+separate Power Rating panel into a single un-scrolled row of 5 deck
+slots (Clash Royale-style), since this game's actual flow is "pick 5,
+reveal 5, choose 3," not "pick 3 and done."
+
+**Reconciling the mockup with what already existed.** The mockup drops
+two things §9.46 had just built: the ⓘ-button/tap split for opening
+the detail panel, and the live "MY DECK (n/5)" counter (replaced by a
+static "Pick 5 Demigods" heading — the 5 slots' own filled/empty state
+already shows progress, so a redundant counter added nothing). Asked
+the user directly rather than guessing on both: tap now toggles
+selection directly (matching the mockup) and a **long-press** opens
+the detail panel instead of a dedicated button (new `useLongPress`
+hook — starts a 450ms timer on `pointerdown`, cancels on
+`pointerup`/`pointerleave`/`pointercancel`, and exposes
+`consumeIfLongPress()` for the click handler to call first so a long
+press never *also* fires the tap action). The user picked "big cards
+everywhere" over a separate small-chip design for the deck row, so
+both `HeroCollectionCard` and `DeckSlotCard` share the same visual
+language (colored glowing border, element badge, checkmark) — the
+deck row's cards are simply a lighter variant (no stats row, no
+ability count) since 5 of them sit in one un-scrolled row with no
+room for more, which turns out to match what the mockup's own "MY
+DECK" cards do too once you look closely.
+
+**Card anatomy**, copied from the mockup rather than invented: element
+as a small icon badge top-left (reusing the existing `ELEMENT_ICON`
+medallions and the app's established per-element `ELEMENT_COLOR`
+tokens — deliberately *not* introducing a second, conflicting color
+mapping just for this screen, even though the brief's own text list
+and the mockup's own filter-icon colors disagree with each other on
+Earth vs. Spirit; the already-shipped palette wins so a hero's element
+color means the same thing on every screen, not something different
+here than on the roster banner), role as plain colored text top-right
+(no role icon on this card face — genuinely absent from the mockup,
+not an oversight, though the illustrated `ROLE_ICON` art still appears
+on the deck-slot row and elsewhere), then a footer of name / "3
+Abilities" / an HP-Attack-Defence row. Selection state is a brighter
+version of the same element-colored glow plus a large gold "✓" (no
+green Material-style circle — this app's win/success color everywhere
+else happens to be gold, not green, and green read too much like a
+generic Android status dot for a "premium fantasy" card). Gold diamond
+dividers (new `SectionDivider` component) flank both section headings,
+Cinzel gets used on more headers, and a `.deck-builder-cosmic-fog`
+layer (three large soft purple radial gradients, fixed, non-interactive)
+sits behind the existing `.menu-particles` twinkle system for the
+"purple cosmic fog" ask.
+
+**Filters split in two**, since the mockup's own always-visible filter
+bar only ever shows elements (never roles): the 7-element + "All" chip
+row stays permanently visible under "Choose Your Demigods," while role
+filtering moved behind the header's own "Filter" button as a small
+anchored dropdown (closed by an invisible full-screen backdrop button
+behind it). "Sort" keeps its existing tap-to-cycle behavior through
+Name/Role/Element/HP — a simplification from the mockup's own
+dropdown-chevron affordance, since a 4-mode cycle needs no actual menu
+to be discoverable and adding one would be pure UI weight for no real
+gain.
+
+**Two real bugs caught mid-pass, both CSS**, worth recording since
+neither was an obvious first guess:
+- `.filter-chip-row` set `overflow-x: auto` but never touched
+  `overflow-y` — per the CSS Overflow spec, leaving one axis "visible"
+  while the other isn't auto-promotes the "visible" axis to "auto" too,
+  and a flex container that's simultaneously an "auto" scroll container
+  on both axes *and* a flex item in a column collapsed to a 2px
+  rendered height in Chromium instead of sizing to its content. Fixed
+  by pinning `overflow-y: visible` explicitly rather than leaving it
+  implicit — the filter chips were otherwise fully present in the DOM
+  and correctly styled, just squeezed into 2px of vertical space.
+- The header's title ("Deck Builder" in Cinzel) had no
+  `white-space: nowrap`, so once an ⓘ button and two pill buttons
+  joined it in the same flex row, it wrapped to two lines instead of
+  the row shrinking the pills. Fixed with `nowrap` + `flex-shrink: 0`
+  on the title, plus trimming the sort button's own label ("Sort:
+  Name ▾" → "Name ▾") to free up room.
+
+Verified via Playwright against the actual mockup image, side by side:
+empty deck row, a filled deck-of-5 (colored borders, gold ticks
+matching per-element slot colors), the element filter row now actually
+visible and scrollable, the role-filter dropdown, the info modal, and
+Battle Preparation's reveal/draft screens — which picked up the same
+card redesign for free, since both screens share `DeckSlotCard`.
+Confirmed the long-press-to-detail behavior via direct `PointerEvent`
+dispatch (Playwright's own `page.mouse` helper doesn't reliably
+simulate a held press in this harness — dispatching real `pointerdown`
+→ wait → `pointerup` events directly against the element confirmed the
+underlying logic fires correctly; this is a test-tooling gap, not an
+app bug). Zero console errors throughout. Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
+passes.

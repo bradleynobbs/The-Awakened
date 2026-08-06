@@ -2187,6 +2187,8 @@ button {
 .screen-header-title {
   font-weight: 700;
   font-size: 15px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .store-icon {
@@ -2207,9 +2209,31 @@ button {
   font-family: var(--font-display);
 }
 
+/* ---------- Deck Builder redesign (§9.47 — see DESIGN.md) ----------
+ * Rebuilt to match a supplied mockup almost exactly: a black/purple
+ * "premium collectible card game" look (cosmic fog + particles behind
+ * everything, gold divider ornaments, full-art element-bordered
+ * cards), a static "Pick 5 Demigods" row instead of a live counter,
+ * and no Power Rating/Avg Cost/Synergy panel at all. */
+
 .deck-builder-screen {
   position: relative;
   overflow: hidden;
+  background: #050509;
+}
+/* Layered soft purple radial blobs standing in for "cosmic fog" —
+ * intentionally not scoped to any specific nebula shape, just enough
+ * ambient color drift behind the content that the screen doesn't read
+ * as flat black. Fixed so it doesn't scroll with the content beneath. */
+.deck-builder-cosmic-fog {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(120, 70, 200, 0.35) 0%, rgba(120, 70, 200, 0) 70%),
+    radial-gradient(ellipse 50% 35% at 100% 20%, rgba(90, 50, 170, 0.28) 0%, rgba(90, 50, 170, 0) 70%),
+    radial-gradient(ellipse 55% 40% at 50% 100%, rgba(70, 40, 140, 0.22) 0%, rgba(70, 40, 140, 0) 70%);
 }
 
 .deck-builder-body {
@@ -2224,42 +2248,126 @@ button {
   padding: 18px 16px 28px;
 }
 
+.deck-builder-header {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 8, 16, 0.9);
+  border-bottom: 1px solid rgba(155, 107, 255, 0.25);
+}
+.deck-builder-info-btn {
+  background: none;
+  border: 1px solid rgba(207, 212, 230, 0.35);
+  color: #cfd4e6;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .screen-header-actions {
   display: flex;
   gap: 6px;
   margin-left: auto;
 }
+.deck-builder-filter-wrap {
+  position: relative;
+}
 .deck-builder-tool-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #2a3350;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(155, 107, 255, 0.35);
   color: #cfd4e6;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 7px 12px;
+  padding: 6px 9px;
   border-radius: 10px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .deck-builder-tool-btn.active {
-  background: rgba(255, 210, 74, 0.16);
-  border-color: #ffd24a;
-  color: #ffd24a;
+  background: rgba(155, 107, 255, 0.22);
+  border-color: #9b6bff;
+  color: #e0d4ff;
+  box-shadow: 0 0 8px rgba(155, 107, 255, 0.45);
+}
+.dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.role-filter-dropdown {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 150px;
+  background: #14111c;
+  border: 1px solid rgba(155, 107, 255, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(155, 107, 255, 0.2);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.role-filter-option {
+  background: none;
+  border: none;
+  color: #cfd4e6;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.role-filter-option.active {
+  background: rgba(155, 107, 255, 0.22);
+  color: #e0d4ff;
 }
 
-.deck-builder-section-title {
+/* ---------- Gold divider ornament ---------- */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+.section-divider-title {
   font-family: var(--font-display);
   font-size: 15px;
-  letter-spacing: 0.06em;
-  color: #e8eaf0;
-  margin: 0 0 10px;
+  letter-spacing: 0.1em;
+  color: #f0dca0;
   text-transform: uppercase;
+  margin: 0;
+  white-space: nowrap;
+  text-shadow: 0 0 12px rgba(240, 200, 120, 0.35);
+}
+.section-divider-diamond {
+  color: #c9a13b;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.section-divider-line {
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a13b, transparent);
 }
 
-/* ---------- Deck slots (MY DECK row + Battle Prep reveal rows) ---------- */
+/* ---------- Deck slots (Pick 5 Demigods row + Battle Prep reveal rows) ---------- */
 
 .deck-slot-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  gap: 5px;
   width: 100%;
 }
 .deck-slot-card {
@@ -2267,10 +2375,10 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #0e0e13;
-  border: 2px solid #2a2d38;
+  background: #0a0a10;
+  border: 2px solid rgba(155, 107, 255, 0.3);
   border-radius: 10px;
-  padding: 0 0 5px;
+  padding: 0 0 4px;
   overflow: hidden;
   min-width: 0;
 }
@@ -2279,42 +2387,44 @@ button {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border-style: dashed;
-  border-color: #3a3d4a;
-  color: #565a6c;
+  color: #7a7fa0;
 }
 .deck-slot-card.empty:disabled {
   cursor: default;
 }
 .deck-slot-plus {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
+  color: #9b6bff;
 }
 .deck-slot-empty-label {
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-align: center;
-  padding: 0 4px;
+  padding: 0 3px;
+  text-transform: uppercase;
 }
 .deck-slot-card.filled {
-  /* A colored border matching the hero's own element, per the brief —
+  /* A colored border matching the hero's own element, per the mockup —
    * this is the one place in the whole app a per-element border shows
    * up on purpose; §9.30's card frame elsewhere deliberately stays
    * neutral gunmetal, but a deck slot's whole job is to read "this
    * element, at a glance" across a row of 5. */
   border-color: var(--element-color, #2a2d38);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px 0 color-mix(in srgb, var(--element-color, #666) 55%, transparent),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
 }
 .deck-slot-card.filled:disabled {
   cursor: default;
 }
 .deck-slot-card.filled.picked {
-  border-color: #ffd24a;
-  box-shadow: 0 0 10px rgba(255, 210, 74, 0.6), 0 0 0 1px rgba(255, 210, 74, 0.4);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--element-color, #666) 75%, transparent),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
   transform: scale(1.04);
 }
 .deck-slot-card.filled.draft-unpicked {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 .deck-slot-portrait-wrap {
   position: relative;
@@ -2335,45 +2445,50 @@ button {
   padding: 14%;
   box-sizing: border-box;
 }
-.deck-slot-tick {
+.deck-slot-element-badge {
   position: absolute;
   top: 3px;
-  right: 3px;
+  left: 3px;
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #35c46a;
-  color: #05130a;
-  font-size: 10px;
-  font-weight: 800;
+  background: radial-gradient(circle, #1a1a22 0%, #05050a 100%);
+  border: 1px solid var(--element-color, #666);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.deck-slot-element-badge img {
+  width: 9px;
+  height: 9px;
+  object-fit: contain;
+}
+.deck-slot-tick {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  color: #ffd24a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 4px rgba(255, 210, 74, 0.9), 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 .deck-slot-name {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: #e8eaf0;
-  margin-top: 4px;
+  margin-top: 3px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 0 3px;
 }
-.deck-slot-badges {
-  display: flex;
-  gap: 3px;
-  margin-top: 2px;
-}
-.deck-slot-icon {
-  width: 13px;
-  height: 13px;
+.deck-slot-role-icon {
+  width: 12px;
+  height: 12px;
   object-fit: contain;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
-}
-.deck-slot-icon-role {
+  margin-top: 1px;
   filter: drop-shadow(0 0 2px rgba(230, 235, 245, 0.6)) sepia(1) saturate(4) hue-rotate(10deg)
     brightness(0.95);
 }
@@ -2384,67 +2499,70 @@ button {
 
 /* ---------- Filters ---------- */
 
-.deck-builder-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 .filter-chip-row {
   display: flex;
+  align-items: center;
+  flex-shrink: 0;
   gap: 6px;
   overflow-x: auto;
+  /* Setting only overflow-x promotes overflow-y's initial "visible" to
+   * "auto" too, per spec — and an "auto" cross-axis on a flex container
+   * that's itself a flex item in a column collapses its height to ~0
+   * in Chromium rather than sizing to content. Pinning overflow-y back
+   * to visible explicitly avoids that trap. */
+  overflow-y: visible;
   padding-bottom: 2px;
+  margin-bottom: 14px;
 }
 .filter-chip {
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #2a3350;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #9aa2c0;
   font-size: 12px;
   font-weight: 600;
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: 999px;
   white-space: nowrap;
 }
 .filter-chip.active {
-  background: rgba(155, 107, 255, 0.22);
+  background: rgba(155, 107, 255, 0.24);
   border-color: #9b6bff;
   color: #e0d4ff;
+  box-shadow: 0 0 10px rgba(155, 107, 255, 0.5);
 }
 
 /* ---------- Hero collection grid ---------- */
 
 .hero-collection-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 .hero-collection-card {
   position: relative;
-  border-radius: 12px;
-}
-.hero-collection-tap {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  background: #0e0e13;
-  border: 2px solid #3a3d4a;
-  border-radius: 12px;
-  padding: 0 0 6px;
+  width: 100%;
+  background: #0a0a10;
+  border: 3px solid var(--element-color, #3a3d4a);
+  border-radius: 16px;
+  padding: 0;
   overflow: hidden;
   color: #e8eaf0;
   text-align: left;
+  box-shadow: 0 0 14px 0 color-mix(in srgb, var(--element-color, #666) 45%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
-.hero-collection-card.selected .hero-collection-tap {
-  border-color: #ffd24a;
-  box-shadow: 0 0 10px rgba(255, 210, 74, 0.5);
-  transform: scale(1.03);
+.hero-collection-card.selected {
+  box-shadow: 0 0 20px 2px color-mix(in srgb, var(--element-color, #666) 80%, transparent),
+    0 0 0 2px #ffd24a, inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
 }
 .hero-collection-portrait-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: #16161d;
 }
@@ -2463,81 +2581,95 @@ button {
   justify-content: center;
   background: linear-gradient(160deg, #2a2a30, #14141a);
 }
-.hero-collection-badge {
-  width: 20px;
-  height: 20px;
-  top: 4px;
-}
-.hero-collection-badge img {
-  width: 13px;
-  height: 13px;
-}
-.hero-collection-tick {
+/* Element = icon (top-left), role = colored text (top-right) — a
+ * deliberate mockup choice, not an oversight; the illustrated
+ * ROLE_ICON medallions still appear elsewhere (roster panel, the
+ * deck-slot row) but not on this particular card face. */
+.collection-card-element-badge {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #35c46a;
-  color: #05130a;
-  font-size: 10px;
-  font-weight: 800;
+  background: radial-gradient(circle, #1a1a22 0%, #05050a 100%);
+  border: 1.5px solid var(--element-color, #666);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--element-color, #666) 60%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
-.hero-collection-name {
-  font-size: 11px;
-  font-weight: 700;
-  margin-top: 5px;
-  padding: 0 6px;
+.collection-card-element-badge img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+.collection-card-role-label {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--element-color, #cfd4e6);
+  background: rgba(5, 5, 10, 0.6);
+  padding: 3px 7px;
+  border-radius: 999px;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--element-color, #666) 70%, transparent);
+}
+.collection-card-tick {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 2;
+  color: #ffd24a;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 210, 74, 1), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.collection-card-footer {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(10, 8, 16, 0.4), rgba(6, 5, 10, 0.9));
+  padding: 8px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.collection-card-name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #f0eefa;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hero-collection-stats {
-  display: flex;
-  gap: 6px;
-  padding: 3px 6px 0;
-}
-.hero-collection-stat {
-  font-size: 9px;
-  color: #9aa2c0;
+.collection-card-abilities-line {
+  font-size: 10px;
   font-weight: 600;
+  color: #9aa2c0;
+  letter-spacing: 0.03em;
 }
-.hero-collection-abilities-pill {
-  align-self: flex-start;
-  margin: 4px 6px 0;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #b8a6ff;
-  background: rgba(155, 107, 255, 0.14);
-  border: 1px solid rgba(155, 107, 255, 0.35);
-  border-radius: 999px;
-  padding: 2px 7px;
-}
-.hero-collection-info-btn {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  z-index: 2;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(10, 10, 13, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #cfd4e6;
-  font-size: 11px;
+.collection-card-stats {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+.collection-card-stat {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8eaf0;
 }
 
-/* ---------- Hero detail panel (full-screen, opened from the ⓘ button) ---------- */
+/* ---------- Hero detail panel (full-screen, opened via long-press) ---------- */
 
 .hero-detail-overlay {
   position: fixed;
@@ -2731,6 +2863,42 @@ button {
   object-position: top center;
   background: #2a2a30;
   flex-shrink: 0;
+}
+
+/* ---------- Info modal (header ⓘ button) ---------- */
+
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(4, 4, 7, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.info-modal-panel {
+  width: 100%;
+  max-width: 340px;
+  background: #14111c;
+  border: 1px solid rgba(155, 107, 255, 0.4);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 0 24px rgba(155, 107, 255, 0.25);
+}
+.info-modal-panel h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #f0dca0;
+}
+.info-modal-panel p {
+  margin: 0;
+  font-size: 13px;
+  color: #cfd4e6;
+  line-height: 1.5;
 }
 
 /* ---------- Battle Preparation (§9.46): reveal 5 vs 5, draft 3, reveal picks ---------- */

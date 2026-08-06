@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import type { HeroDefinition } from "../engine/types";
-import { ELEMENT_ICON, HERO_CARD_ART, ROLE_ICON } from "./heroVisuals";
+import { ELEMENT_COLOR, ELEMENT_ICON, HERO_CARD_ART, ROLE_ICON } from "./heroVisuals";
+import { useLongPress } from "./useLongPress";
 
 interface HeroCollectionCardProps {
   hero: HeroDefinition;
@@ -8,61 +10,57 @@ interface HeroCollectionCardProps {
   onInfo: () => void;
 }
 
-/** A compact card for the Deck Builder's "Choose Your Demigods" grid —
- * deliberately lighter than the full HeroCard trading-card design
- * (§9.30): a smaller portrait, a numeric HP/Attack/Defence row instead
- * of full ability text, and a "3 Abilities" pill in place of the
- * actual ability panels, which only appear in the full-screen detail
- * panel (see HeroDetailPanel). Tapping the card body toggles the
- * hero in/out of the deck (matches this genre's fast-build
- * convention — Snap, Clash Royale); the small ⓘ button is a separate
- * hit target for opening that detail panel, since the spec asks for
- * both "tap to select" and "tap to see everything" and a card can't
- * sensibly do both from the same tap. */
+/** A "Choose Your Demigods" grid card, rebuilt to match a supplied
+ * mockup almost exactly (§9.47 — see DESIGN.md): full-bleed portrait,
+ * a colored glowing border matching the hero's element (reusing the
+ * same ELEMENT_COLOR token the roster banner and element badges
+ * already use elsewhere, rather than a second palette just for this
+ * screen), the element as a small icon badge top-left, role as plain
+ * colored text top-right (no role icon here — that's a deliberate
+ * mockup choice, not an oversight), and a footer of name / "3
+ * Abilities" / HP-Attack-Defence. No ability text, no lore — those
+ * live only in the full-screen detail panel now.
+ *
+ * The mockup's card has no separate ⓘ button, so a plain tap now
+ * toggles the hero in/out of the deck directly and a long-press opens
+ * the detail panel instead (see useLongPress). */
 export function HeroCollectionCard({ hero, selected, onSelect, onInfo }: HeroCollectionCardProps) {
   const art = HERO_CARD_ART[hero.id];
+  const { handlers, consumeIfLongPress } = useLongPress(onInfo);
 
   return (
-    <div className={`hero-collection-card${selected ? " selected" : ""}`}>
-      <button type="button" className="hero-collection-tap" onClick={onSelect}>
-        <div className="hero-collection-portrait-wrap">
-          {art ? (
-            <img className="hero-collection-portrait" src={art} alt="" />
-          ) : (
-            <div className="hero-collection-portrait-fallback">
-              <img src={ROLE_ICON[hero.role]} className="hero-card-fallback-icon" alt="" />
-            </div>
-          )}
-          <span className="hero-card-badge hero-card-badge-role hero-collection-badge">
-            <img src={ROLE_ICON[hero.role]} alt={hero.role} />
-          </span>
-          <span className="hero-card-badge hero-card-badge-element hero-collection-badge">
-            <img src={ELEMENT_ICON[hero.element]} alt={hero.element} />
-          </span>
-          {selected && <span className="hero-collection-tick">✓</span>}
-        </div>
-        <span className="hero-collection-name">{hero.name}</span>
-        <span className="hero-collection-stats">
-          <span className="hero-collection-stat" title="Health">
-            ❤ {hero.maxHp}
-          </span>
-          <span className="hero-collection-stat" title="Attack">
-            ⚔ {hero.stats.attack}
-          </span>
-          <span className="hero-collection-stat" title="Defence">
-            🛡 {hero.stats.defense}
-          </span>
+    <button
+      type="button"
+      className={`hero-collection-card${selected ? " selected" : ""}`}
+      style={{ "--element-color": ELEMENT_COLOR[hero.element] } as CSSProperties}
+      {...handlers}
+      onClick={() => {
+        if (!consumeIfLongPress()) onSelect();
+      }}
+    >
+      <div className="hero-collection-portrait-wrap">
+        {art ? (
+          <img className="hero-collection-portrait" src={art} alt="" />
+        ) : (
+          <div className="hero-collection-portrait-fallback">
+            <img src={ROLE_ICON[hero.role]} className="hero-card-fallback-icon" alt="" />
+          </div>
+        )}
+        <span className="collection-card-element-badge">
+          <img src={ELEMENT_ICON[hero.element]} alt={hero.element} />
         </span>
-        <span className="hero-collection-abilities-pill">3 Abilities</span>
-      </button>
-      <button
-        type="button"
-        className="hero-collection-info-btn"
-        onClick={onInfo}
-        aria-label={`${hero.name} details`}
-      >
-        ⓘ
-      </button>
-    </div>
+        <span className="collection-card-role-label">{hero.role}</span>
+        {selected && <span className="collection-card-tick">✓</span>}
+      </div>
+      <div className="collection-card-footer">
+        <span className="collection-card-name">{hero.name}</span>
+        <span className="collection-card-abilities-line">3 Abilities</span>
+        <span className="collection-card-stats">
+          <span className="collection-card-stat collection-card-stat-hp">❤ {hero.maxHp}</span>
+          <span className="collection-card-stat collection-card-stat-atk">🗡 {hero.stats.attack}</span>
+          <span className="collection-card-stat collection-card-stat-def">🛡 {hero.stats.defense}</span>
+        </span>
+      </div>
+    </button>
   );
 }

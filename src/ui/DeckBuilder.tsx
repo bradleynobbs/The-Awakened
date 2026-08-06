@@ -6,12 +6,22 @@ import { HERO_PORTRAIT, ROLE_ICON } from "./heroVisuals";
 import { DeckSlotCard } from "./DeckSlotCard";
 import { HeroCollectionCard } from "./HeroCollectionCard";
 import { HeroDetailPanel } from "./HeroDetailPanel";
+import { SectionDivider } from "./SectionDivider";
 
 interface DeckBuilderProps {
   onBack: () => void;
 }
 
 const ELEMENT_FILTERS: Element[] = ["fire", "water", "spark", "earth", "spirit", "undead", "charm"];
+const ELEMENT_FILTER_ICON: Record<Element, string> = {
+  fire: "🔥",
+  water: "💧",
+  spark: "⚡",
+  earth: "🌿",
+  spirit: "✨",
+  undead: "💀",
+  charm: "💗",
+};
 const ROLE_FILTERS: Role[] = ["Tank", "Support", "Mage", "Brawler", "Speedster", "Ranger"];
 
 type SortMode = "name" | "role" | "element" | "hp";
@@ -37,20 +47,22 @@ function sortHeroes(list: HeroDefinition[], mode: SortMode): HeroDefinition[] {
   return sorted;
 }
 
-/** Redesigned per a detailed brief (§9.46, see DESIGN.md): a persistent
- * 5-hero deck (not the old 3-hero "preferred loadout" — that concept is
- * gone, since which 3 of the 5 actually fight is now decided fresh
- * every match by Battle Preparation's draft, see BattlePrep.tsx) built
- * from a filterable/sortable collection of compact cards, with a
- * full-screen detail panel for anything beyond the collection card's
- * headline stats. The deck auto-saves on every change — there's no
- * separate "Save" step, matching how the brief's mock has no save
- * button either, just a live "MY DECK (n/5)" counter. */
+/** Rebuilt to closely match a supplied mockup (§9.47 — see DESIGN.md):
+ * a static "Pick 5 Demigods" heading (no live counter — the 5 slots
+ * themselves already show progress) over a single un-scrolled row of
+ * 5 deck slots, no Power Rating/Avg Cost/Synergy panel, an always-
+ * visible element filter row under "Choose Your Demigods," and a
+ * 2-column grid of full-art cards. Role filtering moved behind the
+ * header's own Filter button (a small dropdown) since the mockup's
+ * always-visible filter bar only ever shows elements. The persistent
+ * 5-hero deck itself (state/loadout.ts) is unchanged from §9.46 — this
+ * pass is a visual/interaction rebuild, not a data-model change. */
 export function DeckBuilder({ onBack }: DeckBuilderProps) {
   const [deck, setDeck] = useState<HeroId[]>(() => getDeck());
   const [elementFilter, setElementFilter] = useState<Element | "all">("all");
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [roleFilterOpen, setRoleFilterOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [detailHeroId, setDetailHeroId] = useState<HeroId | null>(null);
   const [replaceTarget, setReplaceTarget] = useState<HeroId | null>(null);
@@ -91,98 +103,112 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
 
   return (
     <div className="screen-with-header deck-builder-screen">
+      <div className="deck-builder-cosmic-fog" aria-hidden="true" />
       <div className="menu-particles" aria-hidden="true">
         {Array.from({ length: 10 }, (_, i) => (
           <span key={i} className="menu-particle" />
         ))}
       </div>
-      <div className="screen-header">
+
+      <div className="screen-header deck-builder-header">
         <button className="icon-button" onClick={onBack} aria-label="Back">
           ←
         </button>
-        <span className="screen-header-title">Deck Builder</span>
+        <span className="screen-header-title font-display">Deck Builder</span>
+        <button className="deck-builder-info-btn" onClick={() => setInfoOpen(true)} aria-label="How this works">
+          ⓘ
+        </button>
         <div className="screen-header-actions">
-          <button
-            className={`deck-builder-tool-btn${filtersOpen ? " active" : ""}`}
-            onClick={() => setFiltersOpen((v) => !v)}
-          >
-            Filters
-          </button>
+          <div className="deck-builder-filter-wrap">
+            <button
+              className={`deck-builder-tool-btn${roleFilterOpen ? " active" : ""}`}
+              onClick={() => setRoleFilterOpen((v) => !v)}
+            >
+              ▽ Filter
+            </button>
+            {roleFilterOpen && (
+              <>
+                <button
+                  className="dropdown-backdrop"
+                  aria-label="Close filter"
+                  onClick={() => setRoleFilterOpen(false)}
+                />
+                <div className="role-filter-dropdown">
+                  <button
+                    className={`role-filter-option${roleFilter === "all" ? " active" : ""}`}
+                    onClick={() => {
+                      setRoleFilter("all");
+                      setRoleFilterOpen(false);
+                    }}
+                  >
+                    All Roles
+                  </button>
+                  {ROLE_FILTERS.map((role) => (
+                    <button
+                      key={role}
+                      className={`role-filter-option${roleFilter === role ? " active" : ""}`}
+                      onClick={() => {
+                        setRoleFilter(role);
+                        setRoleFilterOpen(false);
+                      }}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <button className="deck-builder-tool-btn" onClick={cycleSort}>
-            Sort: {SORT_LABELS[sortMode]}
+            ⇕ {SORT_LABELS[sortMode]} ▾
           </button>
         </div>
       </div>
 
       <div className="deck-builder-body">
-        <section className="deck-builder-my-deck">
-          <h2 className="deck-builder-section-title">
-            MY DECK ({deck.length}/{DECK_SIZE})
-          </h2>
-          <div className="deck-slot-row">
-            {Array.from({ length: DECK_SIZE }, (_, i) => deck[i] ?? null).map((heroId, i) => (
-              <DeckSlotCard
-                key={heroId ?? `empty-${i}`}
-                hero={heroId ? HERO_DEFINITIONS[heroId] : null}
-                onClick={heroId ? () => setDetailHeroId(heroId) : undefined}
-              />
-            ))}
-          </div>
-        </section>
+        <SectionDivider>Pick 5 Demigods</SectionDivider>
+        <div className="deck-slot-row">
+          {Array.from({ length: DECK_SIZE }, (_, i) => deck[i] ?? null).map((heroId, i) => (
+            <DeckSlotCard
+              key={heroId ?? `empty-${i}`}
+              hero={heroId ? HERO_DEFINITIONS[heroId] : null}
+              onClick={heroId ? () => attemptToggle(heroId) : undefined}
+              onLongPress={heroId ? () => setDetailHeroId(heroId) : undefined}
+            />
+          ))}
+        </div>
 
-        {filtersOpen && (
-          <section className="deck-builder-filters">
-            <div className="filter-chip-row">
-              <button
-                className={`filter-chip${elementFilter === "all" ? " active" : ""}`}
-                onClick={() => setElementFilter("all")}
-              >
-                All
-              </button>
-              {ELEMENT_FILTERS.map((el) => (
-                <button
-                  key={el}
-                  className={`filter-chip${elementFilter === el ? " active" : ""}`}
-                  onClick={() => setElementFilter(el)}
-                >
-                  {el[0].toUpperCase() + el.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="filter-chip-row">
-              <button
-                className={`filter-chip${roleFilter === "all" ? " active" : ""}`}
-                onClick={() => setRoleFilter("all")}
-              >
-                All Roles
-              </button>
-              {ROLE_FILTERS.map((role) => (
-                <button
-                  key={role}
-                  className={`filter-chip${roleFilter === role ? " active" : ""}`}
-                  onClick={() => setRoleFilter(role)}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <SectionDivider>Choose Your Demigods</SectionDivider>
 
-        <section>
-          <h2 className="deck-builder-section-title">Choose Your Demigods</h2>
-          <div className="hero-collection-grid">
-            {visibleHeroes.map((hero) => (
-              <HeroCollectionCard
-                key={hero.id}
-                hero={hero}
-                selected={deck.includes(hero.id)}
-                onSelect={() => attemptToggle(hero.id)}
-                onInfo={() => setDetailHeroId(hero.id)}
-              />
-            ))}
-          </div>
-        </section>
+        <div className="filter-chip-row element-filter-row">
+          <button
+            className={`filter-chip${elementFilter === "all" ? " active" : ""}`}
+            onClick={() => setElementFilter("all")}
+          >
+            ◆ All
+          </button>
+          {ELEMENT_FILTERS.map((el) => (
+            <button
+              key={el}
+              className={`filter-chip${elementFilter === el ? " active" : ""}`}
+              onClick={() => setElementFilter(el)}
+            >
+              {ELEMENT_FILTER_ICON[el]} {el[0].toUpperCase() + el.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="hero-collection-grid">
+          {visibleHeroes.map((hero) => (
+            <HeroCollectionCard
+              key={hero.id}
+              hero={hero}
+              selected={deck.includes(hero.id)}
+              onSelect={() => attemptToggle(hero.id)}
+              onInfo={() => setDetailHeroId(hero.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {detailHero && (
@@ -201,7 +227,7 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
       {replaceHero && (
         <div className="replace-picker-overlay">
           <div className="replace-picker-panel">
-            <h3>Your deck is full</h3>
+            <h3 className="font-display">Your deck is full</h3>
             <p>Choose a Demigod to replace with {replaceHero.name}.</p>
             <div className="replace-picker-list">
               {deck.map((id) => {
@@ -224,6 +250,24 @@ export function DeckBuilder({ onBack }: DeckBuilderProps) {
             </div>
             <button className="secondary-button" onClick={() => setReplaceTarget(null)}>
               Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {infoOpen && (
+        <div className="info-modal-overlay" onClick={() => setInfoOpen(false)}>
+          <div className="info-modal-panel" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display">Build Your Squad</h3>
+            <p>
+              Pick 5 Demigods to form your permanent deck. Before every battle, both players
+              reveal their full 5 to each other — then each secretly chooses 3 of their own 5 to
+              actually fight with, blind to the opponent's choice, before a short reveal and the
+              battle begins.
+            </p>
+            <p>Long-press any card to see its full stats, lore, and abilities.</p>
+            <button className="primary-button" onClick={() => setInfoOpen(false)}>
+              Got it
             </button>
           </div>
         </div>

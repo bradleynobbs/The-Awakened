@@ -161,8 +161,13 @@ actually real:
   without needing a second device. The bot plays a random affordable,
   legal card each turn and never uses Team-Ups — it's a punching bag, not
   a serious AI.
-- **Store** (menu sheet) — honest "coming soon" placeholder. No
-  currency or purchases exist in this prototype by design.
+- **Store** (menu sheet) — a real-looking Item Shop screen (tabs,
+  balance pill, a Summer Surge Bundle banner, its bundle contents, and
+  a featured single skin), but nothing in it is actually for sale: the
+  Featured tab is the only stocked one (the rest are an honest "coming
+  soon"), and every buy button shows a "purchases aren't wired up yet"
+  toast instead of charging anything. No currency or purchases exist
+  in this prototype by design.
 - **Collection** (menu sheet) and **Decks** (bottom tab) — both open
   the Deck Builder: browse every hero as a compact card (portrait,
   role/element badges, HP/Attack/Defence, a ⓘ button opening a

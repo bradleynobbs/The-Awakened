@@ -3319,3 +3319,99 @@ console errors. Full pipeline (`tsc -b`, `oxlint`, 75-test Vitest
 suite, `vite build`, `cap sync android`) passes. `sharp` installed
 temporarily for the flips, confirmed removed afterward
 (`git status --short package.json package-lock.json` clean).
+
+### 9.51 Item Shop: a real "Summer Surge Bundle" screen, scoped strictly to what was supplied
+
+The Store placeholder became a real screen — but a narrower one than
+the brief that started it. The original ask was a full "premium mobile
+item shop" modeled on Wild Rift/Brawl Stars/Clash Royale, with a
+featured banner, a bundle-contents row, a generic Featured Skins grid,
+Daily Offers, Currency Packs, and (the user's own explicit addition,
+since this game revolves around unique demigods) a Featured Demigod
+Bundles section selling themed packs by name. Partway through, the
+user supplied six reference images — a repeated "Summer Surge Bundle"
+mockup screenshot plus individual art for three named characters,
+Spark, Luxe, and Ember — and said explicitly: "don't add anything in
+apart from things in the screenshot or the images." That instruction
+overrides the earlier brief wherever they'd otherwise conflict: this
+screen's one live tab is built from exactly what's in those six
+images, nothing invented to fill out the rest of the original ask.
+(Whether to also build the Demigod Bundles section — the user's own
+idea, not something invented for it — was asked directly rather than
+guessed a second time; the answer was to hold it back for a later
+pass once its own art/mapping is confirmed, so it isn't in this
+screen at all yet.)
+
+**Sourcing the art.** All three character images had a solid pure-black
+background (confirmed by direct pixel sampling — corners and background
+regions were exactly (0,0,0), no gradient or noise), keyed transparent
+with the same brightness-ramp approach used for hero portraits
+elsewhere in this project. The first pass reused the established
+LOW=12/HIGH=40 thresholds verbatim and produced a visible defect this
+time: Luxe's black hair and Ember's darker markings have brightness
+values that fall inside that same 12–40 band as anti-aliased
+background edges, so they came out partially transparent too — invisible
+against a white checkerboard but glaringly obvious as purple/faded
+patches once composited over any other color. Because the true
+background here was flawlessly flat black (not true of every past
+source image), a much narrower LOW=2/HIGH=10 ramp keys the background
+just as cleanly while leaving dark hair and fur fully opaque — the
+right fix is matching the ramp to how much noise the actual background
+has, not reusing a fixed constant everywhere. A bonus find: Luxe's
+source image already includes the "Cloudy" companion floating beside
+her at full painted resolution, so Cloudy's own asset is a crop out of
+that (re-keyed the same way) rather than a low-res crop of the small
+mockup thumbnail — better quality than the reference it came from. The
+Spark & Luxe duo image (also supplied) is keyed and trimmed the same
+way for the banner's own art, which conveniently already has Cloudy
+composed into it too, exactly as the mockup shows. The three items
+with no dedicated character art — Cloudy's own small "Companion"
+thumbnail label context aside, Surge (a VFX effect) and Tropical (a
+lobby background) — are literal pixel crops out of the mockup
+screenshot's own "Bundle Includes" row, since no other source for them
+exists; reusing those exact pixels is the safest possible reading of
+"don't add anything apart from things in the screenshot."
+
+**The screen.** `storeData.ts` holds one typed `StoreBundle` — the
+Summer Surge Bundle, its six bundle-contents items, and its featured
+single-skin (Ember, 1,200) — matching the mockup's own title, tagline,
+and pricing (2,800, struck-through 4,200, 33% OFF) exactly. `Store.tsx`
+renders a tab row (`Featured/Skins/Bundles/Items/Currency`, the same
+five labels the mockup shows) and a mock currency balance pill, both
+purely cosmetic — only the Featured tab has real content; the other
+four render an honest "coming soon" rather than inventing what would
+be on them. `StoreBanner` renders the bundle banner (badge, art,
+title, tagline, price row); `StoreSkinCard` is one bundle-contents
+tile, tap-to-preview via `SkinPreviewModal` (a smaller cousin of
+HeroDetailPanel's overlay pattern — full art, name, and kicker, no
+stats to show). Every buy button — the banner's "Get Bundle" CTA and
+the featured card's own buy button — shows a toast ("Store preview —
+purchases aren't wired up yet.") rather than pretending to charge
+anything, the same button-level honesty convention this project
+already uses elsewhere for anything not actually wired up.
+
+**A banner layout bug worth naming.** The first CSS pass put the
+banner's character art as a plain flex sibling of the copy block, sized
+by `width: 62%; height: auto`, expecting its own aspect ratio to drive
+the banner's height. It didn't — screenshotted, the banner rendered as
+a ~90px sliver showing only the very top of the art, because the flex
+column's overall height was governed by the copy block, and the tall
+portrait-oriented art image was flex-shrunk down to fit whatever
+leftover space the row calculation left it, not sized by its own
+aspect ratio at all. Fixed by taking the art out of flow entirely —
+`position: absolute` against an explicit `min-height` on the banner
+itself, bleeding off the bottom-right corner the way the reference
+mockup's own banner art does — which sidesteps flex's height
+negotiation altogether instead of fighting it.
+
+Verified with Playwright at a 390×844 viewport: the Featured tab's
+banner, bundle-contents grid, and featured card all match the
+reference mockup's layout and content; tapping a bundle tile opens
+`SkinPreviewModal` with that item's full art; the "Get Bundle" CTA
+shows the purchases-not-wired-up toast; switching to a non-Featured
+tab shows the honest "coming soon" state. `sharp` and `playwright`
+were both installed temporarily for the asset work and this
+verification, confirmed removed afterward (`git status --short
+package.json package-lock.json` clean). Full pipeline (`tsc -b`,
+`oxlint`, 75-test Vitest suite, `vite build`, `cap sync android`)
+passes.
